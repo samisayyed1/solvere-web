@@ -64,7 +64,7 @@ export function Hero() {
           {/* Right column — audit mockup. Below trust line on mobile (mt-6),
               vertically centred alongside text on desktop. */}
           <div
-            className="solvere-fade-up md:w-[360px] md:flex-shrink-0 mt-7 md:mt-0"
+            className="solvere-fade-up md:w-[400px] md:flex-shrink-0 mt-7 md:mt-0"
             style={{ ["--solvere-delay" as string]: STAGGER[1] }}
           >
             <AuditMockup />
