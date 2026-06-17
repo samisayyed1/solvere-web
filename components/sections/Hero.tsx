@@ -18,7 +18,7 @@ export function Hero() {
   return (
     <section
       aria-label="Hero"
-      className="bg-cream pt-[6vh] md:pt-[8vh] pb-7 md:pb-9"
+      className="bg-cream pt-[6vh] md:pt-[8vh] pb-6 md:pb-7"
     >
       <div className="mx-auto max-w-content px-3 md:px-5">
         <div className="md:flex md:gap-5 md:items-center">

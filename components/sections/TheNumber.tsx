@@ -27,7 +27,7 @@ export function TheNumber() {
   return (
     <section
       aria-label="The Number"
-      className="relative bg-ink py-7 md:py-9 overflow-hidden"
+      className="relative bg-ink py-6 md:py-7 overflow-hidden"
     >
       {/* Ledger grid background — cream hairlines at 3% opacity, 48px rhythm.
           One-stop linear gradient, no decoration beyond rule lines. */}

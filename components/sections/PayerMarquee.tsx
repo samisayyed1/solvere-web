@@ -49,7 +49,7 @@ export function PayerMarquee() {
   return (
     <section
       aria-label="Payers we work"
-      className="bg-cream py-7 md:py-9 overflow-hidden"
+      className="bg-cream py-6 md:py-7 overflow-hidden"
     >
       <p className="text-center font-sans uppercase text-caption-m md:text-caption-d text-teal">
         PAYERS WE WORK

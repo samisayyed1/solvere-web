@@ -21,7 +21,7 @@ export function WhySolvere() {
   return (
     <section
       aria-label="Why Solvere"
-      className="relative bg-ink py-7 md:py-9 overflow-hidden"
+      className="relative bg-ink py-6 md:py-7 overflow-hidden"
     >
       <div
         aria-hidden

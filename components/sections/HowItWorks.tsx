@@ -32,7 +32,7 @@ const STEPS = [
 
 export function HowItWorks() {
   return (
-    <section aria-label="How It Works" className="bg-cream py-7 md:py-9">
+    <section aria-label="How It Works" className="bg-cream py-6 md:py-7">
       <div className="mx-auto max-w-content px-3 md:px-5">
         <FadeIn className="text-center">
           <p className="font-sans uppercase text-caption-m md:text-caption-d text-teal">
