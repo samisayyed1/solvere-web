@@ -12,7 +12,7 @@ export function RiskReversal() {
   return (
     <section
       aria-label="Risk Reversal"
-      className="bg-cream-deep py-6 md:py-7"
+      className="bg-cream-deep py-7 md:py-8 border-t border-rule"
     >
       <div className="mx-auto max-w-content px-3 md:px-5 text-center">
         <FadeIn>

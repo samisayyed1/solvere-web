@@ -44,7 +44,7 @@ const TEXT_AXIS: Record<string, string> = {
 
 export function TheGap() {
   return (
-    <section aria-label="The Gap" className="bg-cream py-6 md:py-7">
+    <section aria-label="The Gap" className="bg-cream py-7 md:py-8 border-t border-rule">
       <div className="mx-auto max-w-content px-3 md:px-5">
         <FadeIn className="text-center">
           <p className="font-sans uppercase text-caption-m md:text-caption-d text-teal">

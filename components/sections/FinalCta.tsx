@@ -6,7 +6,7 @@ import { BookACallButton } from "@/components/BookACallButton";
 
 export function FinalCta() {
   return (
-    <section aria-label="Final CTA" className="bg-ink py-6 md:py-7">
+    <section aria-label="Final CTA" className="bg-ink py-7 md:py-8 border-t border-cream/10">
       <div className="mx-auto max-w-content px-3 md:px-5 text-center">
         <FadeIn>
           <h2 className="mx-auto max-w-narrow font-display text-cream text-h1-m md:text-h1-d">
