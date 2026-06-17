@@ -1,6 +1,9 @@
 // §7.4 — The Gap. Cream bg. Three stats with static teal progress bars beneath
-// each — bars are static at final state, no fill animation, no counter motion
-// (§14 forbids animated counters; §10 forbids marquee scrolling stat bars).
+// each — bars static at final state, no fill animation, no counter motion.
+//
+// Stats sized at 72px desktop / 56px mobile (down from the brief's 88px) with
+// whitespace-nowrap so "60–70%" and "AED 1.2M+" don't wrap. Labels then land
+// at the same vertical baseline across all three columns.
 
 import { FadeIn } from "@/components/FadeIn";
 
@@ -44,11 +47,11 @@ export function TheGap() {
         <div className="mt-7 md:mt-8 grid grid-cols-1 md:grid-cols-3 md:divide-x divide-y md:divide-y-0 divide-rule border-t border-rule">
           {STATS.map((s, i) => (
             <FadeIn key={s.label} delay={0.08 * i} className="px-3 py-5 md:px-5 md:py-6 text-center">
-              <p className="font-display text-teal text-display-m md:text-display-d">
+              <p className="font-display text-teal text-[56px] md:text-[72px] leading-none whitespace-nowrap tabular-nums">
                 {s.value}
               </p>
 
-              {/* Static progress bar — final state on load, no fill animation */}
+              {/* Static progress bar — final state on load */}
               <div
                 className="mt-4 md:mt-5 mx-auto h-[3px] w-full max-w-[180px] bg-cream-deep relative"
                 role="presentation"
