@@ -1,36 +1,105 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Solvere — V1 marketing site
 
-## Getting Started
+Production marketing site for [Solvere](https://solvere.ai) — AI-native
+healthcare claim recovery for UAE clinics. Built per `./docs/BRIEF.md`.
 
-First, run the development server:
+## Stack
+
+- **Next.js 16** App Router, static export (`output: 'export'`)
+- **React 19**
+- **TypeScript**
+- **Tailwind CSS 3.4** with locked design tokens in [`tailwind.config.ts`](./tailwind.config.ts)
+- **Framer Motion** — minimal entrance animations per `docs/DESIGN.md` §10
+- **`@calcom/embed-react`** — booking modal
+- **Self-hosted fonts** — Fraunces + Inter `.woff2` in `public/fonts/`
+
+## Run locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open <http://localhost:3000>.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Production build (static)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+```
 
-## Learn More
+Generates a static site in `./out/`. Drop the folder on any static host
+(Vercel, S3 + CloudFront, Netlify, GitHub Pages).
 
-To learn more about Next.js, take a look at the following resources:
+## Deploy to Vercel
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npx vercel --prod
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Or connect the repo at <https://vercel.com/new> — Vercel auto-detects
+Next.js. No env vars are required to build.
 
-## Deploy on Vercel
+## Things you'll need to replace before launch
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 1. Cal.com event link
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The "Book a call" buttons all point at the event `solvere/audit-call`.
+Set this in two ways:
+
+- **Build-time** — set `NEXT_PUBLIC_CALCOM_LINK="acme/your-event"` in
+  Vercel env vars (and `.env.local` for development).
+- **Code** — edit the `CAL_LINK` constant in
+  [`components/BookACallButton.tsx`](./components/BookACallButton.tsx).
+
+### 2. Team section names + photos (§7.8)
+
+Two `[VARIABLE — ...]` placeholders in
+[`components/sections/Team.tsx`](./components/sections/Team.tsx):
+
+- `[VARIABLE — Founder name]`
+- `[VARIABLE — Coder name]` + DHA credential string
+
+Drop real headshots in `public/team/` (4:5 ratio, soft cream backdrop —
+see brief §7.8) and swap the placeholder `<div role="img">` blocks for
+`<Image>` components.
+
+### 3. Real OG + favicons
+
+Placeholder cream PNGs ship in `public/`. Replace:
+
+- `og.png` — 1200×630, cream bg, "Solvere" wordmark in Fraunces, tagline
+  "What is owed is owed.", teal accent rule (brief §12)
+- `favicon-16.png`, `favicon-32.png`, `apple-touch-icon.png` — simple "S"
+  in Fraunces on cream
+
+## Source-of-truth docs (read these before changing anything)
+
+| File | What it locks |
+|---|---|
+| [`./CLAUDE.md`](./CLAUDE.md) | Workflow + hard rules. |
+| [`./docs/BRIEF.md`](./docs/BRIEF.md) | Full 17-section build brief, verbatim. |
+| [`./docs/COPY.md`](./docs/COPY.md) | Every word of section copy. **Final. Do not paraphrase.** |
+| [`./docs/DESIGN.md`](./docs/DESIGN.md) | Colors, fonts, type scale, spacing, motion. |
+| [`./docs/FORBIDDEN.md`](./docs/FORBIDDEN.md) | Hard bans — words, patterns, ornaments. |
+| [`./docs/RUBRIC.md`](./docs/RUBRIC.md) | Quality bar to grade against before declaring done. |
+
+## Repo layout
+
+```
+solvere-web/
+├── app/
+│   ├── globals.css         # Tailwind base + a11y + prefers-reduced-motion
+│   ├── layout.tsx          # Fonts (next/font/local), SEO/OG meta, skip link
+│   └── page.tsx            # Section assembly in §5 order
+├── components/
+│   ├── BookACallButton.tsx # Cal.com-wired CTA — primary + nav variants
+│   ├── FadeIn.tsx          # Framer Motion §10-compliant entrance wrapper
+│   └── sections/           # One file per §7 section
+├── docs/                   # Locked source-of-truth (see table above)
+├── public/
+│   ├── fonts/              # Fraunces 400/500/700, Inter 400/500/600
+│   └── og.png + favicons   # Placeholders — replace before launch
+├── tailwind.config.ts      # Design tokens — every value is from DESIGN.md
+└── next.config.ts          # output: 'export', images: { unoptimized: true }
+```
