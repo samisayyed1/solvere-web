@@ -283,44 +283,55 @@ function FrameChrome({
 }
 
 function TriageScene() {
-  // funnel of denial dots being scored — recoverable vs not
-  const rows = 9;
-  const grid: { cx: number; cy: number; r: number; hit: boolean; i: number }[] = [];
+  // funnel: denied claims enter wide, get scored, converge to a recovered output node.
+  const rows = 8;
+  const centerX = 178;
+  const colGap = 26;
+  const rowGap = 22;
+  const topY = 96;
+  const grid: { cx: number; cy: number; hit: boolean; i: number }[] = [];
   let counter = 0;
   for (let r = 0; r < rows; r++) {
     const cols = rows - r;
-    const y = 110 + r * 24;
-    const startX = 200 - cols * 14;
+    const cy = topY + r * rowGap;
+    const rowWidth = (cols - 1) * colGap;
+    const startX = centerX - rowWidth / 2;
     for (let c = 0; c < cols; c++) {
-      const cx = startX + c * 28 + 14;
-      const hit = ((c + r * 2) % 3) !== 0;
-      grid.push({ cx, cy: y, r: 3, hit, i: counter++ });
+      const cx = startX + c * colGap;
+      const hit = (c + r * 2) % 3 !== 0;
+      grid.push({ cx, cy, hit, i: counter++ });
     }
   }
+  const outletY = 302;
+  const beamX = centerX - ((rows - 1) * colGap) / 2 - 10;
+  const beamW = (rows - 1) * colGap + 20;
 
   return (
     <div className="absolute inset-0 grid place-items-center">
       <svg viewBox="0 0 400 400" className="w-[92%] h-[92%]" fill="none">
         <defs>
-          <linearGradient id="triage-fade" x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id="scan-beam" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#0E5E5E" stopOpacity="0" />
-            <stop offset="50%" stopColor="#0E5E5E" stopOpacity="0.18" />
+            <stop offset="50%" stopColor="#0E5E5E" stopOpacity="0.85" />
             <stop offset="100%" stopColor="#0E5E5E" stopOpacity="0" />
           </linearGradient>
+          <filter id="beam-blur" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="1.4" />
+          </filter>
         </defs>
 
         {/* funnel guides */}
         <motion.path
-          d="M110 100 L200 320"
-          stroke="rgba(14,94,94,0.35)"
+          d={`M${centerX - ((rows - 1) * colGap) / 2} ${topY - 8} L${centerX} ${outletY - 22}`}
+          stroke="rgba(14,94,94,0.30)"
           strokeWidth="0.8"
           initial={{ pathLength: 0 }}
           animate={{ pathLength: 1 }}
           transition={{ duration: 1.2, delay: 0.2 }}
         />
         <motion.path
-          d="M290 100 L200 320"
-          stroke="rgba(14,94,94,0.35)"
+          d={`M${centerX + ((rows - 1) * colGap) / 2} ${topY - 8} L${centerX} ${outletY - 22}`}
+          stroke="rgba(14,94,94,0.30)"
           strokeWidth="0.8"
           initial={{ pathLength: 0 }}
           animate={{ pathLength: 1 }}
@@ -333,44 +344,77 @@ function TriageScene() {
             key={d.i}
             cx={d.cx}
             cy={d.cy}
-            r={d.r}
-            fill={d.hit ? "#0E5E5E" : "rgba(248,246,241,0.18)"}
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4, delay: 0.4 + d.i * 0.015 }}
+            r={3.5}
+            fill={d.hit ? "#0E5E5E" : "rgba(248,246,241,0.16)"}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4, delay: 0.4 + d.i * 0.012 }}
           />
         ))}
 
-        {/* scanning sweep */}
-        <motion.rect
-          x="80"
-          y="0"
-          width="240"
-          height="40"
-          fill="url(#triage-fade)"
-          initial={{ y: 90 }}
-          animate={{ y: [90, 320, 90] }}
-          transition={{
-            duration: 4,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 1.4,
-          }}
-        />
-
-        {/* outlet — recovered */}
+        {/* glowing scan beam (thin, soft) */}
         <motion.g
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 1.6, type: "spring", stiffness: 220, damping: 16 }}
+          initial={{ y: 0, opacity: 0 }}
+          animate={{ y: [0, rowGap * (rows - 1), 0], opacity: 1 }}
+          transition={{
+            y: { duration: 4.2, repeat: Infinity, ease: "easeInOut", delay: 1.2 },
+            opacity: { duration: 0.6, delay: 1.2 },
+          }}
         >
-          <circle cx="200" cy="340" r="26" fill="rgba(14,94,94,0.10)" />
-          <circle cx="200" cy="340" r="22" fill="#0A0A0A" stroke="#0E5E5E" strokeWidth="1.4" />
+          <rect
+            x={beamX}
+            y={topY - 8}
+            width={beamW}
+            height="14"
+            fill="url(#scan-beam)"
+            filter="url(#beam-blur)"
+          />
+          <rect
+            x={beamX}
+            y={topY - 1.5}
+            width={beamW}
+            height="1.2"
+            fill="#0E5E5E"
+            opacity="0.9"
+          />
+        </motion.g>
+
+        {/* legend (right side, clear of dots) */}
+        <g transform="translate(300 150)">
+          <circle cx="0" cy="0" r="3.5" fill="#0E5E5E" />
+          <text x="12" y="3" fontSize="6.5" fill="rgba(248,246,241,0.55)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.2">
+            RECOVERABLE
+          </text>
+          <circle cx="0" cy="20" r="3.5" fill="rgba(248,246,241,0.16)" />
+          <text x="12" y="23" fontSize="6.5" fill="rgba(248,246,241,0.45)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.2">
+            WRITE-OFF
+          </text>
+        </g>
+
+        {/* converged output node */}
+        <motion.g
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.5, duration: 0.5 }}
+        >
+          <motion.circle
+            cx={centerX}
+            cy={outletY}
+            r="30"
+            fill="none"
+            stroke="#0E5E5E"
+            strokeOpacity="0.5"
+            strokeWidth="0.8"
+            animate={{ r: [26, 33, 26], opacity: [0.5, 0, 0.5] }}
+            transition={{ duration: 2.8, repeat: Infinity, ease: "easeOut" }}
+          />
+          <circle cx={centerX} cy={outletY} r="26" fill="rgba(14,94,94,0.12)" />
+          <circle cx={centerX} cy={outletY} r="22" fill="#0A0A0A" stroke="#0E5E5E" strokeWidth="1.4" />
           <text
-            x="200"
-            y="338"
+            x={centerX}
+            y={outletY - 1}
             textAnchor="middle"
-            fontSize="11"
+            fontSize="13"
             fontWeight="600"
             fill="#0E5E5E"
             fontFamily="ui-sans-serif, system-ui, sans-serif"
@@ -378,42 +422,17 @@ function TriageScene() {
             68%
           </text>
           <text
-            x="200"
-            y="348"
+            x={centerX}
+            y={outletY + 10}
             textAnchor="middle"
             fontSize="5"
-            fill="rgba(248,246,241,0.55)"
+            fill="rgba(248,246,241,0.6)"
             fontFamily="ui-sans-serif, system-ui, sans-serif"
-            letterSpacing="1.4"
+            letterSpacing="1.6"
           >
             RECOVERABLE
           </text>
         </motion.g>
-
-        {/* score column on right */}
-        <g transform="translate(330 110)">
-          {[0, 1, 2, 3, 4].map((i) => (
-            <g key={i}>
-              <line
-                x1="0"
-                y1={i * 24}
-                x2="14"
-                y2={i * 24}
-                stroke="rgba(248,246,241,0.25)"
-              />
-              <text
-                x="20"
-                y={i * 24 + 3}
-                fontSize="6.5"
-                fill="rgba(248,246,241,0.45)"
-                fontFamily="ui-sans-serif, system-ui, sans-serif"
-                letterSpacing="1"
-              >
-                {[100, 80, 60, 40, 20][i]}
-              </text>
-            </g>
-          ))}
-        </g>
 
         <FrameChrome
           tl="CLAIMS · 247"
@@ -427,241 +446,160 @@ function TriageScene() {
 }
 
 function VerifyScene() {
-  // single tight document, body lines, stamp row, signature block. Seal sits in upper-right OUTSIDE doc.
+  // centered claim document; verification checks; signature; an APPROVED seal stamped on the corner.
+  const docX = 72;
+  const docY = 80;
+  const docW = 200;
+  const docR = docX + docW; // 272
+  const innerX = docX + 16; // 88
   const lines = [
-    { w: 180, y: 122 },
-    { w: 210, y: 138 },
-    { w: 150, y: 154 },
-    { w: 190, y: 170 },
-    { w: 130, y: 186 },
-    { w: 200, y: 202 },
+    { w: 168, y: 128 },
+    { w: 150, y: 142 },
+    { w: 176, y: 156 },
+    { w: 120, y: 170 },
   ];
+  const checks = ["ELIG", "CODE", "DOCS", "MOD"];
 
   return (
     <div className="absolute inset-0 grid place-items-center">
       <svg viewBox="0 0 400 400" className="w-[90%] h-[90%]" fill="none">
         <defs>
           <radialGradient id="seal-glow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#0E5E5E" stopOpacity="0.55" />
+            <stop offset="0%" stopColor="#0E5E5E" stopOpacity="0.5" />
             <stop offset="100%" stopColor="#0E5E5E" stopOpacity="0" />
           </radialGradient>
         </defs>
 
-        {/* document — slightly shorter, more padding around */}
+        {/* document */}
         <motion.rect
-          x="60"
-          y="100"
-          width="220"
-          height="240"
-          rx="6"
-          fill="rgba(255,255,255,0.02)"
+          x={docX}
+          y={docY}
+          width={docW}
+          height="250"
+          rx="8"
+          fill="rgba(255,255,255,0.025)"
           stroke="rgba(248,246,241,0.18)"
           strokeWidth="0.8"
-          initial={{ opacity: 0, y: 110 }}
-          animate={{ opacity: 1, y: 100 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ duration: 0.6 }}
         />
 
-        {/* doc header strip */}
-        <line x1="60" y1="118" x2="280" y2="118" stroke="rgba(248,246,241,0.10)" />
-        <text
-          x="72"
-          y="112"
-          fontSize="6.5"
-          fill="rgba(248,246,241,0.45)"
-          fontFamily="ui-sans-serif, system-ui, sans-serif"
-          letterSpacing="1.5"
-        >
+        {/* header */}
+        <text x={innerX} y={104} fontSize="6.5" fill="rgba(248,246,241,0.5)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.5">
           CLAIM · DM-24698
         </text>
-        <text
-          x="268"
-          y="112"
-          textAnchor="end"
-          fontSize="6.5"
-          fill="rgba(248,246,241,0.45)"
-          fontFamily="ui-sans-serif, system-ui, sans-serif"
-          letterSpacing="1.5"
-        >
+        <text x={docR - 16} y={104} textAnchor="end" fontSize="6.5" fill="rgba(248,246,241,0.5)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.5">
           AED 22,500
         </text>
+        <line x1={innerX} y1={112} x2={docR - 16} y2={112} stroke="rgba(248,246,241,0.10)" />
 
-        {/* content lines */}
+        {/* body lines */}
         {lines.map((l, i) => (
           <motion.rect
             key={i}
-            x="72"
+            x={innerX}
             y={l.y}
             width={l.w}
             height="3.5"
             rx="2"
-            fill="rgba(248,246,241,0.16)"
-            initial={{ scaleX: 0, originX: 0 }}
+            fill="rgba(248,246,241,0.15)"
+            initial={{ scaleX: 0 }}
             animate={{ scaleX: 1 }}
+            style={{ transformOrigin: `${innerX}px ${l.y}px` }}
             transition={{ duration: 0.5, delay: 0.2 + i * 0.07 }}
           />
         ))}
 
-        {/* stamp row — 4 stamps, evenly spaced inside doc */}
-        <g transform="translate(72 224)">
-          {["ELIG", "CODE", "DOCS", "MOD"].map((s, i) => (
+        {/* verification checks */}
+        <text x={innerX} y={198} fontSize="6" fill="rgba(248,246,241,0.42)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.6">
+          VERIFICATION CHECKS
+        </text>
+        {checks.map((s, i) => {
+          const cw = 40;
+          const step = 44;
+          const x = innerX + i * step;
+          return (
             <g key={s}>
               <motion.rect
-                x={i * 50}
-                y={0}
-                width="42"
+                x={x}
+                y={206}
+                width={cw}
                 height="18"
                 rx="3"
                 stroke="rgba(14,94,94,0.45)"
                 strokeWidth="0.8"
                 fill="rgba(14,94,94,0.10)"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.8 + i * 0.1 }}
-              />
-              <motion.text
-                x={i * 50 + 21}
-                y={11}
-                textAnchor="middle"
-                fontSize="6.5"
-                fill="rgba(248,246,241,0.7)"
-                fontFamily="ui-sans-serif, system-ui, sans-serif"
-                letterSpacing="1"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 0.95 + i * 0.1 }}
+                transition={{ delay: 0.7 + i * 0.1 }}
+              />
+              <motion.text
+                x={x + cw / 2 - 3}
+                y={217}
+                textAnchor="middle"
+                fontSize="6"
+                fill="rgba(248,246,241,0.72)"
+                fontFamily="ui-sans-serif, system-ui, sans-serif"
+                letterSpacing="0.8"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.8 + i * 0.1 }}
               >
                 {s}
               </motion.text>
               <motion.circle
-                cx={i * 50 + 36}
-                cy={4}
-                r="2"
+                cx={x + cw - 7}
+                cy={211}
+                r="2.2"
                 fill="#0E5E5E"
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                transition={{
-                  delay: 1.2 + i * 0.15,
-                  type: "spring",
-                  stiffness: 280,
-                  damping: 14,
-                }}
+                transition={{ delay: 1.1 + i * 0.14, type: "spring", stiffness: 280, damping: 13 }}
               />
             </g>
-          ))}
-        </g>
+          );
+        })}
 
-        {/* coder signature block */}
-        <g transform="translate(72 260)">
-          <line x1="0" y1="0" x2="196" y2="0" stroke="rgba(248,246,241,0.10)" />
-          <text
-            x="0"
-            y="12"
-            fontSize="6.5"
-            fill="rgba(248,246,241,0.45)"
-            fontFamily="ui-sans-serif, system-ui, sans-serif"
-            letterSpacing="1.5"
-          >
-            REVIEWED BY
-          </text>
-          <motion.path
-            d="M0 30 c 6 -10 14 -10 22 -2 c 8 8 16 4 24 -4 c 10 -8 20 -2 28 6 c 8 6 18 -2 26 -10 c 10 -6 22 0 30 8"
-            stroke="#F8F6F1"
-            strokeOpacity="0.9"
-            strokeWidth="1.2"
-            strokeLinecap="round"
-            fill="none"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ delay: 1.4, duration: 1.4 }}
-          />
-          <text
-            x="0"
-            y="50"
-            fontSize="6.5"
-            fill="rgba(248,246,241,0.55)"
-            fontFamily="ui-sans-serif, system-ui, sans-serif"
-            letterSpacing="1.2"
-          >
-            M. AL-MARZOUQI · DHA-MC-04812
-          </text>
-        </g>
-
-        {/* approval seal — OUTSIDE document, upper right, with connecting hairline */}
-        <motion.line
-          x1="280"
-          y1="160"
-          x2="320"
-          y2="180"
-          stroke="rgba(14,94,94,0.35)"
-          strokeWidth="0.6"
-          strokeDasharray="2 3"
+        {/* signature block */}
+        <line x1={innerX} y1={250} x2={docR - 16} y2={250} stroke="rgba(248,246,241,0.10)" />
+        <text x={innerX} y={266} fontSize="6" fill="rgba(248,246,241,0.42)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.6">
+          REVIEWED BY · DHA-LICENSED CODER
+        </text>
+        <motion.path
+          d={`M${innerX} 290 c 6 -11 15 -11 23 -2 c 8 9 17 4 25 -5 c 9 -8 19 -2 27 6 c 7 6 16 -3 22 -9`}
+          stroke="#F8F6F1"
+          strokeOpacity="0.85"
+          strokeWidth="1.2"
+          strokeLinecap="round"
+          fill="none"
           initial={{ pathLength: 0 }}
           animate={{ pathLength: 1 }}
-          transition={{ delay: 1.6, duration: 0.5 }}
+          transition={{ delay: 1.3, duration: 1.3 }}
         />
-        <motion.g
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{
-            delay: 1.7,
-            type: "spring",
-            stiffness: 200,
-            damping: 16,
-          }}
-          style={{ transformOrigin: "335px 200px" }}
-        >
-          <circle cx="335" cy="200" r="50" fill="url(#seal-glow)" />
-          <circle
-            cx="335"
-            cy="200"
-            r="38"
-            fill="#0A0A0A"
-            stroke="#0E5E5E"
-            strokeWidth="1.4"
-          />
-          <circle
-            cx="335"
-            cy="200"
-            r="44"
-            fill="none"
-            stroke="#0E5E5E"
-            strokeOpacity="0.4"
-            strokeWidth="0.6"
-            strokeDasharray="2 3"
-          />
-          <text
-            x="335"
-            y="194"
-            textAnchor="middle"
-            fontSize="7"
-            fontWeight="600"
-            fill="#0E5E5E"
-            fontFamily="ui-sans-serif, system-ui, sans-serif"
-            letterSpacing="1.6"
+        <text x={innerX} y={310} fontSize="6" fill="rgba(248,246,241,0.5)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1">
+          M. AL-MARZOUQI · DHA-MC-04812
+        </text>
+
+        {/* APPROVED seal stamped on the document's bottom-right corner (drawn at origin, then placed) */}
+        <g transform={`translate(${docR - 6} 300) rotate(-8)`}>
+          <motion.g
+            initial={{ opacity: 0, scale: 0.4 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 1.7, type: "spring", stiffness: 220, damping: 15 }}
           >
-            VERIFIED
-          </text>
-          <line
-            x1="320"
-            y1="200"
-            x2="350"
-            y2="200"
-            stroke="rgba(14,94,94,0.5)"
-            strokeWidth="0.6"
-          />
-          <text
-            x="335"
-            y="211"
-            textAnchor="middle"
-            fontSize="6"
-            fill="rgba(248,246,241,0.75)"
-            fontFamily="ui-sans-serif, system-ui, sans-serif"
-            letterSpacing="1.4"
-          >
-            DHA · CPC
-          </text>
-        </motion.g>
+            <circle cx="0" cy="0" r="46" fill="url(#seal-glow)" />
+            <circle cx="0" cy="0" r="32" fill="#0A0A0A" stroke="#0E5E5E" strokeWidth="1.4" />
+            <circle cx="0" cy="0" r="38" fill="none" stroke="#0E5E5E" strokeOpacity="0.4" strokeWidth="0.6" strokeDasharray="2 3" />
+            <text x="0" y="-5" textAnchor="middle" fontSize="7" fontWeight="600" fill="#0E5E5E" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.5">
+              VERIFIED
+            </text>
+            <line x1="-14" y1="1" x2="14" y2="1" stroke="rgba(14,94,94,0.5)" strokeWidth="0.6" />
+            <text x="0" y="11" textAnchor="middle" fontSize="6" fill="rgba(248,246,241,0.7)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.4">
+              DHA · CPC
+            </text>
+          </motion.g>
+        </g>
 
         <FrameChrome
           tl="HUMAN GATE"
@@ -923,73 +861,37 @@ function LearningScene() {
           </linearGradient>
         </defs>
 
-        {/* annotation badge — pinned top-LEFT, well above bars */}
-        <motion.g
-          initial={{ opacity: 0, y: 4 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
-          transform="translate(60 60)"
-        >
-          <rect
-            x="0"
-            y="0"
-            width="128"
-            height="40"
-            rx="6"
-            fill="rgba(14,94,94,0.10)"
-            stroke="rgba(14,94,94,0.35)"
-          />
-          <text
-            x="12"
-            y="15"
-            fontSize="6"
-            fill="rgba(248,246,241,0.55)"
-            fontFamily="ui-sans-serif, system-ui, sans-serif"
-            letterSpacing="1.4"
+        {/* annotation badge — STATIC transform (no Framer x/y clobber), opacity-only animation */}
+        <g transform="translate(58 52)">
+          <motion.g
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
           >
-            RULE LIBRARY · GROWTH
-          </text>
-          <text
-            x="12"
-            y="31"
-            fontSize="12"
-            fontWeight="600"
-            fill="#0E5E5E"
-            fontFamily="ui-sans-serif, system-ui, sans-serif"
-            letterSpacing="0"
-          >
-            +312 / month
-          </text>
-        </motion.g>
+            <rect x="0" y="0" width="150" height="44" rx="8" fill="rgba(14,94,94,0.10)" stroke="rgba(14,94,94,0.35)" />
+            <text x="14" y="17" fontSize="6" fill="rgba(248,246,241,0.55)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.5">
+              RULE LIBRARY · GROWTH
+            </text>
+            <text x="14" y="34" fontSize="13" fontWeight="600" fill="#0E5E5E" fontFamily="ui-sans-serif, system-ui, sans-serif">
+              +312 / month
+            </text>
+          </motion.g>
+        </g>
 
-        {/* trend pill — top-right */}
-        <motion.g
-          initial={{ opacity: 0, y: 4 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.45, duration: 0.5 }}
-          transform="translate(252 68)"
-        >
-          <rect
-            x="0"
-            y="0"
-            width="86"
-            height="24"
-            rx="12"
-            fill="rgba(14,94,94,0.08)"
-            stroke="rgba(14,94,94,0.30)"
-          />
-          <circle cx="12" cy="12" r="2" fill="#0E5E5E" />
-          <text
-            x="20"
-            y="15"
-            fontSize="7"
-            fill="rgba(248,246,241,0.75)"
-            fontFamily="ui-sans-serif, system-ui, sans-serif"
-            letterSpacing="1.2"
+        {/* multiplier pill — STATIC transform, top-right, clear of badge & corner labels */}
+        <g transform="translate(252 60)">
+          <motion.g
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.45, duration: 0.5 }}
           >
-            ↗ 4.1× IN 8Q
-          </text>
-        </motion.g>
+            <rect x="0" y="0" width="90" height="26" rx="13" fill="rgba(14,94,94,0.08)" stroke="rgba(14,94,94,0.30)" />
+            <circle cx="14" cy="13" r="2" fill="#0E5E5E" />
+            <text x="23" y="16" fontSize="7" fill="rgba(248,246,241,0.78)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.2">
+              4.1× IN 8Q
+            </text>
+          </motion.g>
+        </g>
 
         {/* y axis gridlines — sit below annotations */}
         {[140, 180, 220, 260, 300].map((y, i) => (
