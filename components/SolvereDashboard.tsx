@@ -118,10 +118,6 @@ export default function SolvereDashboard() {
             </p>
           </div>
 
-          <div className="inline-flex items-center gap-2 rounded-full border border-amber/40 bg-amber/10 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-amber">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber" />
-            Sample · Illustrative
-          </div>
         </div>
 
         <div

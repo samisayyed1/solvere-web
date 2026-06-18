@@ -216,9 +216,6 @@ function LiveRecoveryCard() {
           </span>
           Recovered · last 30 days
         </div>
-        <span className="text-[10px] tracking-[0.18em] uppercase text-amber">
-          Sample
-        </span>
       </div>
 
       <div className="flex items-baseline gap-3">
