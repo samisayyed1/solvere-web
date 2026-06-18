@@ -283,156 +283,162 @@ function FrameChrome({
 }
 
 function TriageScene() {
-  // funnel: denied claims enter wide, get scored, converge to a recovered output node.
-  const rows = 8;
-  const centerX = 178;
-  const colGap = 26;
-  const rowGap = 22;
-  const topY = 96;
-  const grid: { cx: number; cy: number; hit: boolean; i: number }[] = [];
-  let counter = 0;
-  for (let r = 0; r < rows; r++) {
-    const cols = rows - r;
-    const cy = topY + r * rowGap;
-    const rowWidth = (cols - 1) * colGap;
-    const startX = centerX - rowWidth / 2;
-    for (let c = 0; c < cols; c++) {
-      const cx = startX + c * colGap;
-      const hit = (c + r * 2) % 3 !== 0;
-      grid.push({ cx, cy, hit, i: counter++ });
-    }
-  }
-  const outletY = 302;
-  const beamX = centerX - ((rows - 1) * colGap) / 2 - 10;
-  const beamW = (rows - 1) * colGap + 20;
+  // AI triage console: denied claims streamed in, each scored for recoverability against a threshold.
+  const rows = [
+    { code: "DM", reason: "Eligibility lapse", score: 84 },
+    { code: "TH", reason: "Code specificity", score: 91 },
+    { code: "NA", reason: "Bundling rule", score: 32 },
+    { code: "MN", reason: "Prior auth", score: 73 },
+    { code: "NX", reason: "Documentation", score: 26 },
+    { code: "AD", reason: "Filing window", score: 88 },
+  ];
+  const THRESH = 50;
+  const trackX = 150;
+  const trackW = 120;
+  const rowTop = 96;
+  const rowStep = 26;
+  const rowH = 20;
+  const threshX = trackX + (trackW * THRESH) / 100;
 
   return (
     <div className="absolute inset-0 grid place-items-center">
       <svg viewBox="0 0 400 400" className="w-[92%] h-[92%]" fill="none">
         <defs>
-          <linearGradient id="scan-beam" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#0E5E5E" stopOpacity="0" />
-            <stop offset="50%" stopColor="#0E5E5E" stopOpacity="0.85" />
-            <stop offset="100%" stopColor="#0E5E5E" stopOpacity="0" />
+          <linearGradient id="score-fill" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#0E5E5E" stopOpacity="0.5" />
+            <stop offset="100%" stopColor="#0E5E5E" stopOpacity="1" />
           </linearGradient>
-          <filter id="beam-blur" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="1.4" />
-          </filter>
+          <linearGradient id="agg-fill" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#0E5E5E" stopOpacity="0.7" />
+            <stop offset="100%" stopColor="#0E5E5E" stopOpacity="1" />
+          </linearGradient>
         </defs>
 
-        {/* funnel guides */}
-        <motion.path
-          d={`M${centerX - ((rows - 1) * colGap) / 2} ${topY - 8} L${centerX} ${outletY - 22}`}
-          stroke="rgba(14,94,94,0.30)"
-          strokeWidth="0.8"
-          initial={{ pathLength: 0 }}
-          animate={{ pathLength: 1 }}
-          transition={{ duration: 1.2, delay: 0.2 }}
-        />
-        <motion.path
-          d={`M${centerX + ((rows - 1) * colGap) / 2} ${topY - 8} L${centerX} ${outletY - 22}`}
-          stroke="rgba(14,94,94,0.30)"
-          strokeWidth="0.8"
-          initial={{ pathLength: 0 }}
-          animate={{ pathLength: 1 }}
-          transition={{ duration: 1.2, delay: 0.2 }}
-        />
+        {/* column headers */}
+        <text x="32" y="80" fontSize="6" fill="rgba(248,246,241,0.40)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.6">
+          DENIED CLAIM
+        </text>
+        <text x={trackX} y="80" fontSize="6" fill="rgba(248,246,241,0.40)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.6">
+          RECOVERABILITY SCORE
+        </text>
 
-        {/* dots */}
-        {grid.map((d) => (
-          <motion.circle
-            key={d.i}
-            cx={d.cx}
-            cy={d.cy}
-            r={3.5}
-            fill={d.hit ? "#0E5E5E" : "rgba(248,246,241,0.16)"}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.4, delay: 0.4 + d.i * 0.012 }}
-          />
-        ))}
+        {/* threshold guide line spanning the rows */}
+        <line
+          x1={threshX}
+          y1={rowTop - 4}
+          x2={threshX}
+          y2={rowTop + rows.length * rowStep - 6}
+          stroke="rgba(248,246,241,0.18)"
+          strokeWidth="0.7"
+          strokeDasharray="2 3"
+        />
+        <text x={threshX} y={rowTop - 8} textAnchor="middle" fontSize="5" fill="rgba(248,246,241,0.4)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1">
+          THRESHOLD
+        </text>
 
-        {/* glowing scan beam (thin, soft) */}
-        <motion.g
-          initial={{ y: 0, opacity: 0 }}
-          animate={{ y: [0, rowGap * (rows - 1), 0], opacity: 1 }}
+        {/* sweeping scan highlight (row processor) */}
+        <motion.rect
+          x="28"
+          width="300"
+          height={rowH}
+          rx="4"
+          fill="rgba(14,94,94,0.10)"
+          initial={{ y: rowTop }}
+          animate={{ y: rows.map((_, i) => rowTop + i * rowStep) }}
           transition={{
-            y: { duration: 4.2, repeat: Infinity, ease: "easeInOut", delay: 1.2 },
-            opacity: { duration: 0.6, delay: 1.2 },
+            duration: 3.6,
+            times: rows.map((_, i) => i / (rows.length - 1)),
+            repeat: Infinity,
+            repeatType: "reverse",
+            ease: "easeInOut",
+            delay: 1.2,
           }}
-        >
-          <rect
-            x={beamX}
-            y={topY - 8}
-            width={beamW}
-            height="14"
-            fill="url(#scan-beam)"
-            filter="url(#beam-blur)"
-          />
-          <rect
-            x={beamX}
-            y={topY - 1.5}
-            width={beamW}
-            height="1.2"
-            fill="#0E5E5E"
-            opacity="0.9"
-          />
-        </motion.g>
+        />
 
-        {/* legend (right side, clear of dots) */}
-        <g transform="translate(300 150)">
-          <circle cx="0" cy="0" r="3.5" fill="#0E5E5E" />
-          <text x="12" y="3" fontSize="6.5" fill="rgba(248,246,241,0.55)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.2">
-            RECOVERABLE
-          </text>
-          <circle cx="0" cy="20" r="3.5" fill="rgba(248,246,241,0.16)" />
-          <text x="12" y="23" fontSize="6.5" fill="rgba(248,246,241,0.45)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.2">
-            WRITE-OFF
-          </text>
-        </g>
+        {/* claim rows */}
+        {rows.map((r, i) => {
+          const cy = rowTop + i * rowStep + rowH / 2;
+          const recoverable = r.score >= THRESH;
+          const fillW = (trackW * r.score) / 100;
+          return (
+            <motion.g
+              key={r.code}
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 + i * 0.12, ease: [0.22, 1, 0.36, 1] }}
+            >
+              {/* payer chip */}
+              <rect x="32" y={cy - 7.5} width="22" height="15" rx="3" fill="rgba(255,255,255,0.05)" stroke="rgba(248,246,241,0.16)" strokeWidth="0.6" />
+              <text x="43" y={cy + 2.5} textAnchor="middle" fontSize="7" fontWeight="600" fill="rgba(248,246,241,0.8)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="0.4">
+                {r.code}
+              </text>
+              {/* reason */}
+              <text x="62" y={cy + 2.5} fontSize="7" fill="rgba(248,246,241,0.6)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="0.3">
+                {r.reason}
+              </text>
+              {/* score track */}
+              <rect x={trackX} y={cy - 2.5} width={trackW} height="5" rx="2.5" fill="rgba(248,246,241,0.07)" />
+              <motion.rect
+                x={trackX}
+                y={cy - 2.5}
+                height="5"
+                rx="2.5"
+                fill={recoverable ? "url(#score-fill)" : "rgba(248,246,241,0.20)"}
+                initial={{ width: 0 }}
+                animate={{ width: fillW }}
+                transition={{ duration: 0.9, delay: 0.5 + i * 0.12, ease: [0.22, 1, 0.36, 1] }}
+              />
+              {/* score value */}
+              <text x={trackX + trackW + 10} y={cy + 2.5} fontSize="7.5" fontWeight="500" fill={recoverable ? "#0E5E5E" : "rgba(248,246,241,0.4)"} fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="0.3">
+                {r.score}
+              </text>
+              {/* verdict dot */}
+              <motion.circle
+                cx={trackX + trackW + 34}
+                cy={cy}
+                r="3.5"
+                fill={recoverable ? "#0E5E5E" : "none"}
+                stroke={recoverable ? "none" : "rgba(248,246,241,0.3)"}
+                strokeWidth="0.8"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 1.0 + i * 0.12, type: "spring", stiffness: 300, damping: 14 }}
+              />
+            </motion.g>
+          );
+        })}
 
-        {/* converged output node */}
-        <motion.g
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.5, duration: 0.5 }}
-        >
-          <motion.circle
-            cx={centerX}
-            cy={outletY}
-            r="30"
-            fill="none"
-            stroke="#0E5E5E"
-            strokeOpacity="0.5"
-            strokeWidth="0.8"
-            animate={{ r: [26, 33, 26], opacity: [0.5, 0, 0.5] }}
-            transition={{ duration: 2.8, repeat: Infinity, ease: "easeOut" }}
-          />
-          <circle cx={centerX} cy={outletY} r="26" fill="rgba(14,94,94,0.12)" />
-          <circle cx={centerX} cy={outletY} r="22" fill="#0A0A0A" stroke="#0E5E5E" strokeWidth="1.4" />
-          <text
-            x={centerX}
-            y={outletY - 1}
-            textAnchor="middle"
-            fontSize="13"
-            fontWeight="600"
-            fill="#0E5E5E"
-            fontFamily="ui-sans-serif, system-ui, sans-serif"
-          >
-            68%
-          </text>
-          <text
-            x={centerX}
-            y={outletY + 10}
-            textAnchor="middle"
-            fontSize="5"
-            fill="rgba(248,246,241,0.6)"
-            fontFamily="ui-sans-serif, system-ui, sans-serif"
-            letterSpacing="1.6"
-          >
-            RECOVERABLE
-          </text>
-        </motion.g>
+        {/* aggregate split bar */}
+        {(() => {
+          const aggY = rowTop + rows.length * rowStep + 16;
+          const aggX = 32;
+          const aggW = 296;
+          const recW = aggW * 0.68;
+          return (
+            <g>
+              <text x={aggX} y={aggY - 8} fontSize="6" fill="rgba(248,246,241,0.4)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.6">
+                247 CLAIMS · SCORED
+              </text>
+              <rect x={aggX} y={aggY} width={aggW} height="9" rx="4.5" fill="rgba(248,246,241,0.08)" />
+              <motion.rect
+                x={aggX}
+                y={aggY}
+                height="9"
+                rx="4.5"
+                fill="url(#agg-fill)"
+                initial={{ width: 0 }}
+                animate={{ width: recW }}
+                transition={{ duration: 1.1, delay: 1.4, ease: [0.22, 1, 0.36, 1] }}
+              />
+              <text x={aggX} y={aggY + 24} fontSize="6.5" fill="#0E5E5E" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.2">
+                ● RECOVERABLE · 68%
+              </text>
+              <text x={aggX + aggW} y={aggY + 24} textAnchor="end" fontSize="6.5" fill="rgba(248,246,241,0.45)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.2">
+                WRITE-OFF · 32%
+              </text>
+            </g>
+          );
+        })()}
 
         <FrameChrome
           tl="CLAIMS · 247"
