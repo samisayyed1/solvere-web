@@ -1,0 +1,128 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ink: #0a0a0a;
+  --ink-soft: #1a1a1a;
+  --muted: #595959;
+  --rule: #e5e0d6;
+  --cream: #f8f6f1;
+  --cream-deep: #efebe1;
+  --teal: #0e5e5e;
+  --teal-deep: #0a4848;
+  --amber: #b45309;
+}
+
+html,
+body {
+  background: var(--cream);
+  color: var(--ink-soft);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "ss01", "cv01", "cv11";
+}
+
+::selection {
+  background: var(--teal);
+  color: var(--cream);
+}
+
+* {
+  font-variant-numeric: tabular-nums;
+}
+
+/* hairline */
+.hairline {
+  border-color: var(--rule);
+}
+
+/* eyebrow style */
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--teal);
+}
+
+.eyebrow-amber {
+  color: var(--amber);
+}
+
+.eyebrow-ink {
+  color: var(--muted);
+}
+
+.eyebrow-cream {
+  color: rgba(248, 246, 241, 0.55);
+}
+
+/* display headlines */
+.h-display {
+  font-family: var(--font-inter), ui-sans-serif, system-ui;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 0.95;
+}
+
+.h-serif {
+  font-family: var(--font-fraunces), ui-serif, Georgia;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.02;
+}
+
+/* marquee */
+@keyframes marquee {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
+}
+.marquee-track {
+  animation: marquee 60s linear infinite;
+  will-change: transform;
+}
+
+/* subtle grain on ink sections */
+.grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+  background-image: radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px);
+  background-size: 3px 3px;
+}
+
+/* dotted node connector */
+.dot-line {
+  background-image: linear-gradient(to right, var(--teal) 50%, transparent 0%);
+  background-size: 8px 1px;
+  background-repeat: repeat-x;
+  background-position: left center;
+  height: 1px;
+}
+
+/* cards */
+.kanban-card {
+  background: #131313;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.kanban-card:hover {
+  border-color: rgba(14, 94, 94, 0.4);
+}
+
+/* button reset */
+button { font-family: inherit; }
+
+/* smooth */
+html { scroll-behavior: smooth; }
+
+/* focus */
+:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
