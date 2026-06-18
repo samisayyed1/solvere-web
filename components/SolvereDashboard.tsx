@@ -1,7 +1,7 @@
 "use client";
 
-import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
+import { motion, useInView, AnimatePresence } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 
 type Card = {
   payer: string;
@@ -11,10 +11,11 @@ type Card = {
   paid?: boolean;
 };
 
-const columns: { title: string; status: string; cards: Card[] }[] = [
+const columns: { title: string; status: string; cards: Card[]; total: string }[] = [
   {
     title: "Received",
-    status: "INBOUND",
+    status: "Inbound",
+    total: "AED 32,500",
     cards: [
       { payer: "NAS", amount: "AED 4,200", reason: "Eligibility lapse", id: "DM-24891" },
       { payer: "MedNet", amount: "AED 3,100", reason: "Code specificity", id: "DM-24827" },
@@ -24,25 +25,30 @@ const columns: { title: string; status: string; cards: Card[] }[] = [
   },
   {
     title: "In review",
-    status: "TRIAGE",
+    status: "Triage",
+    total: "AED 25,800",
     cards: [
       { payer: "Daman", amount: "AED 12,800", reason: "Documentation insufficient", id: "DM-24773" },
       { payer: "ADNIC", amount: "AED 7,200", reason: "CPT–ICD mismatch", id: "DM-24759" },
       { payer: "Thiqa", amount: "AED 5,800", reason: "Filing deadline", id: "DM-24744" },
+      { payer: "MedNet", amount: "AED 8,900", reason: "Modifier review", id: "DM-24738" },
     ],
   },
   {
     title: "Resubmitted",
-    status: "WITH PAYER",
+    status: "With payer",
+    total: "AED 35,800",
     cards: [
       { payer: "Thiqa", amount: "AED 8,400", reason: "Resubmitted with fix", id: "DM-24712" },
       { payer: "Daman", amount: "AED 22,500", reason: "Appeal filed", id: "DM-24698" },
       { payer: "NAS", amount: "AED 4,900", reason: "Awaiting payer response", id: "DM-24681" },
+      { payer: "ADNIC", amount: "AED 14,300", reason: "Escalation pending", id: "DM-24675" },
     ],
   },
   {
     title: "Recovered",
-    status: "PAID",
+    status: "Paid",
+    total: "AED 45,500",
     cards: [
       { payer: "NEXtCARE", amount: "AED 6,100", reason: "Paid in full", id: "DM-24612", paid: true },
       { payer: "Daman", amount: "AED 18,900", reason: "Paid in full", id: "DM-24587", paid: true },
@@ -55,6 +61,18 @@ const columns: { title: string; status: string; cards: Card[] }[] = [
 export default function SolvereDashboard() {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-100px" });
+  const [pulseCol, setPulseCol] = useState<number>(-1);
+
+  // gentle pulse cycling through columns to imply live movement
+  useEffect(() => {
+    if (!inView) return;
+    let i = 0;
+    const id = setInterval(() => {
+      setPulseCol(i);
+      i = (i + 1) % columns.length;
+    }, 1800);
+    return () => clearInterval(id);
+  }, [inView]);
 
   return (
     <section
@@ -64,10 +82,10 @@ export default function SolvereDashboard() {
       {/* hairline grid backdrop */}
       <div
         aria-hidden
-        className="absolute inset-0 opacity-[0.08] pointer-events-none"
+        className="absolute inset-0 opacity-[0.06] pointer-events-none"
         style={{
           backgroundImage:
-            "linear-gradient(to right, rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.6) 1px, transparent 1px)",
+            "linear-gradient(to right, rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.5) 1px, transparent 1px)",
           backgroundSize: "64px 64px",
         }}
       />
@@ -76,12 +94,12 @@ export default function SolvereDashboard() {
         className="absolute -top-32 right-0 w-[700px] h-[700px] rounded-full pointer-events-none"
         style={{
           background:
-            "radial-gradient(closest-side, rgba(14,94,94,0.35), rgba(14,94,94,0) 70%)",
+            "radial-gradient(closest-side, rgba(14,94,94,0.32), rgba(14,94,94,0) 70%)",
         }}
       />
 
       <div className="relative mx-auto max-w-container px-6 lg:px-10">
-        <div className="flex items-end justify-between flex-wrap gap-6 mb-10">
+        <div className="flex items-end justify-between flex-wrap gap-6 mb-12">
           <div>
             <div className="eyebrow inline-flex items-center gap-2 mb-5 text-teal">
               <span className="relative flex h-2 w-2">
@@ -90,7 +108,7 @@ export default function SolvereDashboard() {
               </span>
               INSIDE SOLVERE
             </div>
-            <h2 className="h-display text-[34px] sm:text-[44px] md:text-[56px] max-w-[14ch] text-cream">
+            <h2 className="h-display text-[34px] sm:text-[44px] md:text-[56px] max-w-[14ch] text-cream leading-[1.02]">
               See claims move through Solvere.
             </h2>
             <p className="mt-5 max-w-[58ch] text-[16px] md:text-[17px] text-cream/65 leading-[1.55]">
@@ -108,115 +126,198 @@ export default function SolvereDashboard() {
 
         <div
           ref={ref}
-          className="relative rounded-2xl border border-white/8 bg-ink-soft/40 p-3 md:p-5 backdrop-blur"
+          className="relative rounded-2xl border bg-ink-soft/40 p-4 md:p-6 backdrop-blur"
           style={{ borderColor: "rgba(255,255,255,0.08)" }}
         >
-          {/* dashboard chrome */}
-          <div className="flex items-center justify-between px-3 py-3 border-b border-white/5">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-white/15" />
-              <span className="w-2.5 h-2.5 rounded-full bg-white/15" />
-              <span className="w-2.5 h-2.5 rounded-full bg-white/15" />
-              <span className="ml-3 text-[12px] tracking-wide text-cream/55">
+          {/* chrome */}
+          <div className="flex items-center justify-between px-2 pb-4 mb-2 border-b border-white/8">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-white/12" />
+                <span className="w-2.5 h-2.5 rounded-full bg-white/12" />
+                <span className="w-2.5 h-2.5 rounded-full bg-white/12" />
+              </div>
+              <span className="ml-2 text-[12px] tracking-wide text-cream/55 font-mono">
                 solvere.app · clinic-recovery-board
               </span>
             </div>
-            <div className="hidden md:flex items-center gap-4 text-[11px] text-cream/45 uppercase tracking-[0.18em]">
+            <div className="hidden md:flex items-center gap-5 text-[11px] tracking-[0.18em] uppercase text-cream/45">
+              <span className="flex items-center gap-2">
+                <span className="w-1 h-1 rounded-full bg-teal animate-pulse" />
+                Live ledger
+              </span>
+              <span className="text-cream/25">/</span>
               <span>Q2 · 2026</span>
-              <span className="text-cream/30">/</span>
+              <span className="text-cream/25">/</span>
               <span>Updated 2m ago</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-px bg-white/5 rounded-xl overflow-hidden">
             {columns.map((col, colIdx) => (
-              <div key={col.title} className="min-h-[420px]">
-                <div className="flex items-baseline justify-between mb-3 px-2">
-                  <div className="flex items-baseline gap-2">
-                    <h3 className="h-serif text-[18px] text-cream">
-                      {col.title}
-                    </h3>
-                    <span className="text-[11px] text-cream/40 tabular-nums">
-                      {col.cards.length}
-                    </span>
-                  </div>
-                  <span className="text-[10px] tracking-[0.18em] text-cream/40">
-                    {col.status}
-                  </span>
-                </div>
-
-                <div className="flex flex-col gap-2.5">
-                  {col.cards.map((card, i) => (
-                    <motion.div
-                      key={card.id}
-                      initial={{ opacity: 0, y: 18, scale: 0.98 }}
-                      animate={
-                        inView
-                          ? { opacity: 1, y: 0, scale: 1 }
-                          : { opacity: 0, y: 18, scale: 0.98 }
-                      }
-                      transition={{
-                        duration: 0.5,
-                        delay: colIdx * 0.18 + i * 0.08,
-                        ease: [0.22, 1, 0.36, 1],
-                      }}
-                      className="kanban-card rounded-xl p-3.5 group transition-all"
-                    >
-                      <div className="flex items-baseline justify-between">
-                        <span className="text-[13px] font-medium text-cream">
-                          {card.payer}
-                        </span>
-                        <span className="text-[10px] tracking-wider text-cream/35 font-mono">
-                          {card.id}
-                        </span>
-                      </div>
-                      <div className="mt-2 flex items-center gap-2">
-                        <span className="h-display text-[18px] text-cream tabular-nums">
-                          {card.amount}
-                        </span>
-                        {card.paid && (
-                          <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-teal/20 border border-teal/40">
-                            <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
-                              <path
-                                d="M1 4l2 2 4-4"
-                                stroke="#0E5E5E"
-                                strokeWidth="1.8"
-                                strokeLinecap="square"
-                              />
-                            </svg>
-                          </span>
-                        )}
-                      </div>
-                      <div className="mt-2 flex items-center gap-2 text-[12px] text-cream/55">
-                        <span
-                          className={`w-1 h-1 rounded-full ${
-                            card.paid ? "bg-teal" : "bg-cream/30"
-                          }`}
-                        />
-                        {card.reason}
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
+              <Column
+                key={col.title}
+                col={col}
+                colIdx={colIdx}
+                inView={inView}
+                pulse={pulseCol === colIdx}
+              />
             ))}
           </div>
 
-          {/* bottom strip */}
-          <div className="mt-6 border-t border-white/5 pt-4 px-2 flex items-center justify-between text-[11px] tracking-[0.18em] uppercase text-cream/40">
-            <span>14 claims tracked · AED 140,400 in motion</span>
-            <span className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-teal animate-pulse" />
-              Live ledger
-            </span>
+          {/* footer strip */}
+          <div className="mt-5 px-2 grid grid-cols-2 md:grid-cols-4 gap-4 text-[11px] tracking-[0.18em] uppercase text-cream/50">
+            <SummaryStat label="Claims tracked" value="16" />
+            <SummaryStat label="In motion" value="AED 94,100" />
+            <SummaryStat label="Recovered (30d)" value="AED 45,500" />
+            <SummaryStat label="Recovery rate" value="62%" highlight />
           </div>
         </div>
 
-        <p className="mt-6 text-[13px] text-cream/55 max-w-[60ch] leading-[1.55]">
+        <p className="mt-7 text-[13px] text-cream/55 max-w-[60ch] leading-[1.55]">
           Real claims move in real time once Solvere is running. This is the
           view you receive monthly.
         </p>
       </div>
     </section>
+  );
+}
+
+function Column({
+  col,
+  colIdx,
+  inView,
+  pulse,
+}: {
+  col: { title: string; status: string; total: string; cards: Card[] };
+  colIdx: number;
+  inView: boolean;
+  pulse: boolean;
+}) {
+  return (
+    <div className="bg-ink p-4 md:p-5 flex flex-col min-h-[560px]">
+      <div className="flex items-baseline justify-between mb-5">
+        <div className="flex items-baseline gap-2">
+          <h3 className="h-serif text-[17px] text-cream">{col.title}</h3>
+          <span className="text-[11px] text-cream/45 tabular-nums">
+            {col.cards.length}
+          </span>
+        </div>
+        <span className="flex items-center gap-1.5 text-[10px] tracking-[0.18em] uppercase text-cream/45">
+          <AnimatePresence>
+            {pulse && (
+              <motion.span
+                key="pulse"
+                initial={{ opacity: 0, scale: 0.6 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                className="w-1 h-1 rounded-full bg-teal"
+              />
+            )}
+          </AnimatePresence>
+          {col.status}
+        </span>
+      </div>
+
+      <div className="flex flex-col gap-2.5 flex-1">
+        {col.cards.map((card, i) => (
+          <motion.div
+            key={card.id}
+            initial={{ opacity: 0, y: 14, scale: 0.985 }}
+            animate={
+              inView
+                ? { opacity: 1, y: 0, scale: 1 }
+                : { opacity: 0, y: 14, scale: 0.985 }
+            }
+            transition={{
+              duration: 0.5,
+              delay: colIdx * 0.16 + i * 0.06,
+              ease: [0.22, 1, 0.36, 1],
+            }}
+            className="kanban-card rounded-lg p-3.5 transition-all hover:translate-y-[-1px]"
+          >
+            <div className="flex items-center justify-between mb-2.5">
+              <div className="flex items-center gap-2">
+                <PayerDot payer={card.payer} />
+                <span className="text-[12.5px] font-medium text-cream tracking-tight">
+                  {card.payer}
+                </span>
+              </div>
+              <span className="text-[10px] tracking-wider text-cream/30 font-mono">
+                {card.id}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="h-display text-[17px] text-cream tabular-nums leading-none">
+                {card.amount}
+              </span>
+              {card.paid && (
+                <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-teal/20 border border-teal/40">
+                  <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+                    <path
+                      d="M1 4l2 2 4-4"
+                      stroke="#0E5E5E"
+                      strokeWidth="1.8"
+                      strokeLinecap="square"
+                    />
+                  </svg>
+                </span>
+              )}
+            </div>
+            <div className="mt-2.5 flex items-center gap-2 text-[11.5px] text-cream/55">
+              <span
+                className={`w-1 h-1 rounded-full ${
+                  card.paid ? "bg-teal" : "bg-cream/30"
+                }`}
+              />
+              <span className="truncate">{card.reason}</span>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      <div className="mt-4 pt-3 border-t border-white/8 flex items-center justify-between text-[11px] tracking-[0.16em] uppercase">
+        <span className="text-cream/40">Total</span>
+        <span className="text-cream tabular-nums text-[13px] tracking-normal font-medium">
+          {col.total}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function PayerDot({ payer }: { payer: string }) {
+  // a small monogrammed badge — uniform visual rhythm
+  const initials = payer
+    .replace(/[^a-zA-Z]/g, "")
+    .slice(0, 2)
+    .toUpperCase();
+  return (
+    <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-white/8 text-[9px] tracking-wider text-cream/75 font-medium">
+      {initials}
+    </span>
+  );
+}
+
+function SummaryStat({
+  label,
+  value,
+  highlight,
+}: {
+  label: string;
+  value: string;
+  highlight?: boolean;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span>{label}</span>
+      <span
+        className={`text-[15px] tracking-normal font-medium tabular-nums ${
+          highlight ? "text-teal" : "text-cream"
+        }`}
+      >
+        {value}
+      </span>
+    </div>
   );
 }

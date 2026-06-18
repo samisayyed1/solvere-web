@@ -4,7 +4,6 @@ import TrustBand from "@/components/TrustBand";
 import SolvereDashboard from "@/components/SolvereDashboard";
 import CapabilityStack from "@/components/CapabilityStack";
 import StatsBand from "@/components/StatsBand";
-import ProcessFlow from "@/components/ProcessFlow";
 import Comparison from "@/components/Comparison";
 import AIDeepDive from "@/components/AIDeepDive";
 import BenefitsList from "@/components/BenefitsList";
@@ -23,7 +22,6 @@ export default function Page() {
         <SolvereDashboard />
         <CapabilityStack />
         <StatsBand />
-        <ProcessFlow />
         <Comparison />
         <AIDeepDive />
         <BenefitsList />
