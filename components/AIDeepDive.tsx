@@ -467,15 +467,15 @@ function TriageScene() {
 }
 
 function VerifyScene() {
-  // Larger doc + balanced composition: doc 304x310 at (28,48) → docR=332,
-  // seal visible-edge at ~373 → composition span 28..373, center = 200.5
-  const docX = 28;
+  // Doc itself centered on viewBox midpoint (200) — what the eye reads as "centered".
+  // docW=300 → docX=50, docR=350. Seal at (346, 310), right edge ~391 (inside 400).
+  const docX = 50;
   const docY = 48;
-  const docW = 304;
+  const docW = 300;
   const docH = 310;
-  const docR = docX + docW; // 332
-  const innerX = docX + 20; // 48
-  const innerR = docR - 20; // 312
+  const docR = docX + docW; // 350
+  const innerX = docX + 20; // 70
+  const innerR = docR - 20; // 330
   const lines = [
     { w: 230, y: docY + 68 },
     { w: 198, y: docY + 88 },
