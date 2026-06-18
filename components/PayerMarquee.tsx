@@ -12,7 +12,7 @@ const internationalPayers = [
 export default function PayerMarquee() {
   return (
     <section className="relative bg-cream py-20 md:py-24 border-y border-rule overflow-hidden">
-      <div className="mx-auto max-w-container px-6 lg:px-10 mb-12">
+      <div className="mx-auto max-w-container px-6 lg:px-10 mb-14">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-end">
           <div className="lg:col-span-7">
             <div className="eyebrow mb-5">Payers we work</div>
@@ -31,26 +31,11 @@ export default function PayerMarquee() {
         </div>
       </div>
 
-      <div className="relative">
-        <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-32 z-10 bg-gradient-to-r from-cream to-transparent" />
-        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-32 z-10 bg-gradient-to-l from-cream to-transparent" />
+      <MarqueeRow items={localPayers} reverse={false} />
+      <div className="my-2" />
+      <MarqueeRow items={internationalPayers} reverse={true} />
 
-        <MarqueeRow
-          label="UAE LOCAL PAYERS"
-          items={localPayers}
-          reverse={false}
-        />
-        <div className="my-3 mx-auto max-w-container px-6 lg:px-10">
-          <div className="h-px bg-rule" />
-        </div>
-        <MarqueeRow
-          label="INTERNATIONAL · TPA"
-          items={internationalPayers}
-          reverse={true}
-        />
-      </div>
-
-      <div className="mx-auto max-w-container px-6 lg:px-10 mt-12">
+      <div className="mx-auto max-w-container px-6 lg:px-10 mt-14">
         <div className="flex items-center justify-between flex-wrap gap-4 text-[11px] tracking-[0.22em] uppercase text-muted">
           <span className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-teal" />
@@ -81,24 +66,20 @@ function Hairline() {
 }
 
 function MarqueeRow({
-  label,
   items,
   reverse,
 }: {
-  label: string;
   items: string[];
   reverse: boolean;
 }) {
   const seq = [...items, ...items];
   return (
-    <div className="relative py-3 flex items-center">
-      <div className="absolute left-0 lg:left-10 top-1/2 -translate-y-1/2 z-20 hidden md:flex items-center gap-2 text-[10px] tracking-[0.22em] uppercase text-muted bg-cream pr-4">
-        <span className="w-1 h-1 rounded-full bg-teal" />
-        {label}
-      </div>
-      <div className="overflow-hidden w-full md:pl-[210px]">
+    <div className="relative">
+      <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-40 z-10 bg-gradient-to-r from-cream via-cream to-transparent" />
+      <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-40 z-10 bg-gradient-to-l from-cream via-cream to-transparent" />
+      <div className="overflow-hidden py-3">
         <div
-          className={`flex gap-10 md:gap-14 whitespace-nowrap marquee-track`}
+          className="flex gap-12 md:gap-16 whitespace-nowrap marquee-track items-center"
           style={{
             animationDirection: reverse ? "reverse" : "normal",
             animationDuration: reverse ? "70s" : "55s",
@@ -107,14 +88,14 @@ function MarqueeRow({
           {seq.map((p, i) => (
             <div
               key={`${p}-${i}`}
-              className="flex items-center gap-10 md:gap-14"
+              className="flex items-center gap-12 md:gap-16"
             >
-              <span className="h-serif text-[24px] md:text-[30px] text-ink/85 hover:text-teal transition-colors tracking-[-0.01em]">
+              <span className="h-serif text-[26px] md:text-[32px] text-ink/85 tracking-[-0.01em]">
                 {p}
               </span>
-              <span aria-hidden className="text-rule">
-                <svg width="6" height="6" viewBox="0 0 6 6">
-                  <circle cx="3" cy="3" r="2" fill="currentColor" />
+              <span aria-hidden className="text-teal/35">
+                <svg width="5" height="5" viewBox="0 0 5 5">
+                  <circle cx="2.5" cy="2.5" r="2" fill="currentColor" />
                 </svg>
               </span>
             </div>

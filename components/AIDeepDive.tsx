@@ -233,44 +233,235 @@ function Illustration({ kind }: { kind: "funnel" | "check" | "nodes" | "bars" })
     );
   }
   if (kind === "nodes") {
+    const nodes = [
+      { x: 80, y: 80, l: "DAMAN", code: "DM" },
+      { x: 320, y: 80, l: "THIQA", code: "TH" },
+      { x: 40, y: 200, l: "NAS", code: "NA" },
+      { x: 360, y: 200, l: "MEDNET", code: "MN" },
+      { x: 110, y: 340, l: "NEXtCARE", code: "NX" },
+      { x: 290, y: 340, l: "ADNIC", code: "AD" },
+    ];
     return (
       <div className="absolute inset-0 grid place-items-center">
-        <svg viewBox="0 0 400 400" className="w-[80%] h-[80%]" fill="none">
-          {/* center */}
-          <motion.circle
-            cx="200" cy="200" r="32"
-            fill="rgba(14,94,94,0.25)"
-            stroke="#0E5E5E"
-            initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ duration: 0.5 }}
-          />
-          <text x="200" y="206" textAnchor="middle" fontSize="11" fill="#F8F6F1" fontFamily="sans-serif">SOLVERE</text>
-          {[
-            { x: 60, y: 80, l: "DAMAN" },
-            { x: 340, y: 80, l: "THIQA" },
-            { x: 30, y: 220, l: "NAS" },
-            { x: 370, y: 220, l: "MEDNET" },
-            { x: 100, y: 360, l: "NEXtCARE" },
-            { x: 300, y: 360, l: "ADNIC" },
-          ].map((n, i) => (
-            <g key={n.l}>
-              <motion.line
-                x1="200" y1="200" x2={n.x} y2={n.y}
-                stroke="rgba(14,94,94,0.45)"
-                strokeWidth="1"
-                strokeDasharray="3 3"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ delay: 0.2 + i * 0.08, duration: 0.6 }}
-              />
+        <svg viewBox="0 0 400 400" className="w-[88%] h-[88%]" fill="none">
+          <defs>
+            <radialGradient id="center-glow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#0E5E5E" stopOpacity="0.7" />
+              <stop offset="60%" stopColor="#0E5E5E" stopOpacity="0.12" />
+              <stop offset="100%" stopColor="#0E5E5E" stopOpacity="0" />
+            </radialGradient>
+            <radialGradient id="node-glow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#0E5E5E" stopOpacity="0.35" />
+              <stop offset="100%" stopColor="#0E5E5E" stopOpacity="0" />
+            </radialGradient>
+          </defs>
+
+          {/* concentric pulse rings */}
+          {[60, 90, 120].map((r, i) => (
+            <motion.circle
+              key={r}
+              cx="200"
+              cy="200"
+              r={r}
+              stroke="rgba(14,94,94,0.18)"
+              strokeWidth="0.8"
+              strokeDasharray="2 4"
+              initial={{ opacity: 0, scale: 0.6 }}
+              animate={{ opacity: [0, 0.7, 0.4], scale: [0.85, 1.04, 1] }}
+              transition={{
+                duration: 3.2,
+                delay: 0.3 + i * 0.3,
+                repeat: Infinity,
+                repeatDelay: 1.2,
+                ease: "easeOut",
+              }}
+            />
+          ))}
+
+          {/* center glow */}
+          <circle cx="200" cy="200" r="90" fill="url(#center-glow)" />
+
+          {/* lines from outer to center */}
+          {nodes.map((n, i) => (
+            <motion.line
+              key={`line-${n.l}`}
+              x1="200"
+              y1="200"
+              x2={n.x}
+              y2={n.y}
+              stroke="rgba(14,94,94,0.45)"
+              strokeWidth="0.8"
+              strokeDasharray="2 3"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 1 }}
+              transition={{ delay: 0.3 + i * 0.06, duration: 0.7 }}
+            />
+          ))}
+
+          {/* traveling data packets on each line */}
+          {nodes.map((n, i) => {
+            const dx = 200 - n.x;
+            const dy = 200 - n.y;
+            return (
               <motion.circle
-                cx={n.x} cy={n.y} r="18"
-                fill="rgba(255,255,255,0.04)"
-                stroke="rgba(255,255,255,0.25)"
+                key={`packet-${n.l}`}
+                cx={n.x}
+                cy={n.y}
+                r="2.5"
+                fill="#0E5E5E"
+                initial={{ opacity: 0 }}
+                animate={{
+                  opacity: [0, 1, 1, 0],
+                  cx: [n.x, n.x + dx],
+                  cy: [n.y, n.y + dy],
+                }}
+                transition={{
+                  duration: 2.2,
+                  delay: 1.4 + i * 0.32,
+                  repeat: Infinity,
+                  repeatDelay: 1.6,
+                  ease: "easeInOut",
+                  times: [0, 0.1, 0.9, 1],
+                }}
+              />
+            );
+          })}
+
+          {/* outer nodes */}
+          {nodes.map((n, i) => (
+            <g key={`node-${n.l}`}>
+              {/* glow */}
+              <motion.circle
+                cx={n.x}
+                cy={n.y}
+                r="34"
+                fill="url(#node-glow)"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0.35, 0.6, 0.35] }}
+                transition={{
+                  duration: 3.6,
+                  delay: 0.8 + i * 0.18,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+              {/* outer ring */}
+              <motion.circle
+                cx={n.x}
+                cy={n.y}
+                r="18"
+                fill="#0A0A0A"
+                stroke="rgba(248,246,241,0.22)"
+                strokeWidth="0.8"
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                transition={{ delay: 0.4 + i * 0.08 }}
+                transition={{ delay: 0.45 + i * 0.07, type: "spring", stiffness: 220, damping: 16 }}
               />
-              <text x={n.x} y={n.y + 36} textAnchor="middle" fontSize="9" fill="rgba(248,246,241,0.6)" fontFamily="sans-serif" letterSpacing="1.5">{n.l}</text>
+              {/* tick marks at cardinals */}
+              <g stroke="rgba(248,246,241,0.30)" strokeWidth="0.8">
+                <line x1={n.x} y1={n.y - 19.5} x2={n.x} y2={n.y - 16.5} />
+                <line x1={n.x} y1={n.y + 16.5} x2={n.x} y2={n.y + 19.5} />
+                <line x1={n.x - 19.5} y1={n.y} x2={n.x - 16.5} y2={n.y} />
+                <line x1={n.x + 16.5} y1={n.y} x2={n.x + 19.5} y2={n.y} />
+              </g>
+              {/* code in node */}
+              <motion.text
+                x={n.x}
+                y={n.y + 3.5}
+                textAnchor="middle"
+                fontSize="9"
+                fontWeight="600"
+                fill="rgba(248,246,241,0.85)"
+                fontFamily="ui-sans-serif, system-ui, sans-serif"
+                letterSpacing="0.5"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.7 + i * 0.07 }}
+              >
+                {n.code}
+              </motion.text>
+              {/* label below */}
+              <motion.text
+                x={n.x}
+                y={n.y + 38}
+                textAnchor="middle"
+                fontSize="8.5"
+                fill="rgba(248,246,241,0.55)"
+                fontFamily="ui-sans-serif, system-ui, sans-serif"
+                letterSpacing="2"
+                initial={{ opacity: 0, y: n.y + 44 }}
+                animate={{ opacity: 1, y: n.y + 38 }}
+                transition={{ delay: 0.8 + i * 0.07, duration: 0.4 }}
+              >
+                {n.l}
+              </motion.text>
+            </g>
+          ))}
+
+          {/* center node */}
+          <motion.circle
+            cx="200"
+            cy="200"
+            r="38"
+            fill="#0A0A0A"
+            stroke="#0E5E5E"
+            strokeWidth="1.2"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.1, type: "spring", stiffness: 200, damping: 18 }}
+          />
+          <motion.circle
+            cx="200"
+            cy="200"
+            r="42"
+            stroke="#0E5E5E"
+            strokeOpacity="0.6"
+            strokeWidth="0.6"
+            fill="none"
+            animate={{ r: [42, 50, 42], opacity: [0.6, 0, 0.6] }}
+            transition={{ duration: 2.8, repeat: Infinity, ease: "easeOut" }}
+          />
+          <text
+            x="200"
+            y="197"
+            textAnchor="middle"
+            fontSize="9.5"
+            fontWeight="600"
+            fill="#F8F6F1"
+            fontFamily="ui-sans-serif, system-ui, sans-serif"
+            letterSpacing="2.2"
+          >
+            SOLVERE
+          </text>
+          <line x1="184" y1="204" x2="216" y2="204" stroke="rgba(14,94,94,0.6)" strokeWidth="0.6" />
+          <text
+            x="200"
+            y="215"
+            textAnchor="middle"
+            fontSize="6.5"
+            fill="rgba(248,246,241,0.55)"
+            fontFamily="ui-sans-serif, system-ui, sans-serif"
+            letterSpacing="2"
+          >
+            CORE
+          </text>
+
+          {/* corner instrument labels */}
+          <g fontFamily="ui-sans-serif, system-ui, sans-serif" fill="rgba(248,246,241,0.35)" fontSize="7" letterSpacing="1.8">
+            <text x="16" y="22">PAYER MESH</text>
+            <text x="384" y="22" textAnchor="end">24 PORTALS</text>
+            <text x="16" y="390">LATENCY · LIVE</text>
+            <text x="384" y="390" textAnchor="end">eCLAIMLINK</text>
+          </g>
+          {/* corner brackets */}
+          {[
+            { x: 10, y: 28, rot: 0 },
+            { x: 390, y: 28, rot: 90 },
+            { x: 390, y: 376, rot: 180 },
+            { x: 10, y: 376, rot: 270 },
+          ].map((c, i) => (
+            <g key={i} transform={`translate(${c.x} ${c.y}) rotate(${c.rot})`} stroke="rgba(248,246,241,0.25)" strokeWidth="0.8" fill="none">
+              <path d="M 0 0 L 0 -10 L 10 -10" />
             </g>
           ))}
         </svg>
