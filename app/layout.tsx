@@ -37,6 +37,8 @@ const interCritical = localFont({
   src: [
     { path: "../public/fonts/Inter-400.woff2", weight: "400", style: "normal" },
     { path: "../public/fonts/Inter-500.woff2", weight: "500", style: "normal" },
+    // Inter 700 is the LCP weight on the new hero — preload eagerly.
+    { path: "../public/fonts/Inter-700.woff2", weight: "700", style: "normal" },
   ],
   variable: "--font-inter",
   display: "swap",

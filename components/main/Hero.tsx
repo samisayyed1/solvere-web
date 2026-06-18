@@ -1,5 +1,5 @@
-// New main hero — large-format pitch with bold headline, supporting copy,
-// dual CTAs and a hero visual (the audit mockup we already built).
+// Hero — modern-sans headline (Inter 700, tight tracking) for the
+// contemporary tech-product feel. Audit mockup stays in the right column.
 
 import { BookACallButton } from "@/components/BookACallButton";
 import { AuditMockup } from "@/components/AuditMockup";
@@ -23,7 +23,10 @@ export function Hero() {
               ABU DHABI · UNITED ARAB EMIRATES
             </p>
 
-            <h1 className="mt-4 md:mt-5 font-display text-ink text-display-m md:text-display-d leading-[1.02]">
+            {/* LCP element — no opacity:0 entrance so Lighthouse measures from
+                paint. Inter 700, tight tracking, large size for the modern
+                tech-product gravitas the user asked for. */}
+            <h1 className="mt-4 md:mt-5 font-sans font-bold text-ink text-[48px] md:text-[76px] leading-[1.04] tracking-[-0.025em]">
               A new standard for UAE claim recovery.
             </h1>
 
@@ -31,9 +34,9 @@ export function Hero() {
               className="solvere-fade-up mt-5 md:mt-6 max-w-[600px] font-sans text-muted text-body-lg-m md:text-body-lg-d"
               style={{ ["--solvere-delay" as string]: STAGGER[2] }}
             >
-              Solvere uses AI agents and a DHA-licensed medical coder to recover
-              the denied insurance claims your billers gave up on — end to end,
-              every payer, pay only on recovery.
+              Solvere uses AI agents and a DHA-licensed medical coder to
+              recover the denied insurance claims your billers gave up on
+              &mdash; end to end, every payer, pay only on recovery.
             </p>
 
             <div
