@@ -58,7 +58,7 @@ export default function Footer() {
                 Start the recovery
               </div>
               <p className="h-serif text-[22px] md:text-[26px] text-ink leading-[1.2] mb-6">
-                Send us ninety days of denials. We return an audit in five.
+                Send us ninety days of denials. We return an audit in twenty-four hours.
               </p>
               <a
                 href="#final-cta"
@@ -79,7 +79,7 @@ export default function Footer() {
               <div className="mt-6 pt-5 border-t border-rule flex items-center justify-between text-[10px] tracking-[0.22em] uppercase text-muted">
                 <span className="flex items-center gap-2">
                   <span className="w-1 h-1 rounded-full bg-teal" />
-                  5-day audit
+                  24-hour audit
                 </span>
                 <span>Pay only on recovery</span>
               </div>

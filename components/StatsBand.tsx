@@ -17,7 +17,7 @@ const stats = [
   },
   {
     no: "03",
-    value: "5 days",
+    value: "24 hrs",
     label: "From file upload to recoverability audit.",
     tag: "First number",
   },

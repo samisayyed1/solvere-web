@@ -13,7 +13,7 @@ const rows = [
   { cap: "Coverage across every major UAE payer portal", diy: "Manual", solvere: true },
   { cap: "Pay only on recovery (no upfront fee, no software cost)", diy: "—", solvere: true },
   { cap: "Software install or PMS integration required", diy: "Often", solvere: false, invert: true },
-  { cap: "Free recoverability audit before any commitment", diy: "—", solvere: "5-day" },
+  { cap: "Free recoverability audit before any commitment", diy: "—", solvere: "24-hour" },
   { cap: "Direct founder access for issues and escalation", diy: "—", solvere: "Founding cohort" },
 ];
 

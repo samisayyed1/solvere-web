@@ -56,7 +56,7 @@ export default function FinalCta() {
           className="mt-7 text-[17px] md:text-[19px] text-cream/65 max-w-[58ch] mx-auto leading-[1.55]"
         >
           Send us your last ninety days of denials. We'll return a
-          recoverability audit in five working days. No software. No upfront
+          recoverability audit in 24 hours. No software. No upfront
           fee. No risk.
         </motion.p>
 
@@ -87,7 +87,7 @@ export default function FinalCta() {
           transition={{ duration: 0.8, delay: 0.45 }}
           className="mt-12 inline-flex items-center gap-6 text-[11px] tracking-[0.22em] uppercase text-cream/55"
         >
-          <span className="flex items-center gap-2"><Dot /> 5-day audit</span>
+          <span className="flex items-center gap-2"><Dot /> 24-hour audit</span>
           <span className="text-cream/20">·</span>
           <span className="flex items-center gap-2"><Dot /> Pay only on recovery</span>
           <span className="text-cream/20">·</span>

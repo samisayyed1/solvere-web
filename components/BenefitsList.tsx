@@ -19,7 +19,7 @@ const items = [
     no: "03",
     title: "Trade write-offs for recovered revenue",
     body:
-      "AED 800K to AED 1.4M per year, on average, for a clinic doing AED 20M revenue. Specific to your data after the five-day audit.",
+      "AED 800K to AED 1.4M per year, on average, for a clinic doing AED 20M revenue. Specific to your data after the 24-hour audit.",
   },
   {
     no: "04",
