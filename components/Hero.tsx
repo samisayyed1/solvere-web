@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 const fade = {
   hidden: { opacity: 0, y: 18 },
@@ -16,12 +16,12 @@ export default function Hero() {
   return (
     <section
       id="top"
-      className="relative pt-32 md:pt-40 pb-20 md:pb-28 overflow-hidden"
+      className="relative pt-28 md:pt-36 pb-20 md:pb-24 overflow-hidden"
     >
       <AmbientBackdrop />
 
-      <div className="relative mx-auto max-w-container px-6 lg:px-10 grid grid-cols-1 lg:grid-cols-[1.45fr_1fr] gap-16 lg:gap-12 items-end">
-        <div>
+      <div className="relative mx-auto max-w-container px-6 lg:px-10 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start">
+        <div className="lg:col-span-7">
           <motion.div
             variants={fade}
             custom={0}
@@ -41,20 +41,12 @@ export default function Hero() {
             custom={1}
             initial="hidden"
             animate="show"
-            className="h-display text-[44px] leading-[1] sm:text-[60px] md:text-[72px] lg:text-[84px] text-ink max-w-[16ch]"
+            className="h-display text-[40px] leading-[1.02] sm:text-[52px] md:text-[64px] lg:text-[72px] text-ink"
           >
-            A new standard for{" "}
-            <span className="relative inline-block">
-              <span className="relative z-10 text-teal">UAE claim recovery</span>
-              <motion.span
-                aria-hidden
-                initial={{ scaleX: 0, originX: 0 }}
-                animate={{ scaleX: 1 }}
-                transition={{ duration: 0.9, delay: 1.0, ease: [0.22, 1, 0.36, 1] }}
-                className="absolute inset-x-0 bottom-1 h-[0.35em] bg-teal/10 -skew-y-1"
-              />
-            </span>
-            .
+            A new standard
+            <br />
+            for{" "}
+            <span className="text-teal">UAE claim recovery.</span>
           </motion.h1>
 
           <motion.p
@@ -62,7 +54,7 @@ export default function Hero() {
             custom={2}
             initial="hidden"
             animate="show"
-            className="mt-8 max-w-[56ch] text-[18px] md:text-[20px] leading-[1.55] text-muted"
+            className="mt-7 max-w-[56ch] text-[17px] md:text-[18px] leading-[1.6] text-muted"
           >
             Solvere uses AI agents and a DHA-licensed medical coder to recover
             the denied insurance claims your billers gave up on — end to end,
@@ -74,7 +66,7 @@ export default function Hero() {
             custom={3}
             initial="hidden"
             animate="show"
-            className="mt-10 flex flex-col sm:flex-row gap-3 sm:items-center"
+            className="mt-9 flex flex-col sm:flex-row gap-3 sm:items-center"
           >
             <a
               href="#final-cta"
@@ -100,7 +92,7 @@ export default function Hero() {
             custom={4}
             initial="hidden"
             animate="show"
-            className="mt-10 flex items-center gap-3 text-[12px] uppercase tracking-[0.18em] text-muted"
+            className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-[11px] uppercase tracking-[0.18em] text-muted"
           >
             <Pill>No software</Pill>
             <Pill>No integration</Pill>
@@ -110,10 +102,10 @@ export default function Hero() {
 
         {/* live recovery panel */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="relative w-full max-w-[420px] justify-self-end lg:justify-self-end"
+          transition={{ duration: 0.9, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="lg:col-span-5 w-full max-w-[440px] lg:max-w-none justify-self-start lg:justify-self-end lg:mt-2"
         >
           <LiveRecoveryCard />
         </motion.div>
@@ -136,26 +128,25 @@ function AmbientBackdrop() {
     <>
       <div
         aria-hidden
-        className="absolute -top-40 -left-40 w-[820px] h-[820px] rounded-full pointer-events-none"
+        className="absolute -top-40 -left-40 w-[760px] h-[760px] rounded-full pointer-events-none"
         style={{
           background:
-            "radial-gradient(closest-side, rgba(14,94,94,0.12), rgba(14,94,94,0) 70%)",
+            "radial-gradient(closest-side, rgba(14,94,94,0.10), rgba(14,94,94,0) 70%)",
         }}
       />
       <div
         aria-hidden
-        className="absolute top-20 right-0 w-[640px] h-[640px] rounded-full pointer-events-none"
+        className="absolute top-32 -right-20 w-[560px] h-[560px] rounded-full pointer-events-none"
         style={{
           background:
-            "radial-gradient(closest-side, rgba(180,83,9,0.06), rgba(180,83,9,0) 70%)",
+            "radial-gradient(closest-side, rgba(180,83,9,0.05), rgba(180,83,9,0) 70%)",
         }}
       />
-      {/* animated dotted grid */}
       <motion.div
         aria-hidden
         animate={{ backgroundPosition: ["0px 0px", "32px 32px"] }}
-        transition={{ duration: 24, repeat: Infinity, ease: "linear" }}
-        className="absolute inset-0 pointer-events-none opacity-[0.35]"
+        transition={{ duration: 26, repeat: Infinity, ease: "linear" }}
+        className="absolute inset-0 pointer-events-none opacity-[0.32]"
         style={{
           backgroundImage:
             "radial-gradient(rgba(10,10,10,0.10) 1px, transparent 1px)",
@@ -173,14 +164,15 @@ function AmbientBackdrop() {
 function LiveRecoveryCard() {
   const target = 2_340_891;
   const value = useMotionValue(0);
-  const rounded = useTransform(value, (v) => Math.round(v).toLocaleString("en-AE"));
+  const rounded = useTransform(value, (v) =>
+    Math.round(v).toLocaleString("en-AE")
+  );
   const [display, setDisplay] = useState("0");
-  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const controls = animate(value, target, {
       duration: 2.6,
-      delay: 0.8,
+      delay: 0.6,
       ease: [0.22, 1, 0.36, 1],
     });
     const unsub = rounded.on("change", (v) => setDisplay(v));
@@ -190,7 +182,6 @@ function LiveRecoveryCard() {
     };
   }, [rounded, value]);
 
-  // small "tick" that increments occasionally to give a live feel
   useEffect(() => {
     const i = setInterval(() => {
       const bump = Math.floor(800 + Math.random() * 3200);
@@ -204,11 +195,12 @@ function LiveRecoveryCard() {
     { payer: "Daman", amount: "AED 22,500", t: "2m" },
     { payer: "Thiqa", amount: "AED 11,200", t: "8m" },
     { payer: "MedNet", amount: "AED 9,300", t: "14m" },
+    { payer: "NEXtCARE", amount: "AED 6,100", t: "21m" },
   ];
 
   return (
-    <div ref={ref} className="relative rounded-2xl border border-rule bg-cream-deep/70 backdrop-blur p-6 shadow-[0_30px_80px_-40px_rgba(10,10,10,0.25)]">
-      <div className="flex items-center justify-between mb-6">
+    <div className="relative rounded-2xl border border-rule bg-cream-deep/80 backdrop-blur p-6 md:p-7 shadow-[0_30px_80px_-40px_rgba(10,10,10,0.30)]">
+      <div className="flex items-center justify-between mb-7">
         <div className="flex items-center gap-2 text-[10px] tracking-[0.22em] uppercase text-muted">
           <span className="relative flex h-1.5 w-1.5">
             <span className="absolute inline-flex h-full w-full rounded-full bg-teal opacity-70 animate-ping" />
@@ -221,33 +213,44 @@ function LiveRecoveryCard() {
         </span>
       </div>
 
-      <div className="flex items-baseline gap-2">
-        <span className="text-[14px] text-muted">AED</span>
-        <span className="h-display text-[40px] sm:text-[48px] text-ink tabular-nums leading-none">
+      <div className="flex items-baseline gap-3">
+        <span className="text-[13px] tracking-[0.22em] uppercase text-muted">
+          AED
+        </span>
+        <span className="h-display text-[40px] sm:text-[46px] md:text-[52px] text-ink tabular-nums leading-none tracking-[-0.035em]">
           {display}
         </span>
       </div>
 
-      <div className="mt-6 pt-5 border-t border-rule">
-        <div className="text-[10px] tracking-[0.22em] uppercase text-muted mb-3">
-          Latest recoveries
+      <div className="mt-7 pt-5 border-t border-rule">
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-[10px] tracking-[0.22em] uppercase text-muted">
+            Latest recoveries
+          </span>
+          <span className="text-[10px] tracking-[0.18em] uppercase text-muted/70">
+            Live
+          </span>
         </div>
-        <div className="space-y-2.5">
+        <div className="space-y-3">
           {ticks.map((t, i) => (
             <motion.div
               key={t.payer}
               initial={{ opacity: 0, x: -6 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 1.2 + i * 0.18, duration: 0.5 }}
-              className="flex items-center justify-between text-[13px]"
+              transition={{ delay: 1.0 + i * 0.18, duration: 0.5 }}
+              className="flex items-center justify-between text-[13px] py-1"
             >
-              <span className="flex items-center gap-2 text-ink-soft">
+              <span className="flex items-center gap-2.5 text-ink-soft">
                 <span className="w-1 h-1 rounded-full bg-teal" />
                 {t.payer}
               </span>
               <span className="flex items-center gap-3">
-                <span className="text-ink tabular-nums">{t.amount}</span>
-                <span className="text-[10px] text-muted tabular-nums">{t.t} ago</span>
+                <span className="text-ink tabular-nums font-medium">
+                  {t.amount}
+                </span>
+                <span className="text-[10px] text-muted tabular-nums w-12 text-right">
+                  {t.t} ago
+                </span>
               </span>
             </motion.div>
           ))}
