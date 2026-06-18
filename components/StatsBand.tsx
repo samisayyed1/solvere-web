@@ -81,7 +81,7 @@ function StatTile({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-50px" }}
       transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
-      className="relative min-w-0 flex flex-col px-6 lg:px-7 pt-6 pb-10 lg:pt-7 lg:pb-12 gap-8 lg:gap-10 min-h-[280px] border-r border-b lg:border-b-0 last:border-r-0 [&:nth-child(2)]:border-r-0 lg:[&:nth-child(2)]:border-r border-white/12"
+      className="relative min-w-0 flex flex-col pl-6 pr-8 lg:pl-8 lg:pr-12 pt-6 pb-10 lg:pt-7 lg:pb-12 gap-8 lg:gap-10 min-h-[280px] border-r border-b lg:border-b-0 last:border-r-0 [&:nth-child(2)]:border-r-0 lg:[&:nth-child(2)]:border-r border-white/12"
     >
       {/* index header */}
       <div className="flex items-center justify-between text-[11px] tracking-[0.22em] uppercase text-cream/40 font-medium">
@@ -89,12 +89,12 @@ function StatTile({
         <span className="text-cream/25">/ 04</span>
       </div>
 
-      {/* value — fluid clamp so it never overflows */}
-      <div className="flex-1 flex items-end min-w-0">
+      {/* value — fluid clamp tuned to fit longest ("60–70%") inside its column */}
+      <div className="flex-1 flex items-end min-w-0 overflow-hidden">
         <span
           className="h-display text-teal leading-[0.9] whitespace-nowrap tracking-[-0.04em] block min-w-0"
           style={{
-            fontSize: "clamp(38px, 5vw, 64px)",
+            fontSize: "clamp(36px, 3.6vw, 52px)",
           }}
         >
           {stat.value}
