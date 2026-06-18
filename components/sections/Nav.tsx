@@ -20,11 +20,7 @@ export function Nav() {
         >
           Solvere
         </a>
-        <BookACallButton
-          label="Book a call"
-          variant="nav"
-          ariaLabel="Book a 20-minute audit call"
-        />
+        <BookACallButton label="Book a call" variant="nav" />
       </div>
     </header>
   );

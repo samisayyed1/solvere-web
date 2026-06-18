@@ -17,9 +17,10 @@ const ROWS = [
 ] as const;
 
 const CONF_TINT: Record<string, string> = {
+  // All three pass WCAG AA contrast against their content.
   High: "bg-teal text-cream",
-  Medium: "bg-teal/55 text-cream",
-  Low: "bg-teal/20 text-ink-soft",
+  Medium: "bg-cream border border-teal text-teal",
+  Low: "bg-cream-deep border border-rule text-ink-soft",
 };
 
 export function AuditMockup() {
@@ -113,7 +114,7 @@ export function AuditMockup() {
         <p className="font-sans text-[7.5px] uppercase tracking-[0.18em] text-muted">
           Solvere · 1WEB FZE · Abu Dhabi
         </p>
-        <p className="font-sans text-[7.5px] uppercase tracking-[0.2em] text-muted/60">
+        <p className="font-sans text-[7.5px] uppercase tracking-[0.2em] text-muted">
           Sample
         </p>
       </div>
