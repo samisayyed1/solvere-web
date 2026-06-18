@@ -52,23 +52,14 @@ export default function StatsBand() {
           </p>
         </div>
 
-        {/* index row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 border-t border-white/12">
-          {stats.map((s) => (
-            <div
-              key={s.no}
-              className="py-4 px-6 lg:px-8 first:pl-0 border-b md:border-b-0 md:[&:not(:last-child)]:border-r border-white/12 flex items-center justify-between text-[11px] tracking-[0.22em] uppercase text-cream/40"
-            >
-              <span>{s.no}</span>
-              <span className="text-cream/30">/ 04</span>
-            </div>
-          ))}
-        </div>
-
-        {/* values + labels */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 border-t border-white/12">
+        <div className="border-t border-white/12 grid grid-cols-2 lg:grid-cols-4">
           {stats.map((s, i) => (
-            <StatTile key={s.no} stat={s} delay={i * 0.1} />
+            <StatTile
+              key={s.no}
+              stat={s}
+              delay={i * 0.1}
+              isLastInRow={(i + 1) % 4 === 0}
+            />
           ))}
         </div>
       </div>
@@ -82,6 +73,7 @@ function StatTile({
 }: {
   stat: { no: string; value: string; label: string };
   delay: number;
+  isLastInRow?: boolean;
 }) {
   return (
     <motion.div
@@ -89,15 +81,28 @@ function StatTile({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-50px" }}
       transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
-      className="relative pt-10 pb-10 md:pt-12 md:pb-12 px-6 lg:px-8 first:pl-0 border-b md:border-b-0 md:[&:not(:last-child)]:border-r border-white/12 flex flex-col gap-10 min-h-[260px]"
+      className="relative min-w-0 flex flex-col px-6 lg:px-7 pt-6 pb-10 lg:pt-7 lg:pb-12 gap-8 lg:gap-10 min-h-[280px] border-r border-b lg:border-b-0 last:border-r-0 [&:nth-child(2)]:border-r-0 lg:[&:nth-child(2)]:border-r border-white/12"
     >
-      <div className="flex-1 flex items-start">
-        <span className="h-display text-[56px] sm:text-[60px] md:text-[68px] lg:text-[76px] text-teal leading-[0.9] whitespace-nowrap tracking-[-0.04em]">
+      {/* index header */}
+      <div className="flex items-center justify-between text-[11px] tracking-[0.22em] uppercase text-cream/40 font-medium">
+        <span>{stat.no}</span>
+        <span className="text-cream/25">/ 04</span>
+      </div>
+
+      {/* value — fluid clamp so it never overflows */}
+      <div className="flex-1 flex items-end min-w-0">
+        <span
+          className="h-display text-teal leading-[0.9] whitespace-nowrap tracking-[-0.04em] block min-w-0"
+          style={{
+            fontSize: "clamp(38px, 5vw, 64px)",
+          }}
+        >
           {stat.value}
         </span>
       </div>
 
-      <p className="text-[14px] md:text-[15px] text-cream/70 leading-[1.5] max-w-[26ch]">
+      {/* label */}
+      <p className="text-[14px] md:text-[15px] text-cream/65 leading-[1.5] max-w-[26ch]">
         {stat.label}
       </p>
     </motion.div>

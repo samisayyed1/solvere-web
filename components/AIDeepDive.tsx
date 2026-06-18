@@ -1,7 +1,9 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
+const AUTO_MS = 6000;
 
 const tabs = [
   {
@@ -44,10 +46,62 @@ const tabs = [
 
 export default function AIDeepDive() {
   const [active, setActive] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [cycleKey, setCycleKey] = useState(0);
+  const sectionRef = useRef<HTMLDivElement>(null);
   const tab = tabs[active];
 
+  // auto-advance: increments active every AUTO_MS; resets on user interaction
+  useEffect(() => {
+    if (paused) return;
+    const id = setTimeout(() => {
+      setActive((a) => (a + 1) % tabs.length);
+      setCycleKey((k) => k + 1);
+    }, AUTO_MS);
+    return () => clearTimeout(id);
+  }, [active, paused, cycleKey]);
+
+  // pause when user hovers / focuses
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const enter = () => setPaused(true);
+    const leave = () => setPaused(false);
+    el.addEventListener("mouseenter", enter);
+    el.addEventListener("mouseleave", leave);
+    el.addEventListener("focusin", enter);
+    el.addEventListener("focusout", leave);
+    return () => {
+      el.removeEventListener("mouseenter", enter);
+      el.removeEventListener("mouseleave", leave);
+      el.removeEventListener("focusin", enter);
+      el.removeEventListener("focusout", leave);
+    };
+  }, []);
+
+  // pause when section is offscreen
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => setPaused((p) => (entry.isIntersecting ? p : true)),
+      { threshold: 0.3 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  const go = (i: number) => {
+    setActive(i);
+    setCycleKey((k) => k + 1);
+  };
+
   return (
-    <section id="deep-dive" className="relative bg-ink text-cream py-20 md:py-28 grain overflow-hidden">
+    <section
+      id="deep-dive"
+      ref={sectionRef}
+      className="relative bg-ink text-cream py-20 md:py-28 grain overflow-hidden"
+    >
       <div
         aria-hidden
         className="absolute inset-0 opacity-[0.06] pointer-events-none"
@@ -70,79 +124,135 @@ export default function AIDeepDive() {
           </p>
         </div>
 
-        {/* tab strip */}
+        {/* tab strip with auto-progress fill */}
         <div className="flex flex-wrap gap-2 mb-10">
           {tabs.map((t, i) => (
             <button
               key={t.no}
-              onClick={() => setActive(i)}
-              className={`group relative rounded-full px-4 py-2 text-[12px] tracking-[0.18em] uppercase border transition-all ${
+              onClick={() => go(i)}
+              className={`relative overflow-hidden rounded-full px-4 py-2 text-[12px] tracking-[0.18em] uppercase border transition-colors ${
                 active === i
-                  ? "bg-teal/20 border-teal/40 text-cream"
+                  ? "bg-teal/15 border-teal/40 text-cream"
                   : "bg-transparent border-white/10 text-cream/55 hover:border-white/25 hover:text-cream"
               }`}
             >
-              <span className="text-teal/90 mr-2">{t.no}</span>
-              {t.key}
+              {active === i && (
+                <motion.span
+                  key={`progress-${i}-${cycleKey}-${paused ? "p" : "r"}`}
+                  aria-hidden
+                  initial={{ scaleX: 0 }}
+                  animate={{ scaleX: paused ? 0 : 1 }}
+                  transition={{
+                    duration: paused ? 0 : AUTO_MS / 1000,
+                    ease: "linear",
+                  }}
+                  className="absolute inset-y-0 left-0 right-0 bg-teal/20 origin-left"
+                />
+              )}
+              <span className="relative">
+                <span className="text-teal/90 mr-2">{t.no}</span>
+                {t.key}
+              </span>
             </button>
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1.05fr_1fr] gap-10 lg:gap-16 items-center">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={tab.no}
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <h3 className="h-serif text-[28px] sm:text-[34px] md:text-[42px] text-cream leading-[1.1] mb-6">
-                {tab.title}
-              </h3>
-              <p className="text-[16px] md:text-[18px] text-cream/65 leading-[1.6] max-w-[52ch]">
-                {tab.body}
-              </p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-12 items-stretch">
+          {/* TEXT COLUMN — fixed min height to match diagram */}
+          <div className="relative min-h-[460px] flex flex-col">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={tab.no}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                className="flex-1 flex flex-col"
+              >
+                <div className="text-[10px] tracking-[0.22em] uppercase text-cream/40 mb-5 flex items-center gap-3">
+                  <span className="text-teal">{tab.no}</span>
+                  <span className="w-8 h-px bg-white/15" />
+                  <span>{tab.key}</span>
+                </div>
+                <h3 className="h-serif text-[28px] sm:text-[34px] md:text-[42px] text-cream leading-[1.08] mb-6 max-w-[18ch]">
+                  {tab.title}
+                </h3>
+                <p className="text-[16px] md:text-[17px] text-cream/65 leading-[1.65] max-w-[52ch]">
+                  {tab.body}
+                </p>
+              </motion.div>
+            </AnimatePresence>
 
-              <div className="mt-8 flex items-center gap-4">
+            {/* controls + counter pinned bottom */}
+            <div className="mt-8 pt-6 border-t border-white/10 flex items-center justify-between">
+              <div className="flex items-center gap-3">
                 <button
-                  onClick={() => setActive((active - 1 + tabs.length) % tabs.length)}
-                  className="w-10 h-10 rounded-full border border-white/15 grid place-items-center hover:bg-white/5"
-                  aria-label="Previous tab"
+                  onClick={() => go((active - 1 + tabs.length) % tabs.length)}
+                  className="w-10 h-10 rounded-full border border-white/15 grid place-items-center hover:bg-white/5 hover:border-white/30 transition-colors"
+                  aria-label="Previous"
                 >
                   <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                    <path d="M12 6.5H1M5 2.5L1 6.5l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" />
+                    <path
+                      d="M12 6.5H1M5 2.5L1 6.5l4 4"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="square"
+                    />
                   </svg>
                 </button>
                 <button
-                  onClick={() => setActive((active + 1) % tabs.length)}
-                  className="w-10 h-10 rounded-full border border-white/15 grid place-items-center hover:bg-white/5"
-                  aria-label="Next tab"
+                  onClick={() => go((active + 1) % tabs.length)}
+                  className="w-10 h-10 rounded-full border border-white/15 grid place-items-center hover:bg-white/5 hover:border-white/30 transition-colors"
+                  aria-label="Next"
                 >
                   <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                    <path d="M1 6.5h11M7 2.5l4.5 4-4.5 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" />
+                    <path
+                      d="M1 6.5h11M7 2.5l4.5 4-4.5 4"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="square"
+                    />
                   </svg>
                 </button>
-                <span className="text-[12px] tracking-[0.18em] uppercase text-cream/45">
-                  {active + 1} / {tabs.length}
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-[11px] tracking-[0.18em] uppercase text-cream/45 tabular-nums">
+                  {String(active + 1).padStart(2, "0")} / {String(tabs.length).padStart(2, "0")}
+                </span>
+                <span className="flex items-center gap-1.5 text-[10px] tracking-[0.18em] uppercase text-cream/35">
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      paused ? "bg-amber" : "bg-teal animate-pulse"
+                    }`}
+                  />
+                  {paused ? "Paused" : "Auto"}
                 </span>
               </div>
-            </motion.div>
-          </AnimatePresence>
+            </div>
+          </div>
 
-          <div className="relative aspect-square max-w-[480px] w-full justify-self-center lg:justify-self-end">
+          {/* DIAGRAM COLUMN — same min-height */}
+          <div className="relative min-h-[460px] rounded-3xl border border-white/8 bg-ink-soft/40 backdrop-blur overflow-hidden">
             <AnimatePresence mode="wait">
               <motion.div
                 key={tab.illustration}
-                initial={{ opacity: 0, scale: 0.96 }}
+                initial={{ opacity: 0, scale: 0.97 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.98 }}
                 transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-                className="absolute inset-0 rounded-3xl border border-white/8 bg-ink-soft/40 backdrop-blur"
+                className="absolute inset-0"
               >
                 <Illustration kind={tab.illustration} />
               </motion.div>
             </AnimatePresence>
+            {/* mini caption pinned bottom of diagram */}
+            <div className="absolute bottom-4 left-5 right-5 flex items-center justify-between text-[10px] tracking-[0.22em] uppercase text-cream/35">
+              <span>{tab.label}</span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-1 h-1 rounded-full bg-teal animate-pulse" />
+                Visualizer
+              </span>
+            </div>
           </div>
         </div>
       </div>
