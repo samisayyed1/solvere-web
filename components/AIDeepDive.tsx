@@ -47,15 +47,39 @@ const tabs = [
 export default function AIDeepDive() {
   const [active, setActive] = useState(0);
   const [cycleKey, setCycleKey] = useState(0);
+  const [inView, setInView] = useState(false);
+  const sectionRef = useRef<HTMLElement | null>(null);
   const tab = tabs[active];
 
+  // reset to Triage every time the section enters view, so every visitor sees it first
   useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          setActive(0);
+          setCycleKey((k) => k + 1);
+        } else {
+          setInView(false);
+        }
+      },
+      { threshold: 0.35 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  // auto-cycle only while in view
+  useEffect(() => {
+    if (!inView) return;
     const id = setTimeout(() => {
       setActive((a) => (a + 1) % tabs.length);
       setCycleKey((k) => k + 1);
     }, AUTO_MS);
     return () => clearTimeout(id);
-  }, [active, cycleKey]);
+  }, [active, cycleKey, inView]);
 
   const go = (i: number) => {
     setActive(i);
@@ -65,6 +89,7 @@ export default function AIDeepDive() {
   return (
     <section
       id="deep-dive"
+      ref={sectionRef}
       className="relative bg-ink text-cream py-20 md:py-28 grain overflow-hidden"
     >
       <div
@@ -242,39 +267,23 @@ function FrameChrome({
 }) {
   return (
     <g pointerEvents="none">
-      {/* corner brackets */}
-      {[
-        { x: 12, y: 12, d: "M 0 8 L 0 0 L 8 0" },
-        { x: 388, y: 12, d: "M 0 0 L 8 0 L 8 8", flipX: true },
-        { x: 388, y: 388, d: "M 0 -8 L 0 0 L 8 0", flipX: true },
-        { x: 12, y: 388, d: "M 0 -8 L 0 0 L 8 0" },
-      ].map((c, i) => (
-        <path
-          key={i}
-          d={c.d}
-          transform={`translate(${c.flipX ? c.x - 8 : c.x} ${c.y})`}
-          stroke="rgba(248,246,241,0.28)"
-          strokeWidth="0.9"
-          fill="none"
-        />
-      ))}
-      {/* labels — pushed inward so they clear the bracket arms */}
+      {/* corner labels only — brackets removed */}
       <g
         fontFamily="ui-sans-serif, system-ui, sans-serif"
         fill="rgba(248,246,241,0.35)"
         fontSize="7"
         letterSpacing="1.6"
       >
-        <text x="28" y="18">
+        <text x="16" y="18">
           {tl}
         </text>
-        <text x="372" y="18" textAnchor="end">
+        <text x="384" y="18" textAnchor="end">
           {tr}
         </text>
-        <text x="28" y="394">
+        <text x="16" y="394">
           {bl}
         </text>
-        <text x="372" y="394" textAnchor="end">
+        <text x="384" y="394" textAnchor="end">
           {br}
         </text>
       </g>
@@ -458,20 +467,20 @@ function TriageScene() {
 }
 
 function VerifyScene() {
-  // Centered composition: doc + seal balanced on viewBox center.
-  // doc 280x290 at (40, 56) → docR=320, seal visible-edge at ~361 → composition center = 200.
-  const docX = 40;
-  const docY = 56;
-  const docW = 280;
-  const docH = 290;
-  const docR = docX + docW; // 320
-  const innerX = docX + 18; // 58
-  const innerR = docR - 18; // 302
+  // Larger doc + balanced composition: doc 304x310 at (28,48) → docR=332,
+  // seal visible-edge at ~373 → composition span 28..373, center = 200.5
+  const docX = 28;
+  const docY = 48;
+  const docW = 304;
+  const docH = 310;
+  const docR = docX + docW; // 332
+  const innerX = docX + 20; // 48
+  const innerR = docR - 20; // 312
   const lines = [
-    { w: 210, y: docY + 64 },
-    { w: 180, y: docY + 82 },
-    { w: 224, y: docY + 100 },
-    { w: 150, y: docY + 118 },
+    { w: 230, y: docY + 68 },
+    { w: 198, y: docY + 88 },
+    { w: 244, y: docY + 108 },
+    { w: 162, y: docY + 128 },
   ];
   const checks = ["ELIG", "CODE", "DOCS", "MOD"];
 
@@ -527,21 +536,21 @@ function VerifyScene() {
         ))}
 
         {/* verification checks */}
-        <text x={innerX} y={docY + 155} fontSize="7" fill="rgba(248,246,241,0.42)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.8">
+        <text x={innerX} y={docY + 168} fontSize="7.5" fill="rgba(248,246,241,0.45)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.8">
           VERIFICATION CHECKS
         </text>
         {checks.map((s, i) => {
-          const cw = 54;
-          const step = 62;
+          const cw = 60;
+          const step = 66;
           const x = innerX + i * step;
-          const rectY = docY + 165;
+          const rectY = docY + 180;
           return (
             <g key={s}>
               <motion.rect
                 x={x}
                 y={rectY}
                 width={cw}
-                height="22"
+                height="24"
                 rx="4"
                 stroke="rgba(14,94,94,0.45)"
                 strokeWidth="0.8"
@@ -552,10 +561,10 @@ function VerifyScene() {
               />
               <motion.text
                 x={x + cw / 2 - 4}
-                y={rectY + 14}
+                y={rectY + 15}
                 textAnchor="middle"
-                fontSize="7"
-                fill="rgba(248,246,241,0.74)"
+                fontSize="7.5"
+                fill="rgba(248,246,241,0.78)"
                 fontFamily="ui-sans-serif, system-ui, sans-serif"
                 letterSpacing="0.8"
                 initial={{ opacity: 0 }}
@@ -578,27 +587,27 @@ function VerifyScene() {
         })}
 
         {/* signature block */}
-        <line x1={innerX} y1={docY + 218} x2={innerR} y2={docY + 218} stroke="rgba(248,246,241,0.12)" />
-        <text x={innerX} y={docY + 236} fontSize="7" fill="rgba(248,246,241,0.42)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.8">
+        <line x1={innerX} y1={docY + 234} x2={innerR} y2={docY + 234} stroke="rgba(248,246,241,0.12)" />
+        <text x={innerX} y={docY + 252} fontSize="7.5" fill="rgba(248,246,241,0.45)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.8">
           REVIEWED BY
         </text>
         <motion.path
-          d={`M${innerX} ${docY + 258} c 7 -13 17 -13 27 -2 c 9 10 19 5 29 -6 c 10 -9 22 -2 31 7 c 8 7 18 -3 26 -10`}
+          d={`M${innerX} ${docY + 276} c 8 -14 18 -14 28 -2 c 10 11 20 5 30 -6 c 10 -9 22 -2 32 8 c 8 7 18 -3 26 -10`}
           stroke="#F8F6F1"
           strokeOpacity="0.85"
-          strokeWidth="1.4"
+          strokeWidth="1.5"
           strokeLinecap="round"
           fill="none"
           initial={{ pathLength: 0 }}
           animate={{ pathLength: 1 }}
           transition={{ delay: 1.3, duration: 1.3 }}
         />
-        <text x={innerX} y={docY + 276} fontSize="6.5" fill="rgba(248,246,241,0.5)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1">
+        <text x={innerX} y={docY + 295} fontSize="7" fill="rgba(248,246,241,0.52)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1">
           M. AL-MARZOUQI · DHA-MC-04812
         </text>
 
         {/* APPROVED seal stamped on the document's bottom-right corner */}
-        <g transform={`translate(${docR - 4} ${docY + 245}) rotate(-8)`}>
+        <g transform={`translate(${docR - 4} ${docY + 262}) rotate(-8)`}>
           <motion.g
             initial={{ opacity: 0, scale: 0.4 }}
             animate={{ opacity: 1, scale: 1 }}
