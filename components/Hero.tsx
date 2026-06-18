@@ -20,8 +20,8 @@ export default function Hero() {
     >
       <AmbientBackdrop />
 
-      <div className="relative mx-auto max-w-container px-6 lg:px-10 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start">
-        <div className="lg:col-span-7">
+      <div className="relative mx-auto max-w-container px-6 lg:px-10 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-stretch">
+        <div className="lg:col-span-7 flex flex-col">
           <motion.div
             variants={fade}
             custom={0}
@@ -100,12 +100,11 @@ export default function Hero() {
           </motion.div>
         </div>
 
-        {/* live recovery panel */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="lg:col-span-5 w-full max-w-[440px] lg:max-w-none justify-self-start lg:justify-self-end lg:mt-2"
+          className="lg:col-span-5 w-full max-w-[520px] lg:max-w-none justify-self-start lg:justify-self-end flex"
         >
           <LiveRecoveryCard />
         </motion.div>
@@ -198,9 +197,18 @@ function LiveRecoveryCard() {
     { payer: "NEXtCARE", amount: "AED 6,100", t: "21m" },
   ];
 
+  const stats = [
+    { label: "Claims paid", value: "1,284" },
+    { label: "Win rate", value: "62%" },
+    { label: "Avg cycle", value: "11d" },
+  ];
+
+  // 14-day spark — climbing trend
+  const spark = [18, 22, 19, 28, 31, 27, 35, 38, 33, 44, 49, 47, 56, 62];
+
   return (
-    <div className="relative rounded-2xl border border-rule bg-cream-deep/80 backdrop-blur p-6 md:p-7 shadow-[0_30px_80px_-40px_rgba(10,10,10,0.30)]">
-      <div className="flex items-center justify-between mb-7">
+    <div className="relative rounded-2xl border border-rule bg-cream-deep/80 backdrop-blur p-6 md:p-7 shadow-[0_30px_80px_-40px_rgba(10,10,10,0.30)] flex flex-col w-full">
+      <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2 text-[10px] tracking-[0.22em] uppercase text-muted">
           <span className="relative flex h-1.5 w-1.5">
             <span className="absolute inline-flex h-full w-full rounded-full bg-teal opacity-70 animate-ping" />
@@ -214,24 +222,48 @@ function LiveRecoveryCard() {
       </div>
 
       <div className="flex items-baseline gap-3">
-        <span className="text-[13px] tracking-[0.22em] uppercase text-muted">
+        <span className="text-[12px] tracking-[0.22em] uppercase text-muted">
           AED
         </span>
-        <span className="h-display text-[40px] sm:text-[46px] md:text-[52px] text-ink tabular-nums leading-none tracking-[-0.035em]">
+        <span className="h-display text-[40px] sm:text-[44px] md:text-[50px] text-ink tabular-nums leading-none tracking-[-0.035em]">
           {display}
         </span>
       </div>
 
-      <div className="mt-7 pt-5 border-t border-rule">
+      <div className="mt-5">
+        <Sparkline data={spark} />
+        <div className="mt-3 flex items-center justify-between text-[10px] tracking-[0.18em] uppercase text-muted">
+          <span>14-day recovery trend</span>
+          <span className="inline-flex items-center gap-1.5 text-teal">
+            <Arrow /> +28%
+          </span>
+        </div>
+      </div>
+
+      <div className="mt-6 pt-5 border-t border-rule grid grid-cols-3 gap-4">
+        {stats.map((s) => (
+          <div key={s.label} className="flex flex-col gap-1.5">
+            <span className="text-[10px] tracking-[0.22em] uppercase text-muted">
+              {s.label}
+            </span>
+            <span className="h-display text-[20px] text-ink tabular-nums leading-none">
+              {s.value}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-6 pt-5 border-t border-rule">
         <div className="flex items-center justify-between mb-4">
           <span className="text-[10px] tracking-[0.22em] uppercase text-muted">
             Latest recoveries
           </span>
-          <span className="text-[10px] tracking-[0.18em] uppercase text-muted/70">
+          <span className="inline-flex items-center gap-1.5 text-[10px] tracking-[0.18em] uppercase text-muted/70">
+            <span className="w-1 h-1 rounded-full bg-teal animate-pulse" />
             Live
           </span>
         </div>
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           {ticks.map((t, i) => (
             <motion.div
               key={t.payer}
@@ -256,6 +288,103 @@ function LiveRecoveryCard() {
           ))}
         </div>
       </div>
+
+      <div className="mt-auto pt-5 border-t border-rule flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <span className="grid place-items-center w-7 h-7 rounded-full bg-teal/12 border border-teal/30">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+              <path
+                d="M1 5.5l3 3 6-6"
+                stroke="#0E5E5E"
+                strokeWidth="1.7"
+                strokeLinecap="square"
+              />
+            </svg>
+          </span>
+          <div className="flex flex-col">
+            <span className="text-[11px] text-ink-soft leading-tight">
+              Verified by DHA-licensed coder
+            </span>
+            <span className="text-[10px] tracking-[0.18em] uppercase text-muted leading-tight mt-0.5">
+              NDA · DIFC compliant
+            </span>
+          </div>
+        </div>
+        <span className="text-[10px] tracking-[0.18em] uppercase text-muted">
+          v2.4
+        </span>
+      </div>
     </div>
+  );
+}
+
+function Sparkline({ data }: { data: number[] }) {
+  const max = Math.max(...data);
+  const min = Math.min(...data);
+  const w = 480;
+  const h = 64;
+  const pad = 4;
+  const step = (w - pad * 2) / (data.length - 1);
+  const norm = (v: number) =>
+    h - pad - ((v - min) / (max - min)) * (h - pad * 2);
+  const points = data.map((v, i) => [pad + i * step, norm(v)] as const);
+  const linePath = points
+    .map((p, i) => (i === 0 ? `M${p[0]},${p[1]}` : `L${p[0]},${p[1]}`))
+    .join(" ");
+  const areaPath = `${linePath} L${w - pad},${h} L${pad},${h} Z`;
+  return (
+    <svg
+      viewBox={`0 0 ${w} ${h}`}
+      className="w-full h-14"
+      preserveAspectRatio="none"
+      aria-hidden
+    >
+      <defs>
+        <linearGradient id="spark-grad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#0E5E5E" stopOpacity="0.20" />
+          <stop offset="100%" stopColor="#0E5E5E" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <motion.path
+        d={areaPath}
+        fill="url(#spark-grad)"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6, delay: 1.0 }}
+      />
+      <motion.path
+        d={linePath}
+        fill="none"
+        stroke="#0E5E5E"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        initial={{ pathLength: 0 }}
+        animate={{ pathLength: 1 }}
+        transition={{ duration: 1.4, delay: 0.8, ease: [0.22, 1, 0.36, 1] }}
+      />
+      <motion.circle
+        cx={points[points.length - 1][0]}
+        cy={points[points.length - 1][1]}
+        r="3.5"
+        fill="#0E5E5E"
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ delay: 2.1, type: "spring", stiffness: 280, damping: 14 }}
+      />
+    </svg>
+  );
+}
+
+function Arrow() {
+  return (
+    <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+      <path
+        d="M2 7l5-5M3 2h4v4"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="square"
+      />
+    </svg>
   );
 }
