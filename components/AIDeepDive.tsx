@@ -452,23 +452,25 @@ function TriageScene() {
 }
 
 function VerifyScene() {
-  // centered claim document; verification checks; signature; an APPROVED seal stamped on the corner.
-  const docX = 72;
-  const docY = 80;
-  const docW = 200;
-  const docR = docX + docW; // 272
-  const innerX = docX + 16; // 88
+  // centered claim document scaled to fill the frame; checks; signature; APPROVED seal on the corner.
+  const docX = 50;
+  const docY = 65;
+  const docW = 264;
+  const docH = 270;
+  const docR = docX + docW; // 314
+  const innerX = docX + 18; // 68
+  const innerR = docR - 18; // 296
   const lines = [
-    { w: 168, y: 128 },
-    { w: 150, y: 142 },
-    { w: 176, y: 156 },
-    { w: 120, y: 170 },
+    { w: 200, y: 124 },
+    { w: 168, y: 142 },
+    { w: 214, y: 160 },
+    { w: 140, y: 178 },
   ];
   const checks = ["ELIG", "CODE", "DOCS", "MOD"];
 
   return (
     <div className="absolute inset-0 grid place-items-center">
-      <svg viewBox="0 0 400 400" className="w-[90%] h-[90%]" fill="none">
+      <svg viewBox="0 0 400 400" className="w-[94%] h-[94%]" fill="none">
         <defs>
           <radialGradient id="seal-glow" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="#0E5E5E" stopOpacity="0.5" />
@@ -481,24 +483,24 @@ function VerifyScene() {
           x={docX}
           y={docY}
           width={docW}
-          height="250"
-          rx="8"
+          height={docH}
+          rx="10"
           fill="rgba(255,255,255,0.025)"
           stroke="rgba(248,246,241,0.18)"
-          strokeWidth="0.8"
+          strokeWidth="0.9"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6 }}
         />
 
         {/* header */}
-        <text x={innerX} y={104} fontSize="6.5" fill="rgba(248,246,241,0.5)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.5">
+        <text x={innerX} y={91} fontSize="7.5" fill="rgba(248,246,241,0.55)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.6">
           CLAIM · DM-24698
         </text>
-        <text x={docR - 16} y={104} textAnchor="end" fontSize="6.5" fill="rgba(248,246,241,0.5)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.5">
+        <text x={innerR} y={91} textAnchor="end" fontSize="7.5" fill="rgba(248,246,241,0.55)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.6">
           AED 22,500
         </text>
-        <line x1={innerX} y1={112} x2={docR - 16} y2={112} stroke="rgba(248,246,241,0.10)" />
+        <line x1={innerX} y1={103} x2={innerR} y2={103} stroke="rgba(248,246,241,0.12)" />
 
         {/* body lines */}
         {lines.map((l, i) => (
@@ -507,8 +509,8 @@ function VerifyScene() {
             x={innerX}
             y={l.y}
             width={l.w}
-            height="3.5"
-            rx="2"
+            height="4.5"
+            rx="2.25"
             fill="rgba(248,246,241,0.15)"
             initial={{ scaleX: 0 }}
             animate={{ scaleX: 1 }}
@@ -518,21 +520,21 @@ function VerifyScene() {
         ))}
 
         {/* verification checks */}
-        <text x={innerX} y={198} fontSize="6" fill="rgba(248,246,241,0.42)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.6">
+        <text x={innerX} y={206} fontSize="7" fill="rgba(248,246,241,0.42)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.8">
           VERIFICATION CHECKS
         </text>
         {checks.map((s, i) => {
-          const cw = 40;
-          const step = 44;
+          const cw = 50;
+          const step = 58;
           const x = innerX + i * step;
           return (
             <g key={s}>
               <motion.rect
                 x={x}
-                y={206}
+                y={216}
                 width={cw}
-                height="18"
-                rx="3"
+                height="22"
+                rx="4"
                 stroke="rgba(14,94,94,0.45)"
                 strokeWidth="0.8"
                 fill="rgba(14,94,94,0.10)"
@@ -541,11 +543,11 @@ function VerifyScene() {
                 transition={{ delay: 0.7 + i * 0.1 }}
               />
               <motion.text
-                x={x + cw / 2 - 3}
-                y={217}
+                x={x + cw / 2 - 4}
+                y={230}
                 textAnchor="middle"
-                fontSize="6"
-                fill="rgba(248,246,241,0.72)"
+                fontSize="7"
+                fill="rgba(248,246,241,0.74)"
                 fontFamily="ui-sans-serif, system-ui, sans-serif"
                 letterSpacing="0.8"
                 initial={{ opacity: 0 }}
@@ -555,9 +557,9 @@ function VerifyScene() {
                 {s}
               </motion.text>
               <motion.circle
-                cx={x + cw - 7}
-                cy={211}
-                r="2.2"
+                cx={x + cw - 9}
+                cy={222}
+                r="2.6"
                 fill="#0E5E5E"
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
@@ -568,40 +570,40 @@ function VerifyScene() {
         })}
 
         {/* signature block */}
-        <line x1={innerX} y1={250} x2={docR - 16} y2={250} stroke="rgba(248,246,241,0.10)" />
-        <text x={innerX} y={266} fontSize="6" fill="rgba(248,246,241,0.42)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.6">
-          REVIEWED BY · DHA-LICENSED CODER
+        <line x1={innerX} y1={268} x2={innerR} y2={268} stroke="rgba(248,246,241,0.12)" />
+        <text x={innerX} y={286} fontSize="7" fill="rgba(248,246,241,0.42)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.8">
+          REVIEWED BY
         </text>
         <motion.path
-          d={`M${innerX} 290 c 6 -11 15 -11 23 -2 c 8 9 17 4 25 -5 c 9 -8 19 -2 27 6 c 7 6 16 -3 22 -9`}
+          d={`M${innerX} 308 c 7 -13 17 -13 27 -2 c 9 10 19 5 29 -6 c 10 -9 22 -2 31 7 c 8 7 18 -3 26 -10`}
           stroke="#F8F6F1"
           strokeOpacity="0.85"
-          strokeWidth="1.2"
+          strokeWidth="1.4"
           strokeLinecap="round"
           fill="none"
           initial={{ pathLength: 0 }}
           animate={{ pathLength: 1 }}
           transition={{ delay: 1.3, duration: 1.3 }}
         />
-        <text x={innerX} y={310} fontSize="6" fill="rgba(248,246,241,0.5)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1">
+        <text x={innerX} y={326} fontSize="6.5" fill="rgba(248,246,241,0.5)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1">
           M. AL-MARZOUQI · DHA-MC-04812
         </text>
 
         {/* APPROVED seal stamped on the document's bottom-right corner (drawn at origin, then placed) */}
-        <g transform={`translate(${docR - 6} 300) rotate(-8)`}>
+        <g transform={`translate(${docR - 4} 300) rotate(-8)`}>
           <motion.g
             initial={{ opacity: 0, scale: 0.4 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 1.7, type: "spring", stiffness: 220, damping: 15 }}
           >
-            <circle cx="0" cy="0" r="46" fill="url(#seal-glow)" />
-            <circle cx="0" cy="0" r="32" fill="#0A0A0A" stroke="#0E5E5E" strokeWidth="1.4" />
-            <circle cx="0" cy="0" r="38" fill="none" stroke="#0E5E5E" strokeOpacity="0.4" strokeWidth="0.6" strokeDasharray="2 3" />
-            <text x="0" y="-5" textAnchor="middle" fontSize="7" fontWeight="600" fill="#0E5E5E" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.5">
+            <circle cx="0" cy="0" r="54" fill="url(#seal-glow)" />
+            <circle cx="0" cy="0" r="38" fill="#0A0A0A" stroke="#0E5E5E" strokeWidth="1.5" />
+            <circle cx="0" cy="0" r="45" fill="none" stroke="#0E5E5E" strokeOpacity="0.4" strokeWidth="0.7" strokeDasharray="2 3" />
+            <text x="0" y="-6" textAnchor="middle" fontSize="8.5" fontWeight="600" fill="#0E5E5E" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.6">
               VERIFIED
             </text>
-            <line x1="-14" y1="1" x2="14" y2="1" stroke="rgba(14,94,94,0.5)" strokeWidth="0.6" />
-            <text x="0" y="11" textAnchor="middle" fontSize="6" fill="rgba(248,246,241,0.7)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.4">
+            <line x1="-17" y1="1" x2="17" y2="1" stroke="rgba(14,94,94,0.5)" strokeWidth="0.7" />
+            <text x="0" y="13" textAnchor="middle" fontSize="7" fill="rgba(248,246,241,0.7)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.5">
               DHA · CPC
             </text>
           </motion.g>
