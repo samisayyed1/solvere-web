@@ -228,7 +228,7 @@ function Illustration({
   return <LearningScene />;
 }
 
-// shared chrome (brackets at corners + corner labels)
+// shared chrome (brackets at corners + corner labels) — brackets sit OUTSIDE label baseline so they never touch glyphs
 function FrameChrome({
   tl,
   tr,
@@ -241,42 +241,43 @@ function FrameChrome({
   br: string;
 }) {
   return (
-    <g>
+    <g pointerEvents="none">
+      {/* corner brackets */}
+      {[
+        { x: 12, y: 12, d: "M 0 8 L 0 0 L 8 0" },
+        { x: 388, y: 12, d: "M 0 0 L 8 0 L 8 8", flipX: true },
+        { x: 388, y: 388, d: "M 0 -8 L 0 0 L 8 0", flipX: true },
+        { x: 12, y: 388, d: "M 0 -8 L 0 0 L 8 0" },
+      ].map((c, i) => (
+        <path
+          key={i}
+          d={c.d}
+          transform={`translate(${c.flipX ? c.x - 8 : c.x} ${c.y})`}
+          stroke="rgba(248,246,241,0.28)"
+          strokeWidth="0.9"
+          fill="none"
+        />
+      ))}
+      {/* labels — pushed inward so they clear the bracket arms */}
       <g
         fontFamily="ui-sans-serif, system-ui, sans-serif"
         fill="rgba(248,246,241,0.35)"
         fontSize="7"
-        letterSpacing="1.8"
+        letterSpacing="1.6"
       >
-        <text x="16" y="22">
+        <text x="28" y="18">
           {tl}
         </text>
-        <text x="384" y="22" textAnchor="end">
+        <text x="372" y="18" textAnchor="end">
           {tr}
         </text>
-        <text x="16" y="390">
+        <text x="28" y="394">
           {bl}
         </text>
-        <text x="384" y="390" textAnchor="end">
+        <text x="372" y="394" textAnchor="end">
           {br}
         </text>
       </g>
-      {[
-        { x: 10, y: 28, rot: 0 },
-        { x: 390, y: 28, rot: 90 },
-        { x: 390, y: 376, rot: 180 },
-        { x: 10, y: 376, rot: 270 },
-      ].map((c, i) => (
-        <g
-          key={i}
-          transform={`translate(${c.x} ${c.y}) rotate(${c.rot})`}
-          stroke="rgba(248,246,241,0.25)"
-          strokeWidth="0.8"
-          fill="none"
-        >
-          <path d="M 0 0 L 0 -10 L 10 -10" />
-        </g>
-      ))}
     </g>
   );
 }
@@ -359,22 +360,33 @@ function TriageScene() {
 
         {/* outlet — recovered */}
         <motion.g
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.6 }}
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 1.6, type: "spring", stiffness: 220, damping: 16 }}
         >
-          <circle cx="200" cy="340" r="14" fill="#0A0A0A" stroke="#0E5E5E" strokeWidth="1.2" />
+          <circle cx="200" cy="340" r="26" fill="rgba(14,94,94,0.10)" />
+          <circle cx="200" cy="340" r="22" fill="#0A0A0A" stroke="#0E5E5E" strokeWidth="1.4" />
           <text
             x="200"
-            y="343"
+            y="338"
             textAnchor="middle"
-            fontSize="8"
+            fontSize="11"
             fontWeight="600"
-            fill="#F8F6F1"
+            fill="#0E5E5E"
             fontFamily="ui-sans-serif, system-ui, sans-serif"
-            letterSpacing="1"
           >
             68%
+          </text>
+          <text
+            x="200"
+            y="348"
+            textAnchor="middle"
+            fontSize="5"
+            fill="rgba(248,246,241,0.55)"
+            fontFamily="ui-sans-serif, system-ui, sans-serif"
+            letterSpacing="1.4"
+          >
+            RECOVERABLE
           </text>
         </motion.g>
 
@@ -415,45 +427,46 @@ function TriageScene() {
 }
 
 function VerifyScene() {
+  // single tight document, body lines, stamp row, signature block. Seal sits in upper-right OUTSIDE doc.
   const lines = [
-    { w: 180, y: 110 },
-    { w: 220, y: 132 },
-    { w: 160, y: 154 },
-    { w: 210, y: 176 },
-    { w: 140, y: 198 },
-    { w: 200, y: 220 },
+    { w: 180, y: 122 },
+    { w: 210, y: 138 },
+    { w: 150, y: 154 },
+    { w: 190, y: 170 },
+    { w: 130, y: 186 },
+    { w: 200, y: 202 },
   ];
 
   return (
     <div className="absolute inset-0 grid place-items-center">
-      <svg viewBox="0 0 400 400" className="w-[88%] h-[88%]" fill="none">
+      <svg viewBox="0 0 400 400" className="w-[90%] h-[90%]" fill="none">
         <defs>
           <radialGradient id="seal-glow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#0E5E5E" stopOpacity="0.45" />
+            <stop offset="0%" stopColor="#0E5E5E" stopOpacity="0.55" />
             <stop offset="100%" stopColor="#0E5E5E" stopOpacity="0" />
           </radialGradient>
         </defs>
 
-        {/* document */}
+        {/* document — slightly shorter, more padding around */}
         <motion.rect
-          x="80"
-          y="80"
-          width="240"
-          height="260"
+          x="60"
+          y="100"
+          width="220"
+          height="240"
           rx="6"
           fill="rgba(255,255,255,0.02)"
           stroke="rgba(248,246,241,0.18)"
           strokeWidth="0.8"
-          initial={{ opacity: 0, y: 90 }}
-          animate={{ opacity: 1, y: 80 }}
+          initial={{ opacity: 0, y: 110 }}
+          animate={{ opacity: 1, y: 100 }}
           transition={{ duration: 0.6 }}
         />
 
         {/* doc header strip */}
-        <line x1="80" y1="100" x2="320" y2="100" stroke="rgba(248,246,241,0.10)" />
+        <line x1="60" y1="118" x2="280" y2="118" stroke="rgba(248,246,241,0.10)" />
         <text
-          x="92"
-          y="94"
+          x="72"
+          y="112"
           fontSize="6.5"
           fill="rgba(248,246,241,0.45)"
           fontFamily="ui-sans-serif, system-ui, sans-serif"
@@ -462,8 +475,8 @@ function VerifyScene() {
           CLAIM · DM-24698
         </text>
         <text
-          x="308"
-          y="94"
+          x="268"
+          y="112"
           textAnchor="end"
           fontSize="6.5"
           fill="rgba(248,246,241,0.45)"
@@ -477,10 +490,10 @@ function VerifyScene() {
         {lines.map((l, i) => (
           <motion.rect
             key={i}
-            x="92"
+            x="72"
             y={l.y}
             width={l.w}
-            height="4"
+            height="3.5"
             rx="2"
             fill="rgba(248,246,241,0.16)"
             initial={{ scaleX: 0, originX: 0 }}
@@ -489,14 +502,14 @@ function VerifyScene() {
           />
         ))}
 
-        {/* stamp row */}
-        <g transform="translate(92 250)">
-          {["ELIG", "CODE", "DOCS", "MOD", "BUNDLE"].map((s, i) => (
+        {/* stamp row — 4 stamps, evenly spaced inside doc */}
+        <g transform="translate(72 224)">
+          {["ELIG", "CODE", "DOCS", "MOD"].map((s, i) => (
             <g key={s}>
               <motion.rect
-                x={i * 44}
+                x={i * 50}
                 y={0}
-                width="36"
+                width="42"
                 height="18"
                 rx="3"
                 stroke="rgba(14,94,94,0.45)"
@@ -507,7 +520,7 @@ function VerifyScene() {
                 transition={{ delay: 0.8 + i * 0.1 }}
               />
               <motion.text
-                x={i * 44 + 18}
+                x={i * 50 + 21}
                 y={11}
                 textAnchor="middle"
                 fontSize="6.5"
@@ -521,7 +534,7 @@ function VerifyScene() {
                 {s}
               </motion.text>
               <motion.circle
-                cx={i * 44 + 30}
+                cx={i * 50 + 36}
                 cy={4}
                 r="2"
                 fill="#0E5E5E"
@@ -539,11 +552,11 @@ function VerifyScene() {
         </g>
 
         {/* coder signature block */}
-        <g transform="translate(92 290)">
-          <line x1="0" y1="0" x2="216" y2="0" stroke="rgba(248,246,241,0.10)" />
+        <g transform="translate(72 260)">
+          <line x1="0" y1="0" x2="196" y2="0" stroke="rgba(248,246,241,0.10)" />
           <text
             x="0"
-            y="14"
+            y="12"
             fontSize="6.5"
             fill="rgba(248,246,241,0.45)"
             fontFamily="ui-sans-serif, system-ui, sans-serif"
@@ -552,18 +565,19 @@ function VerifyScene() {
             REVIEWED BY
           </text>
           <motion.path
-            d="M0 28 q 8 -8 16 0 q 8 -10 18 -4 q 6 6 14 0 q 8 -6 16 2 q 10 6 18 -4 q 6 -4 14 2"
+            d="M0 30 c 6 -10 14 -10 22 -2 c 8 8 16 4 24 -4 c 10 -8 20 -2 28 6 c 8 6 18 -2 26 -10 c 10 -6 22 0 30 8"
             stroke="#F8F6F1"
-            strokeWidth="1.1"
+            strokeOpacity="0.9"
+            strokeWidth="1.2"
             strokeLinecap="round"
             fill="none"
             initial={{ pathLength: 0 }}
             animate={{ pathLength: 1 }}
-            transition={{ delay: 1.4, duration: 1.2 }}
+            transition={{ delay: 1.4, duration: 1.4 }}
           />
           <text
             x="0"
-            y="44"
+            y="50"
             fontSize="6.5"
             fill="rgba(248,246,241,0.55)"
             fontFamily="ui-sans-serif, system-ui, sans-serif"
@@ -573,31 +587,43 @@ function VerifyScene() {
           </text>
         </g>
 
-        {/* approval seal */}
+        {/* approval seal — OUTSIDE document, upper right, with connecting hairline */}
+        <motion.line
+          x1="280"
+          y1="160"
+          x2="320"
+          y2="180"
+          stroke="rgba(14,94,94,0.35)"
+          strokeWidth="0.6"
+          strokeDasharray="2 3"
+          initial={{ pathLength: 0 }}
+          animate={{ pathLength: 1 }}
+          transition={{ delay: 1.6, duration: 0.5 }}
+        />
         <motion.g
-          initial={{ opacity: 0, scale: 0.6, rotate: -8 }}
-          animate={{ opacity: 1, scale: 1, rotate: -6 }}
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
           transition={{
-            delay: 1.8,
+            delay: 1.7,
             type: "spring",
             stiffness: 200,
             damping: 16,
           }}
-          transform-origin="280 290"
+          style={{ transformOrigin: "335px 200px" }}
         >
-          <circle cx="280" cy="290" r="44" fill="url(#seal-glow)" />
+          <circle cx="335" cy="200" r="50" fill="url(#seal-glow)" />
           <circle
-            cx="280"
-            cy="290"
-            r="32"
+            cx="335"
+            cy="200"
+            r="38"
             fill="#0A0A0A"
             stroke="#0E5E5E"
             strokeWidth="1.4"
           />
           <circle
-            cx="280"
-            cy="290"
-            r="38"
+            cx="335"
+            cy="200"
+            r="44"
             fill="none"
             stroke="#0E5E5E"
             strokeOpacity="0.4"
@@ -605,33 +631,33 @@ function VerifyScene() {
             strokeDasharray="2 3"
           />
           <text
-            x="280"
-            y="284"
+            x="335"
+            y="194"
             textAnchor="middle"
-            fontSize="6.5"
+            fontSize="7"
             fontWeight="600"
             fill="#0E5E5E"
             fontFamily="ui-sans-serif, system-ui, sans-serif"
-            letterSpacing="1.5"
+            letterSpacing="1.6"
           >
             VERIFIED
           </text>
           <line
-            x1="265"
-            y1="289"
-            x2="295"
-            y2="289"
-            stroke="rgba(14,94,94,0.4)"
+            x1="320"
+            y1="200"
+            x2="350"
+            y2="200"
+            stroke="rgba(14,94,94,0.5)"
             strokeWidth="0.6"
           />
           <text
-            x="280"
-            y="299"
+            x="335"
+            y="211"
             textAnchor="middle"
-            fontSize="5.5"
-            fill="rgba(248,246,241,0.7)"
+            fontSize="6"
+            fill="rgba(248,246,241,0.75)"
             fontFamily="ui-sans-serif, system-ui, sans-serif"
-            letterSpacing="1.5"
+            letterSpacing="1.4"
           >
             DHA · CPC
           </text>
@@ -881,7 +907,12 @@ function MeshScene() {
 }
 
 function LearningScene() {
-  const bars = [50, 78, 92, 118, 142, 178, 210, 240];
+  // bars shifted down so they live entirely below the annotation row at the top
+  const bars = [42, 64, 78, 100, 122, 152, 180, 206];
+  const baseY = 340;
+  const barW = 22;
+  const colStep = 36;
+  const xStart = 70;
   return (
     <div className="absolute inset-0 grid place-items-center">
       <svg viewBox="0 0 400 400" className="w-[90%] h-[90%]" fill="none">
@@ -892,8 +923,76 @@ function LearningScene() {
           </linearGradient>
         </defs>
 
-        {/* y axis gridlines */}
-        {[120, 170, 220, 270, 320].map((y, i) => (
+        {/* annotation badge — pinned top-LEFT, well above bars */}
+        <motion.g
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+          transform="translate(60 60)"
+        >
+          <rect
+            x="0"
+            y="0"
+            width="128"
+            height="40"
+            rx="6"
+            fill="rgba(14,94,94,0.10)"
+            stroke="rgba(14,94,94,0.35)"
+          />
+          <text
+            x="12"
+            y="15"
+            fontSize="6"
+            fill="rgba(248,246,241,0.55)"
+            fontFamily="ui-sans-serif, system-ui, sans-serif"
+            letterSpacing="1.4"
+          >
+            RULE LIBRARY · GROWTH
+          </text>
+          <text
+            x="12"
+            y="31"
+            fontSize="12"
+            fontWeight="600"
+            fill="#0E5E5E"
+            fontFamily="ui-sans-serif, system-ui, sans-serif"
+            letterSpacing="0"
+          >
+            +312 / month
+          </text>
+        </motion.g>
+
+        {/* trend pill — top-right */}
+        <motion.g
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45, duration: 0.5 }}
+          transform="translate(252 68)"
+        >
+          <rect
+            x="0"
+            y="0"
+            width="86"
+            height="24"
+            rx="12"
+            fill="rgba(14,94,94,0.08)"
+            stroke="rgba(14,94,94,0.30)"
+          />
+          <circle cx="12" cy="12" r="2" fill="#0E5E5E" />
+          <text
+            x="20"
+            y="15"
+            fontSize="7"
+            fill="rgba(248,246,241,0.75)"
+            fontFamily="ui-sans-serif, system-ui, sans-serif"
+            letterSpacing="1.2"
+          >
+            ↗ 4.1× IN 8Q
+          </text>
+        </motion.g>
+
+        {/* y axis gridlines — sit below annotations */}
+        {[140, 180, 220, 260, 300].map((y, i) => (
           <g key={y}>
             <line
               x1="60"
@@ -907,7 +1006,7 @@ function LearningScene() {
               x="52"
               y={y + 3}
               textAnchor="end"
-              fontSize="6.5"
+              fontSize="6"
               fill="rgba(248,246,241,0.40)"
               fontFamily="ui-sans-serif, system-ui, sans-serif"
               letterSpacing="1"
@@ -918,14 +1017,14 @@ function LearningScene() {
         ))}
 
         {/* baseline */}
-        <line x1="60" y1="340" x2="360" y2="340" stroke="rgba(248,246,241,0.20)" />
+        <line x1="60" y1={baseY} x2="360" y2={baseY} stroke="rgba(248,246,241,0.22)" />
 
         {/* x axis tick labels */}
         {["Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "Q7", "Q8"].map((q, i) => (
           <text
             key={q}
-            x={80 + i * 36 + 12}
-            y={358}
+            x={xStart + i * colStep + barW / 2}
+            y={baseY + 16}
             textAnchor="middle"
             fontSize="6"
             fill="rgba(248,246,241,0.40)"
@@ -940,9 +1039,9 @@ function LearningScene() {
         {bars.map((h, i) => (
           <motion.rect
             key={i}
-            x={80 + i * 36}
-            y={340 - h}
-            width="24"
+            x={xStart + i * colStep}
+            y={baseY - h}
+            width={barW}
             height={h}
             rx="2"
             fill={i === bars.length - 1 ? "#0E5E5E" : "url(#bar-grad)"}
@@ -950,10 +1049,10 @@ function LearningScene() {
             animate={{ scaleY: 1 }}
             transition={{
               duration: 0.7,
-              delay: 0.2 + i * 0.08,
+              delay: 0.6 + i * 0.08,
               ease: [0.22, 1, 0.36, 1],
             }}
-            style={{ transformOrigin: `${80 + i * 36 + 12}px 340px` }}
+            style={{ transformOrigin: `${xStart + i * colStep + barW / 2}px ${baseY}px` }}
           />
         ))}
 
@@ -961,26 +1060,29 @@ function LearningScene() {
         {bars.map((h, i) => (
           <motion.text
             key={i}
-            x={80 + i * 36 + 12}
-            y={340 - h - 6}
+            x={xStart + i * colStep + barW / 2}
+            y={baseY - h - 6}
             textAnchor="middle"
-            fontSize="7"
+            fontSize="6.5"
             fontWeight="500"
             fill={i === bars.length - 1 ? "#0E5E5E" : "rgba(248,246,241,0.55)"}
             fontFamily="ui-sans-serif, system-ui, sans-serif"
-            letterSpacing="0.5"
+            letterSpacing="0.3"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.9 + i * 0.08 }}
+            transition={{ delay: 1.3 + i * 0.08 }}
           >
-            {Math.round((h / 250) * 100)}
+            {Math.round((h / 220) * 100)}
           </motion.text>
         ))}
 
-        {/* trend curve */}
+        {/* trend curve over bar tops */}
         <motion.path
-          d={`M${80 + 0 * 36 + 12},${340 - 50} ${bars
-            .map((h, i) => `L${80 + i * 36 + 12},${340 - h}`)
+          d={`M${xStart + barW / 2},${baseY - bars[0]} ${bars
+            .map(
+              (h, i) =>
+                `L${xStart + i * colStep + barW / 2},${baseY - h}`
+            )
             .join(" ")}`}
           stroke="rgba(14,94,94,0.65)"
           strokeWidth="1.4"
@@ -989,13 +1091,13 @@ function LearningScene() {
           fill="none"
           initial={{ pathLength: 0 }}
           animate={{ pathLength: 1 }}
-          transition={{ duration: 1.4, delay: 1.1 }}
+          transition={{ duration: 1.4, delay: 1.4 }}
         />
 
         {/* end marker glow */}
         <motion.circle
-          cx={80 + (bars.length - 1) * 36 + 12}
-          cy={340 - bars[bars.length - 1]}
+          cx={xStart + (bars.length - 1) * colStep + barW / 2}
+          cy={baseY - bars[bars.length - 1]}
           r="6"
           fill="rgba(14,94,94,0.25)"
           stroke="#0E5E5E"
@@ -1003,51 +1105,12 @@ function LearningScene() {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{
-            delay: 2.4,
+            delay: 2.6,
             type: "spring",
             stiffness: 240,
             damping: 14,
           }}
         />
-
-        {/* annotation badge */}
-        <motion.g
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 2.6, duration: 0.5 }}
-          transform="translate(220 90)"
-        >
-          <rect
-            x="0"
-            y="0"
-            width="120"
-            height="32"
-            rx="4"
-            fill="rgba(14,94,94,0.10)"
-            stroke="rgba(14,94,94,0.35)"
-          />
-          <text
-            x="10"
-            y="13"
-            fontSize="6"
-            fill="rgba(248,246,241,0.55)"
-            fontFamily="ui-sans-serif, system-ui, sans-serif"
-            letterSpacing="1.4"
-          >
-            RULE LIBRARY
-          </text>
-          <text
-            x="10"
-            y="26"
-            fontSize="10"
-            fontWeight="600"
-            fill="#0E5E5E"
-            fontFamily="ui-sans-serif, system-ui, sans-serif"
-            letterSpacing="0.5"
-          >
-            +312 / month
-          </text>
-        </motion.g>
 
         <FrameChrome
           tl="LEARNING"
