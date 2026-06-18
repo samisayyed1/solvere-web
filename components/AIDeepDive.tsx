@@ -308,8 +308,8 @@ function TriageScene() {
   const reasonX = 92;      // after payer chip
   const trackX = 180;      // score bar start
   const trackW = 120;      // score bar width — ends at 300
-  const scoreX = 312;      // numeric score
-  const verdictX = 326;    // verdict dot
+  const scoreEndX = 320;   // numeric score — right edge anchor
+  const verdictX = 334;    // verdict dot
   const aggX = 60;         // aggregate bar left
   const aggW = 280;        // aggregate bar width — ends at 340
   const rowTop = 104;
@@ -405,8 +405,8 @@ function TriageScene() {
                 animate={{ width: fillW }}
                 transition={{ duration: 0.9, delay: 0.5 + i * 0.12, ease: [0.22, 1, 0.36, 1] }}
               />
-              {/* score value */}
-              <text x={scoreX} y={cy + 2.6} fontSize="8" fontWeight="500" fill={recoverable ? "#0E5E5E" : "rgba(248,246,241,0.4)"} fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="0.3">
+              {/* score value — right-anchored so the digit edge sits at scoreEndX, never collides with verdict */}
+              <text x={scoreEndX} y={cy + 2.6} textAnchor="end" fontSize="8" fontWeight="500" fill={recoverable ? "#0E5E5E" : "rgba(248,246,241,0.4)"} fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="0.3">
                 {r.score}
               </text>
               {/* verdict dot */}
