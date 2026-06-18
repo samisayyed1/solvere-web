@@ -292,12 +292,20 @@ function TriageScene() {
     { code: "NX", reason: "Documentation", score: 26 },
     { code: "AD", reason: "Filing window", score: 88 },
   ];
+  // Centered geometry: content sits in x[60..340], width 280, centered on 200.
+  // 6 rows + headers + aggregate fills y[78..314], centered vertically with bottom-corner margin.
   const THRESH = 50;
-  const trackX = 150;
-  const trackW = 120;
-  const rowTop = 96;
-  const rowStep = 26;
-  const rowH = 20;
+  const labelX = 60;       // left edge of content
+  const reasonX = 92;      // after payer chip
+  const trackX = 180;      // score bar start
+  const trackW = 120;      // score bar width — ends at 300
+  const scoreX = 312;      // numeric score
+  const verdictX = 326;    // verdict dot
+  const aggX = 60;         // aggregate bar left
+  const aggW = 280;        // aggregate bar width — ends at 340
+  const rowTop = 104;
+  const rowStep = 28;
+  const rowH = 22;
   const threshX = trackX + (trackW * THRESH) / 100;
 
   return (
@@ -315,10 +323,10 @@ function TriageScene() {
         </defs>
 
         {/* column headers */}
-        <text x="32" y="80" fontSize="6" fill="rgba(248,246,241,0.40)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.6">
+        <text x={labelX} y="86" fontSize="6.5" fill="rgba(248,246,241,0.42)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.6">
           DENIED CLAIM
         </text>
-        <text x={trackX} y="80" fontSize="6" fill="rgba(248,246,241,0.40)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.6">
+        <text x={trackX} y="86" fontSize="6.5" fill="rgba(248,246,241,0.42)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.6">
           RECOVERABILITY SCORE
         </text>
 
@@ -332,14 +340,14 @@ function TriageScene() {
           strokeWidth="0.7"
           strokeDasharray="2 3"
         />
-        <text x={threshX} y={rowTop - 8} textAnchor="middle" fontSize="5" fill="rgba(248,246,241,0.4)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1">
+        <text x={threshX} y={rowTop - 8} textAnchor="middle" fontSize="5.5" fill="rgba(248,246,241,0.42)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1">
           THRESHOLD
         </text>
 
         {/* sweeping scan highlight (row processor) */}
         <motion.rect
-          x="28"
-          width="300"
+          x={labelX - 6}
+          width={(verdictX + 8) - (labelX - 6)}
           height={rowH}
           rx="4"
           fill="rgba(14,94,94,0.10)"
@@ -368,12 +376,12 @@ function TriageScene() {
               transition={{ duration: 0.5, delay: 0.2 + i * 0.12, ease: [0.22, 1, 0.36, 1] }}
             >
               {/* payer chip */}
-              <rect x="32" y={cy - 7.5} width="22" height="15" rx="3" fill="rgba(255,255,255,0.05)" stroke="rgba(248,246,241,0.16)" strokeWidth="0.6" />
-              <text x="43" y={cy + 2.5} textAnchor="middle" fontSize="7" fontWeight="600" fill="rgba(248,246,241,0.8)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="0.4">
+              <rect x={labelX} y={cy - 8} width="24" height="16" rx="3" fill="rgba(255,255,255,0.05)" stroke="rgba(248,246,241,0.16)" strokeWidth="0.6" />
+              <text x={labelX + 12} y={cy + 2.6} textAnchor="middle" fontSize="7.5" fontWeight="600" fill="rgba(248,246,241,0.82)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="0.4">
                 {r.code}
               </text>
               {/* reason */}
-              <text x="62" y={cy + 2.5} fontSize="7" fill="rgba(248,246,241,0.6)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="0.3">
+              <text x={reasonX} y={cy + 2.6} fontSize="7.5" fill="rgba(248,246,241,0.62)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="0.3">
                 {r.reason}
               </text>
               {/* score track */}
@@ -389,14 +397,14 @@ function TriageScene() {
                 transition={{ duration: 0.9, delay: 0.5 + i * 0.12, ease: [0.22, 1, 0.36, 1] }}
               />
               {/* score value */}
-              <text x={trackX + trackW + 10} y={cy + 2.5} fontSize="7.5" fontWeight="500" fill={recoverable ? "#0E5E5E" : "rgba(248,246,241,0.4)"} fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="0.3">
+              <text x={scoreX} y={cy + 2.6} fontSize="8" fontWeight="500" fill={recoverable ? "#0E5E5E" : "rgba(248,246,241,0.4)"} fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="0.3">
                 {r.score}
               </text>
               {/* verdict dot */}
               <motion.circle
-                cx={trackX + trackW + 34}
+                cx={verdictX}
                 cy={cy}
-                r="3.5"
+                r="3.6"
                 fill={recoverable ? "#0E5E5E" : "none"}
                 stroke={recoverable ? "none" : "rgba(248,246,241,0.3)"}
                 strokeWidth="0.8"
@@ -410,30 +418,28 @@ function TriageScene() {
 
         {/* aggregate split bar */}
         {(() => {
-          const aggY = rowTop + rows.length * rowStep + 16;
-          const aggX = 32;
-          const aggW = 296;
+          const aggY = rowTop + rows.length * rowStep + 22;
           const recW = aggW * 0.68;
           return (
             <g>
-              <text x={aggX} y={aggY - 8} fontSize="6" fill="rgba(248,246,241,0.4)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.6">
+              <text x={aggX} y={aggY - 9} fontSize="6.5" fill="rgba(248,246,241,0.42)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.6">
                 247 CLAIMS · SCORED
               </text>
-              <rect x={aggX} y={aggY} width={aggW} height="9" rx="4.5" fill="rgba(248,246,241,0.08)" />
+              <rect x={aggX} y={aggY} width={aggW} height="10" rx="5" fill="rgba(248,246,241,0.08)" />
               <motion.rect
                 x={aggX}
                 y={aggY}
-                height="9"
-                rx="4.5"
+                height="10"
+                rx="5"
                 fill="url(#agg-fill)"
                 initial={{ width: 0 }}
                 animate={{ width: recW }}
                 transition={{ duration: 1.1, delay: 1.4, ease: [0.22, 1, 0.36, 1] }}
               />
-              <text x={aggX} y={aggY + 24} fontSize="6.5" fill="#0E5E5E" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.2">
+              <text x={aggX} y={aggY + 26} fontSize="7" fill="#0E5E5E" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.2">
                 ● RECOVERABLE · 68%
               </text>
-              <text x={aggX + aggW} y={aggY + 24} textAnchor="end" fontSize="6.5" fill="rgba(248,246,241,0.45)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.2">
+              <text x={aggX + aggW} y={aggY + 26} textAnchor="end" fontSize="7" fill="rgba(248,246,241,0.45)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.2">
                 WRITE-OFF · 32%
               </text>
             </g>
@@ -452,19 +458,20 @@ function TriageScene() {
 }
 
 function VerifyScene() {
-  // centered claim document scaled to fill the frame; checks; signature; APPROVED seal on the corner.
-  const docX = 50;
-  const docY = 65;
-  const docW = 264;
-  const docH = 270;
-  const docR = docX + docW; // 314
-  const innerX = docX + 18; // 68
-  const innerR = docR - 18; // 296
+  // Centered composition: doc + seal balanced on viewBox center.
+  // doc 280x290 at (40, 56) → docR=320, seal visible-edge at ~361 → composition center = 200.
+  const docX = 40;
+  const docY = 56;
+  const docW = 280;
+  const docH = 290;
+  const docR = docX + docW; // 320
+  const innerX = docX + 18; // 58
+  const innerR = docR - 18; // 302
   const lines = [
-    { w: 200, y: 124 },
-    { w: 168, y: 142 },
-    { w: 214, y: 160 },
-    { w: 140, y: 178 },
+    { w: 210, y: docY + 64 },
+    { w: 180, y: docY + 82 },
+    { w: 224, y: docY + 100 },
+    { w: 150, y: docY + 118 },
   ];
   const checks = ["ELIG", "CODE", "DOCS", "MOD"];
 
@@ -493,14 +500,14 @@ function VerifyScene() {
           transition={{ duration: 0.6 }}
         />
 
-        {/* header */}
-        <text x={innerX} y={91} fontSize="7.5" fill="rgba(248,246,241,0.55)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.6">
+        {/* header (relative to docY=56) */}
+        <text x={innerX} y={docY + 26} fontSize="7.5" fill="rgba(248,246,241,0.55)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.6">
           CLAIM · DM-24698
         </text>
-        <text x={innerR} y={91} textAnchor="end" fontSize="7.5" fill="rgba(248,246,241,0.55)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.6">
+        <text x={innerR} y={docY + 26} textAnchor="end" fontSize="7.5" fill="rgba(248,246,241,0.55)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.6">
           AED 22,500
         </text>
-        <line x1={innerX} y1={103} x2={innerR} y2={103} stroke="rgba(248,246,241,0.12)" />
+        <line x1={innerX} y1={docY + 38} x2={innerR} y2={docY + 38} stroke="rgba(248,246,241,0.12)" />
 
         {/* body lines */}
         {lines.map((l, i) => (
@@ -520,18 +527,19 @@ function VerifyScene() {
         ))}
 
         {/* verification checks */}
-        <text x={innerX} y={206} fontSize="7" fill="rgba(248,246,241,0.42)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.8">
+        <text x={innerX} y={docY + 155} fontSize="7" fill="rgba(248,246,241,0.42)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.8">
           VERIFICATION CHECKS
         </text>
         {checks.map((s, i) => {
-          const cw = 50;
-          const step = 58;
+          const cw = 54;
+          const step = 62;
           const x = innerX + i * step;
+          const rectY = docY + 165;
           return (
             <g key={s}>
               <motion.rect
                 x={x}
-                y={216}
+                y={rectY}
                 width={cw}
                 height="22"
                 rx="4"
@@ -544,7 +552,7 @@ function VerifyScene() {
               />
               <motion.text
                 x={x + cw / 2 - 4}
-                y={230}
+                y={rectY + 14}
                 textAnchor="middle"
                 fontSize="7"
                 fill="rgba(248,246,241,0.74)"
@@ -558,7 +566,7 @@ function VerifyScene() {
               </motion.text>
               <motion.circle
                 cx={x + cw - 9}
-                cy={222}
+                cy={rectY + 5}
                 r="2.6"
                 fill="#0E5E5E"
                 initial={{ scale: 0 }}
@@ -570,12 +578,12 @@ function VerifyScene() {
         })}
 
         {/* signature block */}
-        <line x1={innerX} y1={268} x2={innerR} y2={268} stroke="rgba(248,246,241,0.12)" />
-        <text x={innerX} y={286} fontSize="7" fill="rgba(248,246,241,0.42)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.8">
+        <line x1={innerX} y1={docY + 218} x2={innerR} y2={docY + 218} stroke="rgba(248,246,241,0.12)" />
+        <text x={innerX} y={docY + 236} fontSize="7" fill="rgba(248,246,241,0.42)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1.8">
           REVIEWED BY
         </text>
         <motion.path
-          d={`M${innerX} 308 c 7 -13 17 -13 27 -2 c 9 10 19 5 29 -6 c 10 -9 22 -2 31 7 c 8 7 18 -3 26 -10`}
+          d={`M${innerX} ${docY + 258} c 7 -13 17 -13 27 -2 c 9 10 19 5 29 -6 c 10 -9 22 -2 31 7 c 8 7 18 -3 26 -10`}
           stroke="#F8F6F1"
           strokeOpacity="0.85"
           strokeWidth="1.4"
@@ -585,12 +593,12 @@ function VerifyScene() {
           animate={{ pathLength: 1 }}
           transition={{ delay: 1.3, duration: 1.3 }}
         />
-        <text x={innerX} y={326} fontSize="6.5" fill="rgba(248,246,241,0.5)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1">
+        <text x={innerX} y={docY + 276} fontSize="6.5" fill="rgba(248,246,241,0.5)" fontFamily="ui-sans-serif, system-ui, sans-serif" letterSpacing="1">
           M. AL-MARZOUQI · DHA-MC-04812
         </text>
 
-        {/* APPROVED seal stamped on the document's bottom-right corner (drawn at origin, then placed) */}
-        <g transform={`translate(${docR - 4} 300) rotate(-8)`}>
+        {/* APPROVED seal stamped on the document's bottom-right corner */}
+        <g transform={`translate(${docR - 4} ${docY + 245}) rotate(-8)`}>
           <motion.g
             initial={{ opacity: 0, scale: 0.4 }}
             animate={{ opacity: 1, scale: 1 }}
