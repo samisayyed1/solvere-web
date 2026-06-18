@@ -112,78 +112,79 @@ export default function AIDeepDive() {
         }}
       />
       <div className="relative mx-auto max-w-container px-6 lg:px-10">
-        <div className="max-w-[60ch] mb-12">
-          <div className="eyebrow mb-5 text-teal">Under the hood</div>
-          <h2 className="h-display text-[34px] sm:text-[44px] md:text-[56px] text-cream leading-[1.02] mb-5">
-            AI-native recovery,{" "}
-            <span className="italic font-normal text-teal">human-verified.</span>
-          </h2>
-          <p className="text-[16px] md:text-[17px] text-cream/65 leading-[1.6]">
-            Pure-AI vendors miss what the rules don't cover. Pure-human shops
-            can't scale. Solvere ships both, in the same loop.
-          </p>
-        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-stretch">
+          {/* LEFT COLUMN — header + tabs + active content + controls, all stacked */}
+          <div className="lg:col-span-6 flex flex-col">
+            <div className="eyebrow mb-5 text-teal">Under the hood</div>
+            <h2 className="h-display text-[32px] sm:text-[40px] md:text-[48px] lg:text-[52px] text-cream leading-[1.04] mb-5 max-w-[15ch]">
+              AI-native recovery,{" "}
+              <span className="italic font-normal text-teal">human-verified.</span>
+            </h2>
+            <p className="text-[15px] md:text-[16px] text-cream/60 leading-[1.6] max-w-[52ch]">
+              Pure-AI vendors miss what the rules don't cover. Pure-human shops
+              can't scale. Solvere ships both, in the same loop.
+            </p>
 
-        {/* tab strip with auto-progress fill */}
-        <div className="flex flex-wrap gap-2 mb-10">
-          {tabs.map((t, i) => (
-            <button
-              key={t.no}
-              onClick={() => go(i)}
-              className={`relative overflow-hidden rounded-full px-4 py-2 text-[12px] tracking-[0.18em] uppercase border transition-colors ${
-                active === i
-                  ? "bg-teal/15 border-teal/40 text-cream"
-                  : "bg-transparent border-white/10 text-cream/55 hover:border-white/25 hover:text-cream"
-              }`}
-            >
-              {active === i && (
-                <motion.span
-                  key={`progress-${i}-${cycleKey}-${paused ? "p" : "r"}`}
-                  aria-hidden
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: paused ? 0 : 1 }}
-                  transition={{
-                    duration: paused ? 0 : AUTO_MS / 1000,
-                    ease: "linear",
-                  }}
-                  className="absolute inset-y-0 left-0 right-0 bg-teal/20 origin-left"
-                />
-              )}
-              <span className="relative">
-                <span className="text-teal/90 mr-2">{t.no}</span>
-                {t.key}
-              </span>
-            </button>
-          ))}
-        </div>
+            {/* tab strip */}
+            <div className="flex flex-wrap gap-2 mt-8 mb-8">
+              {tabs.map((t, i) => (
+                <button
+                  key={t.no}
+                  onClick={() => go(i)}
+                  className={`relative overflow-hidden rounded-full px-3.5 py-1.5 text-[11px] tracking-[0.18em] uppercase border transition-colors ${
+                    active === i
+                      ? "bg-teal/15 border-teal/40 text-cream"
+                      : "bg-transparent border-white/10 text-cream/55 hover:border-white/25 hover:text-cream"
+                  }`}
+                >
+                  {active === i && (
+                    <motion.span
+                      key={`progress-${i}-${cycleKey}-${paused ? "p" : "r"}`}
+                      aria-hidden
+                      initial={{ scaleX: 0 }}
+                      animate={{ scaleX: paused ? 0 : 1 }}
+                      transition={{
+                        duration: paused ? 0 : AUTO_MS / 1000,
+                        ease: "linear",
+                      }}
+                      className="absolute inset-y-0 left-0 right-0 bg-teal/20 origin-left"
+                    />
+                  )}
+                  <span className="relative">
+                    <span className="text-teal/90 mr-2">{t.no}</span>
+                    {t.key}
+                  </span>
+                </button>
+              ))}
+            </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-12 items-stretch">
-          {/* TEXT COLUMN — fixed min height to match diagram */}
-          <div className="relative min-h-[460px] flex flex-col">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={tab.no}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-                className="flex-1 flex flex-col"
-              >
-                <div className="text-[10px] tracking-[0.22em] uppercase text-cream/40 mb-5 flex items-center gap-3">
-                  <span className="text-teal">{tab.no}</span>
-                  <span className="w-8 h-px bg-white/15" />
-                  <span>{tab.key}</span>
-                </div>
-                <h3 className="h-serif text-[28px] sm:text-[34px] md:text-[42px] text-cream leading-[1.08] mb-6 max-w-[18ch]">
-                  {tab.title}
-                </h3>
-                <p className="text-[16px] md:text-[17px] text-cream/65 leading-[1.65] max-w-[52ch]">
-                  {tab.body}
-                </p>
-              </motion.div>
-            </AnimatePresence>
+            {/* hairline before active block */}
+            <div className="border-t border-white/10 pt-7 flex-1 flex flex-col">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={tab.no}
+                  initial={{ opacity: 0, y: 14 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                  className="flex flex-col"
+                >
+                  <div className="text-[10px] tracking-[0.22em] uppercase text-cream/40 mb-4 flex items-center gap-3">
+                    <span className="text-teal">{tab.no}</span>
+                    <span className="w-6 h-px bg-white/15" />
+                    <span>{tab.key}</span>
+                  </div>
+                  <h3 className="h-serif text-[26px] sm:text-[30px] md:text-[34px] text-cream leading-[1.1] mb-4 max-w-[20ch]">
+                    {tab.title}
+                  </h3>
+                  <p className="text-[15px] md:text-[16px] text-cream/65 leading-[1.6] max-w-[52ch]">
+                    {tab.body}
+                  </p>
+                </motion.div>
+              </AnimatePresence>
+            </div>
 
-            {/* controls + counter pinned bottom */}
+            {/* controls — pinned bottom */}
             <div className="mt-8 pt-6 border-t border-white/10 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <button
@@ -231,8 +232,8 @@ export default function AIDeepDive() {
             </div>
           </div>
 
-          {/* DIAGRAM COLUMN — same min-height */}
-          <div className="relative min-h-[460px] rounded-3xl border border-white/8 bg-ink-soft/40 backdrop-blur overflow-hidden">
+          {/* RIGHT COLUMN — diagram, full height of left */}
+          <div className="lg:col-span-6 relative min-h-[520px] lg:min-h-0 rounded-3xl border border-white/8 bg-ink-soft/40 backdrop-blur overflow-hidden">
             <AnimatePresence mode="wait">
               <motion.div
                 key={tab.illustration}
@@ -245,12 +246,18 @@ export default function AIDeepDive() {
                 <Illustration kind={tab.illustration} />
               </motion.div>
             </AnimatePresence>
-            {/* mini caption pinned bottom of diagram */}
-            <div className="absolute bottom-4 left-5 right-5 flex items-center justify-between text-[10px] tracking-[0.22em] uppercase text-cream/35">
-              <span>{tab.label}</span>
-              <span className="flex items-center gap-1.5">
+            {/* corner chrome */}
+            <div className="absolute top-4 left-5 right-5 flex items-center justify-between text-[10px] tracking-[0.22em] uppercase text-cream/35">
+              <span className="flex items-center gap-2">
                 <span className="w-1 h-1 rounded-full bg-teal animate-pulse" />
                 Visualizer
+              </span>
+              <span>{tab.key}</span>
+            </div>
+            <div className="absolute bottom-4 left-5 right-5 flex items-center justify-between text-[10px] tracking-[0.22em] uppercase text-cream/35">
+              <span>{tab.label}</span>
+              <span className="tabular-nums">
+                {String(active + 1).padStart(2, "0")} / {String(tabs.length).padStart(2, "0")}
               </span>
             </div>
           </div>
