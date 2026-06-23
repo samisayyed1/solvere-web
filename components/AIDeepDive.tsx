@@ -115,15 +115,16 @@ export default function AIDeepDive() {
               can't scale. Solvere ships both, in the same loop.
             </p>
 
-            <div className="flex flex-wrap gap-2 mt-8 mb-8">
+            <div className="flex flex-wrap gap-2 sm:gap-2.5 mt-8 mb-8">
               {tabs.map((t, i) => (
                 <button
                   key={t.no}
                   onClick={() => go(i)}
-                  className={`relative overflow-hidden rounded-full px-3.5 py-1.5 text-[11px] tracking-[0.18em] uppercase border transition-colors ${
+                  aria-pressed={active === i}
+                  className={`relative overflow-hidden rounded-full px-4 sm:px-5 py-2.5 text-[12.5px] sm:text-[13px] tracking-[0.14em] uppercase border font-medium transition-colors ${
                     active === i
-                      ? "bg-teal/15 border-teal/40 text-cream"
-                      : "bg-transparent border-white/10 text-cream/55 hover:border-white/25 hover:text-cream"
+                      ? "bg-teal/[0.22] border-teal/60 text-cream shadow-[0_0_0_1px_rgba(14,94,94,0.18)]"
+                      : "bg-white/[0.03] border-white/15 text-cream/80 hover:bg-white/[0.06] hover:border-white/30 hover:text-cream"
                   }`}
                 >
                   {active === i && (
@@ -133,12 +134,14 @@ export default function AIDeepDive() {
                       initial={{ scaleX: 0 }}
                       animate={{ scaleX: 1 }}
                       transition={{ duration: AUTO_MS / 1000, ease: "linear" }}
-                      className="absolute inset-y-0 left-0 right-0 bg-teal/20 origin-left"
+                      className="absolute inset-y-0 left-0 right-0 bg-teal/[0.18] origin-left"
                     />
                   )}
-                  <span className="relative">
-                    <span className="text-teal/90 mr-2">{t.no}</span>
-                    {t.key}
+                  <span className="relative inline-flex items-baseline gap-2.5 tabular-nums">
+                    <span className={active === i ? "text-teal" : "text-teal/85"}>
+                      {t.no}
+                    </span>
+                    <span>{t.key}</span>
                   </span>
                 </button>
               ))}
@@ -218,7 +221,7 @@ export default function AIDeepDive() {
                 transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
                 className="absolute inset-0"
               >
-                <Illustration kind={tab.illustration} />
+                <Illustration kind={tab.illustration} live={inView} />
               </motion.div>
             </AnimatePresence>
             <div className="absolute top-4 left-5 right-5 flex items-center justify-between text-[10px] tracking-[0.22em] uppercase text-cream/40 pointer-events-none">
@@ -244,12 +247,14 @@ export default function AIDeepDive() {
 
 function Illustration({
   kind,
+  live,
 }: {
   kind: "triage" | "verify" | "mesh" | "learning";
+  live: boolean;
 }) {
-  if (kind === "triage") return <TriageScene />;
+  if (kind === "triage") return <TriageScene live={live} />;
   if (kind === "verify") return <VerifyScene />;
-  if (kind === "mesh") return <MeshScene />;
+  if (kind === "mesh") return <MeshScene live={live} />;
   return <LearningScene />;
 }
 
@@ -291,7 +296,7 @@ function FrameChrome({
   );
 }
 
-function TriageScene() {
+function TriageScene({ live }: { live: boolean }) {
   // AI triage console: denied claims streamed in, each scored for recoverability against a threshold.
   const rows = [
     { code: "DM", reason: "Eligibility lapse", score: 84 },
@@ -353,24 +358,26 @@ function TriageScene() {
           THRESHOLD
         </text>
 
-        {/* sweeping scan highlight (row processor) */}
-        <motion.rect
-          x={labelX - 6}
-          width={(verdictX + 8) - (labelX - 6)}
-          height={rowH}
-          rx="4"
-          fill="rgba(14,94,94,0.10)"
-          initial={{ y: rowTop }}
-          animate={{ y: rows.map((_, i) => rowTop + i * rowStep) }}
-          transition={{
-            duration: 3.6,
-            times: rows.map((_, i) => i / (rows.length - 1)),
-            repeat: Infinity,
-            repeatType: "reverse",
-            ease: "easeInOut",
-            delay: 1.2,
-          }}
-        />
+        {/* sweeping scan highlight — only animates when section is visible (saves CPU) */}
+        {live && (
+          <motion.rect
+            x={labelX - 6}
+            width={(verdictX + 8) - (labelX - 6)}
+            height={rowH}
+            rx="4"
+            fill="rgba(14,94,94,0.10)"
+            initial={{ y: rowTop }}
+            animate={{ y: rows.map((_, i) => rowTop + i * rowStep) }}
+            transition={{
+              duration: 3.6,
+              times: rows.map((_, i) => i / (rows.length - 1)),
+              repeat: Infinity,
+              repeatType: "reverse",
+              ease: "easeInOut",
+              delay: 1.2,
+            }}
+          />
+        )}
 
         {/* claim rows */}
         {rows.map((r, i) => {
@@ -637,7 +644,7 @@ function VerifyScene() {
   );
 }
 
-function MeshScene() {
+function MeshScene({ live }: { live: boolean }) {
   const nodes = [
     { x: 80, y: 80, l: "DAMAN", code: "DM" },
     { x: 320, y: 80, l: "THIQA", code: "TH" },
@@ -670,15 +677,17 @@ function MeshScene() {
             stroke="rgba(14,94,94,0.18)"
             strokeWidth="0.8"
             strokeDasharray="2 4"
-            initial={{ opacity: 0, scale: 0.6 }}
-            animate={{ opacity: [0, 0.7, 0.4], scale: [0.85, 1.04, 1] }}
-            transition={{
-              duration: 3.2,
-              delay: 0.3 + i * 0.3,
-              repeat: Infinity,
-              repeatDelay: 1.2,
-              ease: "easeOut",
-            }}
+            initial={{ opacity: 0.4, scale: 1 }}
+            animate={
+              live
+                ? { opacity: [0, 0.7, 0.4], scale: [0.85, 1.04, 1] }
+                : { opacity: 0.4, scale: 1 }
+            }
+            transition={
+              live
+                ? { duration: 3.2, delay: 0.3 + i * 0.3, repeat: Infinity, repeatDelay: 1.2, ease: "easeOut" }
+                : { duration: 0 }
+            }
           />
         ))}
 
@@ -700,7 +709,7 @@ function MeshScene() {
           />
         ))}
 
-        {nodes.map((n, i) => {
+        {live && nodes.map((n, i) => {
           const dx = 200 - n.x;
           const dy = 200 - n.y;
           return (
@@ -735,14 +744,13 @@ function MeshScene() {
               cy={n.y}
               r="34"
               fill="url(#node-glow-m)"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: [0.35, 0.6, 0.35] }}
-              transition={{
-                duration: 3.6,
-                delay: 0.8 + i * 0.18,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
+              initial={{ opacity: 0.5 }}
+              animate={live ? { opacity: [0.35, 0.6, 0.35] } : { opacity: 0.5 }}
+              transition={
+                live
+                  ? { duration: 3.6, delay: 0.8 + i * 0.18, repeat: Infinity, ease: "easeInOut" }
+                  : { duration: 0 }
+              }
             />
             <motion.circle
               cx={n.x}
@@ -815,17 +823,19 @@ function MeshScene() {
             damping: 18,
           }}
         />
-        <motion.circle
-          cx="200"
-          cy="200"
-          r="42"
-          stroke="#0E5E5E"
-          strokeOpacity="0.6"
-          strokeWidth="0.6"
-          fill="none"
-          animate={{ r: [42, 50, 42], opacity: [0.6, 0, 0.6] }}
-          transition={{ duration: 2.8, repeat: Infinity, ease: "easeOut" }}
-        />
+        {live && (
+          <motion.circle
+            cx="200"
+            cy="200"
+            r="42"
+            stroke="#0E5E5E"
+            strokeOpacity="0.6"
+            strokeWidth="0.6"
+            fill="none"
+            animate={{ r: [42, 50, 42], opacity: [0.6, 0, 0.6] }}
+            transition={{ duration: 2.8, repeat: Infinity, ease: "easeOut" }}
+          />
+        )}
         <text
           x="200"
           y="197"
