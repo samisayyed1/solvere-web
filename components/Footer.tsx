@@ -21,7 +21,6 @@ const cols = [
   {
     title: "Office",
     items: [
-      { label: "1WEB FZE", static: true },
       { label: "Abu Dhabi, UAE", static: true },
       { label: "Sun–Thu · 09:00–18:00 GST", static: true },
     ],
@@ -160,7 +159,7 @@ export default function Footer() {
       <div className="border-t border-rule">
         <div className="mx-auto max-w-container px-6 lg:px-10 py-6 flex flex-col md:flex-row items-center justify-between gap-4 text-[11px] tracking-[0.18em] uppercase text-muted">
           <div className="flex items-center gap-5">
-            <span>© 2026 1WEB FZE</span>
+            <span>© 2026 Solvere</span>
             <Sep />
             <a href="#" className="hover:text-ink transition-colors">Privacy</a>
             <Sep />

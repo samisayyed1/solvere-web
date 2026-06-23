@@ -49,10 +49,8 @@ export default function Nav() {
       style={{
         backgroundColor: bg,
         borderBottomColor: border,
-        backdropFilter: "blur(14px)",
-        WebkitBackdropFilter: "blur(14px)",
       }}
-      className="fixed top-0 inset-x-0 z-40 border-b"
+      className="fixed top-0 inset-x-0 z-40 border-b md:[backdrop-filter:blur(14px)] md:[-webkit-backdrop-filter:blur(14px)]"
     >
       <motion.div
         style={{ paddingTop: padding, paddingBottom: padding }}

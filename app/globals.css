@@ -83,6 +83,34 @@ body {
   will-change: transform;
 }
 
+/* mobile perf: kill heavy infinite animations + GPU-expensive blurs on small viewports */
+@media (max-width: 767px) {
+  .marquee-track {
+    animation-duration: 90s; /* slower = less CPU/GPU churn per frame */
+  }
+  .grain::before {
+    display: none; /* drop blend-mode overlay on mobile — too heavy */
+  }
+  /* trim backdrop-filter usage — mobile GPUs choke on it at scroll */
+  .mobile-no-blur {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
+
+/* respect user preference — kills every infinite animation site-wide */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .marquee-track {
+    animation: none !important;
+  }
+}
+
 /* subtle grain on ink sections */
 .grain::before {
   content: "";

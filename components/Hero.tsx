@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const fade = {
   hidden: { opacity: 0, y: 18 },
@@ -141,11 +141,26 @@ function AmbientBackdrop() {
             "radial-gradient(closest-side, rgba(180,83,9,0.05), rgba(180,83,9,0) 70%)",
         }}
       />
+      {/* desktop only — animated dot grid is expensive on mobile GPUs */}
       <motion.div
         aria-hidden
         animate={{ backgroundPosition: ["0px 0px", "32px 32px"] }}
         transition={{ duration: 26, repeat: Infinity, ease: "linear" }}
-        className="absolute inset-0 pointer-events-none opacity-[0.32]"
+        className="hidden md:block absolute inset-0 pointer-events-none opacity-[0.32]"
+        style={{
+          backgroundImage:
+            "radial-gradient(rgba(10,10,10,0.10) 1px, transparent 1px)",
+          backgroundSize: "32px 32px",
+          maskImage:
+            "radial-gradient(ellipse 70% 60% at 50% 40%, black 30%, transparent 75%)",
+          WebkitMaskImage:
+            "radial-gradient(ellipse 70% 60% at 50% 40%, black 30%, transparent 75%)",
+        }}
+      />
+      {/* mobile fallback — static dot grid, zero animation cost */}
+      <div
+        aria-hidden
+        className="md:hidden absolute inset-0 pointer-events-none opacity-[0.22]"
         style={{
           backgroundImage:
             "radial-gradient(rgba(10,10,10,0.10) 1px, transparent 1px)",
@@ -167,6 +182,8 @@ function LiveRecoveryCard() {
     Math.round(v).toLocaleString("en-AE")
   );
   const [display, setDisplay] = useState("0");
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(true); // assume in view on first paint
 
   useEffect(() => {
     const controls = animate(value, target, {
@@ -181,14 +198,27 @@ function LiveRecoveryCard() {
     };
   }, [rounded, value]);
 
+  // pause the recurring counter-bump when scrolled out of view (mobile CPU saver)
   useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => setInView(entry.isIntersecting),
+      { threshold: 0.1 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!inView) return;
     const i = setInterval(() => {
       const bump = Math.floor(800 + Math.random() * 3200);
       const current = value.get();
       animate(value, current + bump, { duration: 1.4, ease: "easeOut" });
     }, 4200);
     return () => clearInterval(i);
-  }, [value]);
+  }, [value, inView]);
 
   const ticks = [
     { payer: "Daman", amount: "AED 22,500", t: "2m" },
@@ -207,7 +237,7 @@ function LiveRecoveryCard() {
   const spark = [18, 22, 19, 28, 31, 27, 35, 38, 33, 44, 49, 47, 56, 62];
 
   return (
-    <div className="relative rounded-2xl border border-rule bg-cream-deep/80 backdrop-blur p-6 md:p-7 shadow-[0_30px_80px_-40px_rgba(10,10,10,0.30)] flex flex-col w-full">
+    <div ref={cardRef} className="relative rounded-2xl border border-rule bg-cream-deep/95 md:bg-cream-deep/80 md:backdrop-blur p-6 md:p-7 shadow-[0_30px_80px_-40px_rgba(10,10,10,0.30)] flex flex-col w-full">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2 text-[10px] tracking-[0.22em] uppercase text-muted">
           <span className="relative flex h-1.5 w-1.5">

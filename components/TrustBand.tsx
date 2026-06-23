@@ -1,7 +1,7 @@
 "use client";
 
 const items = [
-  "1WEB FZE · Abu Dhabi",
+  "Abu Dhabi · UAE",
   "DHA-licensed coding",
   "DIFC Data Protection compliant",
   "eClaimLink + payer portals",

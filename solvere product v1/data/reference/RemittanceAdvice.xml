@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Remittance.Advice xmlns:tns="http://www.haad.ae/DataDictionary/CommonTypes" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.haad.ae/DataDictionary/CommonTypes/RemittanceAdvice.xsd">
+  <Header>
+    <SenderID>A001</SenderID>
+    <ReceiverID>MF1100</ReceiverID>
+    <TransactionDate>06/01/2009 15:00</TransactionDate>
+    <RecordCount>1</RecordCount>
+    <DispositionFlag>PRODUCTION</DispositionFlag>
+  </Header>
+  <Claim>
+    <ID>123</ID>
+    <IDPayer>456</IDPayer>
+    <PaymentReference>45621</PaymentReference>
+       <Activity>
+      <Start>01/01/2009 13:00</Start>
+      <Type>3</Type>
+      <Code>0031T</Code>
+      <Quantity>1</Quantity>
+      <Net>4500</Net>
+      <Clinician>GD6476</Clinician>
+      <PriorAuthorizationID>1235</PriorAuthorizationID>
+      <Gross>5000</Gross>
+      <PatientShare>500</PatientShare>
+      <PaymentAmount>4500</PaymentAmount>
+    </Activity>
+  </Claim>
+</Remittance.Advice>

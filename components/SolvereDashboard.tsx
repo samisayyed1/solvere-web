@@ -62,17 +62,30 @@ export default function SolvereDashboard() {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-100px" });
   const [pulseCol, setPulseCol] = useState<number>(-1);
+  const [liveView, setLiveView] = useState(false);
 
-  // gentle pulse cycling through columns to imply live movement
+  // continuous in/out observer — controls the recurring pulse so it stops when off-screen
   useEffect(() => {
-    if (!inView) return;
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => setLiveView(entry.isIntersecting),
+      { threshold: 0.1 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  // gentle pulse cycling through columns — paused when scrolled away
+  useEffect(() => {
+    if (!liveView) return;
     let i = 0;
     const id = setInterval(() => {
       setPulseCol(i);
       i = (i + 1) % columns.length;
     }, 1800);
     return () => clearInterval(id);
-  }, [inView]);
+  }, [liveView]);
 
   return (
     <section

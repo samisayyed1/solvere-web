@@ -1,0 +1,399 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Claim.Submission xmlns:tns="http://www.haad.ae/DataDictionary/CommonTypes" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.haad.ae/DataDictionary/CommonTypes/ClaimSubmission.xsd">
+
+	<!-- Header: Submission identification information -->
+	<Header>
+		<SenderID>MF2057</SenderID>
+		<ReceiverID>A001</ReceiverID>
+		<TransactionDate>05/07/2009 15:00</TransactionDate>
+		<RecordCount>4</RecordCount>
+		<DispositionFlag>PRODUCTION</DispositionFlag>
+	</Header>
+
+	<!-- Example of a Claim with Cancer observations -->
+	<Claim>
+		<!-- Claim identification information -->
+		<ID>123</ID>
+		<MemberID>m01254</MemberID>
+		<PayerID>A001</PayerID>
+		<ProviderID>MF2057</ProviderID>
+		<EmiratesIDNumber>111-1111-1111111-1</EmiratesIDNumber>
+		<Gross>100</Gross>
+		<PatientShare>0</PatientShare>
+		<Net>100</Net>
+
+		<!-- Encounter information -->
+		<Encounter>
+			<FacilityID>MF2057</FacilityID>
+			<Type>3</Type>
+			<PatientID>1245</PatientID>
+			<Start>01/01/2010 12:00</Start>
+			<End>01/05/2010 15:00</End>
+			<StartType>1</StartType>
+			<EndType>1</EndType>
+		</Encounter>
+
+		<!-- Diagnosis information: principal diagnosis - 195.2 - MALIGNANT NEOPLASM OF ABDOMEN -->
+		<Diagnosis>
+			<Type>Principal</Type>
+			<Code>195.2</Code>
+		</Diagnosis>
+
+		<!-- Activity information: activity - Service Code 10 - Consultation Specialist -->
+		<Activity>
+			<Start>01/01/2010 13:00</Start>
+			<Type>8</Type>
+			<Code>10</Code>
+			<Quantity>1</Quantity>
+			<Net>100</Net>
+			<Clinician>GD6476</Clinician>
+			<!-- Observation information: observation - Date of Initial Encounter -->
+			<Observation>
+				<Type>TEXT</Type>
+				<Code>Date of Initial Encounter</Code>
+				<Value>01/01/2010</Value>
+				<ValueType>Date</ValueType>
+			</Observation>
+			<!-- Observation information: Primary Site - C49.4 - Soft tissues of abdomen -->
+			<Observation>
+				<Type>TEXT</Type>
+				<Code>Primary Site</Code>
+				<Value>C49.4</Value>
+				<ValueType>ICD-O3</ValueType>
+			</Observation>
+			<!-- Observation information: observation - Histology - Abdominal fibromatosis -->
+			<Observation>
+				<Type>TEXT</Type>
+				<Code>Histology</Code>
+				<Value>8822</Value>
+				<ValueType>ICD-O3</ValueType>
+			</Observation>
+			<!-- Observation information: observation - Sequence Number - 200 - One malignant or in situ primary only in the patient’s lifetime -->
+			<Observation>
+				<Type>TEXT</Type>
+				<Code>Sequence number</Code>
+				<Value>One malignant or in situ primary only in the patient’s lifetime</Value>
+				<ValueType>Observation</ValueType>
+			</Observation>
+			<!-- Observation information: observation - Behaviour - 303 - Malignant -->
+			<Observation>
+				<Type>TEXT</Type>
+				<Code>Behaviour</Code>
+				<Value>Malignant</Value>
+				<ValueType>Observation</ValueType>
+			</Observation>
+			<!-- Observation information: observation - Grade - 310 - Grade I (Well diff) -->
+			<Observation>
+				<Type>TEXT</Type>
+				<Code>Grade</Code>
+				<Value>Grade I (Well diff)</Value>
+				<ValueType>Observation</ValueType>
+			</Observation>
+			<!-- Observation information: observation - Laterality - 320 - Not paired -->
+			<Observation>
+				<Type>TEXT</Type>
+				<Code>Laterality</Code>
+				<Value>Not paired</Value>
+				<ValueType>Observation</ValueType>
+			</Observation>
+			<!-- Observation information: observation - Basis of Diagnosis - 334 - Laboratory test -->
+			<Observation>
+				<Type>TEXT</Type>
+				<Code>Basis of Diagnosis</Code>
+				<Value>Laboratory test</Value>
+				<ValueType>Observation</ValueType>
+			</Observation>
+			<!-- Observation information: observation - Clinical T - 401 - TX -->
+			<Observation>
+				<Type>TEXT</Type>
+				<Code>Clinical T</Code>
+				<Value>TX</Value>
+				<ValueType>Observation</ValueType>
+			</Observation>
+			<!-- Observation information: observation - Clinical N - 501 - NX -->
+			<Observation>
+				<Type>TEXT</Type>
+				<Code>Clinical N</Code>
+				<Value>NX</Value>
+				<ValueType>Observation</ValueType>
+			</Observation>
+			<!-- Observation information: observation - Clinical M - 601 - MX -->
+			<Observation>
+				<Type>TEXT</Type>
+				<Code>Clinical M</Code>
+				<Value>MX</Value>
+				<ValueType>Observation</ValueType>
+			</Observation>
+			<!-- Observation information: observation - Clinical Stage Group - 701 - Stage 0A -->
+			<Observation>
+				<Type>TEXT</Type>
+				<Code>Clinical Stage Group</Code>
+				<Value>Stage 0A</Value>
+				<ValueType>Observation</ValueType>
+			</Observation>
+			<!-- Observation information: observation - Pathologic T - 801 - TX -->
+			<Observation>
+				<Type>TEXT</Type>
+				<Code>Pathologic T</Code>
+				<Value>TX</Value>
+				<ValueType>Observation</ValueType>
+			</Observation>
+			<!-- Observation information: observation - Pathologic N - 901 - NX -->
+			<Observation>
+				<Type>TEXT</Type>
+				<Code>Pathologic N</Code>
+				<Value>NX</Value>
+				<ValueType>Observation</ValueType>
+			</Observation>
+			<!-- Observation information: observation - Pathologic M - 1001 - MX -->
+			<Observation>
+				<Type>TEXT</Type>
+				<Code>Pathologic M</Code>
+				<Value>MX</Value>
+				<ValueType>Observation</ValueType>
+			</Observation>
+			<!-- Observation information: observation - Pathologic Stage Group - 1001 - Stage 0A -->
+			<Observation>
+				<Type>TEXT</Type>
+				<Code>Pathologic Stage Group</Code>
+				<Value>Stage 0A</Value>
+				<ValueType>Observation</ValueType>
+			</Observation>
+		</Activity>
+	</Claim>
+
+	
+	<!-- Example of a Claim with Diabetes observations -->
+	<Claim>
+		<!-- Claim identification information -->
+		<ID>123</ID>		
+		<MemberID>m01254</MemberID>
+		<PayerID>A001</PayerID>
+		<ProviderID>MF2057</ProviderID>
+		<EmiratesIDNumber>111-1111-1111111-1</EmiratesIDNumber>
+		<Gross>400</Gross>
+		<PatientShare>155</PatientShare>
+		<Net>245</Net>
+		
+		<!-- Encounter information -->
+		<Encounter>
+			<FacilityID>MF2057</FacilityID>
+			<Type>1</Type>
+			<PatientID>1245</PatientID>
+			<Start>01/01/2009 12:00</Start>
+			<End>01/01/2009 15:00</End>
+			<StartType>3</StartType>
+			<EndType>2</EndType>
+		</Encounter>
+		
+		<!-- Diagnosis information: principal diagnosis - DIABETES MELLITUS WITHOUT MENTION OF COMPLICATION -->
+		<Diagnosis>
+			<Type>Principal</Type>
+			<Code>250.00</Code>
+		</Diagnosis>
+		
+		<!-- Activity information: activity - HbA1c (Glycosylated haemoglobin level) -->
+		<Activity>
+			<Start>01/01/2009 13:00</Start>
+			<Type>3</Type>
+			<Code>83036</Code>
+			<Quantity>1</Quantity>
+			<Net>49</Net>
+			<Clinician>GD6476</Clinician>
+			<!-- Observation information: observation - HbA1c measurement device panel -->
+			<Observation>
+				<Type>LOINC</Type>
+				<Code>43150-2</Code>
+				<Value>5</Value>
+				<ValueType>%</ValueType>
+			</Observation>
+		</Activity>
+
+		<!-- Activity information: activity - Fasting plasma glucose (pre-glucose challenge) -->
+		<Activity>
+			<Start>01/01/2009 13:00</Start>
+			<Type>3</Type>
+			<Code>82947</Code>
+			<Quantity>1</Quantity>
+			<Net>20</Net>
+			<Clinician>GD6476</Clinician>
+			<!-- Observation information: observation - pre-12h CFst -->
+			<Observation>
+				<Type>LOINC</Type>
+				<Code>14769-4</Code>
+				<Value>5</Value>
+				<ValueType>mmol/l</ValueType>
+			</Observation>
+		</Activity>
+		
+		<!-- Activity information: activity - Plasma glucose (2 hours post-glucose challenge) -->
+		<Activity>
+			<Start>01/01/2009 13:00</Start>
+			<Type>3</Type>
+			<Code>82951</Code>
+			<Quantity>1</Quantity>
+			<Net>66</Net>
+			<Clinician>GD6476</Clinician>
+			<!-- Observation information: observation - ^5.5H post 75g glucose po -->
+			<Observation>
+				<Type>LOINC</Type>
+				<Code>14137-4</Code>
+				<Value>10</Value>
+				<ValueType>mmol/l</ValueType>
+			</Observation>
+		</Activity>
+
+		<!-- Activity information: activity - Fasting triglyceride -->
+		<Activity>
+			<Start>01/01/2009 13:00</Start>
+			<Type>3</Type>
+			<Code>84478</Code>
+			<Quantity>1</Quantity>
+			<Net>29</Net>
+			<Clinician>GD6476</Clinician>
+			<!-- Observation information: observation - Fasting triglyceride -->
+			<Observation>
+				<Type>LOINC</Type>
+				<Code>1644-4</Code>
+				<Value>5</Value>
+				<ValueType>mmol/l</ValueType>
+			</Observation>
+		</Activity>
+
+		<!-- Activity information: activity - Blood cholesterol level: Cholesterol in HDL -->
+		<Activity>
+			<Start>01/01/2009 13:00</Start>
+			<Type>3</Type>
+			<Code>83721</Code>
+			<Quantity>1</Quantity>
+			<Net>26</Net>
+			<Clinician>GD6476</Clinician>
+			<!-- Observation information: observation - Blood cholesterol level: HDL -->
+			<Observation>
+				<Type>LOINC</Type>
+				<Code>12773-8</Code>
+				<Value>3</Value>
+				<ValueType>mmol/l</ValueType>
+			</Observation>
+		</Activity>
+
+		<!-- Activity information: activity - Blood cholesterol level: Cholesterol in HDL -->
+		<Activity>
+			<Start>01/01/2009 13:00</Start>
+			<Type>3</Type>
+			<Code>83718</Code>
+			<Quantity>1</Quantity>
+			<Net>26</Net>
+			<Clinician>GD6476</Clinician>
+			<!-- Observation information: observation - Blood cholesterol level: HDL -->
+			<Observation>
+				<Type>LOINC</Type>
+				<Code>12772-0</Code>
+				<Value>0.7</Value>
+				<ValueType>mmol/l</ValueType>
+			</Observation>
+		</Activity>
+		
+		<!-- Activity information: activity - Urinary albumin level (Albumin/urine) -->
+		<Activity>
+			<Start>01/01/2009 13:00</Start>
+			<Type>3</Type>
+			<Code>82042</Code>
+			<Quantity>1</Quantity>
+			<Net>29</Net>
+			<Clinician>GD6476</Clinician>
+			<!-- Observation information: observation - Albumin/urine -->
+			<Observation>
+				<Type>LOINC</Type>
+				<Code>14957-5</Code>
+				<Value>125</Value>
+				<ValueType>mg/l</ValueType>
+			</Observation>
+		</Activity>
+	</Claim>
+	
+	
+ <!-- Standard Claim (see below for Claims with Observations) -->
+  <Claim>
+    <ID>123</ID>
+    <MemberID>m01254</MemberID>
+    <PayerID>A001</PayerID>
+    <ProviderID>MF2057</ProviderID>
+    <EmiratesIDNumber>111-1111-1111111-1</EmiratesIDNumber>
+    <Gross>5000</Gross>
+    <PatientShare>500</PatientShare>
+    <Net>4500</Net>
+    <Encounter>
+      <FacilityID>MF2057</FacilityID>
+      <Type>1</Type>
+      <PatientID>1245</PatientID>
+      <Start>01/01/2009 12:00</Start>
+      <End>01/01/2009 15:00</End>
+      <StartType>3</StartType>
+      <EndType>2</EndType>
+    </Encounter>
+    <Diagnosis>
+      <Type>Admitting</Type>
+      <Code>012.13</Code>
+    </Diagnosis>     
+    <Activity>
+      <Start>01/01/2009 13:00</Start>
+      <Type>3</Type>
+      <Code>0031T</Code>
+      <Quantity>1</Quantity>
+      <Net>4500</Net>
+      <Clinician>GD6476</Clinician>
+      <PriorAuthorizationID>1235</PriorAuthorizationID>
+    </Activity>
+    <Contract>
+      <PackageName>Regional Plan</PackageName>
+    </Contract>
+  </Claim>
+	
+<!-- Mammogram in Claim -->
+<Claim>
+	<ID>123</ID>
+	<MemberID>m01254</MemberID>
+	<PayerID>A001</PayerID>
+	<ProviderID>MF2057</ProviderID>
+	<EmiratesIDNumber>111-1111-1111111-1</EmiratesIDNumber>
+	<Gross>800</Gross>
+	<PatientShare>174</PatientShare>
+	<Net>626</Net>
+	<Encounter>
+		<FacilityID>MF2057</FacilityID>
+		<Type>1</Type>
+		<PatientID>1245</PatientID>
+		<Start>01/01/2009 12:00</Start>
+		<End>01/01/2009 15:00</End>
+		<StartType>3</StartType>
+		<EndType>2</EndType>
+	</Encounter>
+	<Diagnosis>
+		<Type>Principal</Type>
+		<Code>012.13</Code>
+	</Diagnosis>
+	<Activity>
+		<Start>01/01/2009 13:00</Start>
+		<Type>3</Type>
+		<Code>77057</Code>
+		<Quantity>1</Quantity>
+		<Net>313</Net>
+		<Clinician>GD6476</Clinician>
+		<Observation>
+			<Type>CPT</Type>
+			<Code>77057</Code>
+			<Value>3342F</Value>
+			<ValueType>CPT</ValueType>
+		</Observation>
+	</Activity>
+	<Activity>
+		<Start>01/01/2009 13:00</Start>
+		<Type>3</Type>
+		<Code>77052</Code>
+		<Quantity>1</Quantity>
+		<Net>313</Net>
+		<Clinician>GD6476</Clinician>
+	</Activity>
+</Claim>
+</Claim.Submission>
