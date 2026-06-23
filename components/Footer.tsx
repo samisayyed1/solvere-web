@@ -59,7 +59,7 @@ export default function Footer() {
                 Start the recovery
               </div>
               <p className="h-serif text-[22px] md:text-[26px] text-ink leading-[1.2] mb-6">
-                Send us ninety days of denials. We return an audit in twenty-four hours.
+                Send us ninety days of denials. We return an audit in 24 hours.
               </p>
               <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center">
                 <a
