@@ -1,6 +1,6 @@
 "use client";
 
-const WA_NUMBER = "971566320559";
+const WA_NUMBER = "971541705366";
 const WA_MESSAGE =
   "Hi — I'm interested in Solvere and would like to know more about your claim recovery service.";
 
