@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { WhatsAppPillDark } from "./WhatsApp";
 
 export default function FinalCta() {
   return (
@@ -65,7 +66,7 @@ export default function FinalCta() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7, delay: 0.25 }}
-          className="mt-12"
+          className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-3"
         >
           <a
             href="mailto:hello@solvere.ai?subject=Audit%20call"
@@ -78,6 +79,7 @@ export default function FinalCta() {
               </svg>
             </span>
           </a>
+          <WhatsAppPillDark label="Chat on WhatsApp" className="py-3 text-[15px]" />
         </motion.div>
 
         <motion.div

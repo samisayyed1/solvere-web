@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { WhatsAppPillLight } from "./WhatsApp";
 
 const terms = [
   "Lifetime locked rate — never reprices",
@@ -41,9 +42,12 @@ export default function FoundingMembers() {
                 </svg>
               </span>
             </a>
-            <span className="text-[11px] tracking-[0.22em] uppercase text-muted">
-              Spots remaining: limited
-            </span>
+            <WhatsAppPillLight
+              message="Hi — I'd like to apply to the Solvere founding cohort. Can we chat?"
+            />
+          </div>
+          <div className="mt-4 text-[11px] tracking-[0.22em] uppercase text-muted">
+            Spots remaining: limited
           </div>
         </div>
 

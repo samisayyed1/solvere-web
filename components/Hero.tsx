@@ -2,6 +2,7 @@
 
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
+import { WhatsAppPillLight } from "./WhatsApp";
 
 const fade = {
   hidden: { opacity: 0, y: 18 },
@@ -79,6 +80,7 @@ export default function Hero() {
                 </svg>
               </span>
             </a>
+            <WhatsAppPillLight />
             <a
               href="#dashboard"
               className="inline-flex items-center gap-2 rounded-full border border-ink/15 text-ink px-6 py-2.5 text-[15px] font-medium hover:border-ink hover:bg-ink hover:text-cream transition-all"
