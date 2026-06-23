@@ -224,14 +224,17 @@ export default function AIDeepDive() {
                 <Illustration kind={tab.illustration} live={inView} />
               </motion.div>
             </AnimatePresence>
-            <div className="absolute top-4 left-5 right-5 flex items-center justify-between text-[10px] tracking-[0.22em] uppercase text-cream/40 pointer-events-none">
+            {/* HTML overlays hidden on mobile — would collide with the SVG's own corner labels
+                when the SVG fills 96% of the square panel. Desktop keeps them since the SVG floats
+                in a larger frame and they sit clear of the SVG corner text. */}
+            <div className="hidden lg:flex absolute top-4 left-5 right-5 items-center justify-between text-[10px] tracking-[0.22em] uppercase text-cream/40 pointer-events-none">
               <span className="flex items-center gap-2">
                 <span className="w-1 h-1 rounded-full bg-teal animate-pulse" />
                 Visualizer
               </span>
               <span>{tab.key}</span>
             </div>
-            <div className="absolute bottom-4 left-5 right-5 flex items-center justify-between text-[10px] tracking-[0.22em] uppercase text-cream/40 pointer-events-none">
+            <div className="hidden lg:flex absolute bottom-4 left-5 right-5 items-center justify-between text-[10px] tracking-[0.22em] uppercase text-cream/40 pointer-events-none">
               <span>{tab.label}</span>
               <span className="tabular-nums">
                 {String(active + 1).padStart(2, "0")} /{" "}
