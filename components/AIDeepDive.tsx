@@ -210,8 +210,8 @@ export default function AIDeepDive() {
             </div>
           </div>
 
-          {/* RIGHT */}
-          <div className="lg:col-span-6 relative min-h-[520px] lg:min-h-0 rounded-3xl border border-white/8 bg-ink-soft/40 backdrop-blur overflow-hidden">
+          {/* RIGHT — mobile: square panel so the 1:1 SVG fills edge-to-edge; desktop: fills column height */}
+          <div className="lg:col-span-6 relative aspect-square lg:aspect-auto lg:min-h-0 rounded-3xl border border-white/8 bg-ink-soft/40 backdrop-blur overflow-hidden">
             <AnimatePresence mode="wait">
               <motion.div
                 key={tab.illustration}
@@ -324,7 +324,7 @@ function TriageScene({ live }: { live: boolean }) {
 
   return (
     <div className="absolute inset-0 grid place-items-center">
-      <svg viewBox="0 0 400 400" className="w-[92%] h-[92%]" fill="none">
+      <svg viewBox="0 0 400 400" className="w-[96%] h-[96%]" fill="none">
         <defs>
           <linearGradient id="score-fill" x1="0" y1="0" x2="1" y2="0">
             <stop offset="0%" stopColor="#0E5E5E" stopOpacity="0.5" />
@@ -493,7 +493,7 @@ function VerifyScene() {
 
   return (
     <div className="absolute inset-0 grid place-items-center">
-      <svg viewBox="0 0 400 400" className="w-[94%] h-[94%]" fill="none">
+      <svg viewBox="0 0 400 400" className="w-[98%] h-[98%]" fill="none">
         <defs>
           <radialGradient id="seal-glow" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="#0E5E5E" stopOpacity="0.5" />
@@ -655,7 +655,7 @@ function MeshScene({ live }: { live: boolean }) {
   ];
   return (
     <div className="absolute inset-0 grid place-items-center">
-      <svg viewBox="0 0 400 400" className="w-[88%] h-[88%]" fill="none">
+      <svg viewBox="0 0 400 400" className="w-[96%] h-[96%]" fill="none">
         <defs>
           <radialGradient id="center-glow-m" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="#0E5E5E" stopOpacity="0.7" />
@@ -888,7 +888,7 @@ function LearningScene() {
   const xStart = 70;
   return (
     <div className="absolute inset-0 grid place-items-center">
-      <svg viewBox="0 0 400 400" className="w-[90%] h-[90%]" fill="none">
+      <svg viewBox="0 0 400 400" className="w-[96%] h-[96%]" fill="none">
         <defs>
           <linearGradient id="bar-grad" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#0E5E5E" stopOpacity="0.9" />

@@ -60,11 +60,11 @@ export default function PayerMarquee() {
 
         {/* curated payer grid */}
         <div className="relative rounded-2xl border border-rule bg-cream-deep/60 overflow-hidden">
-          {/* legend strip */}
-          <div className="grid grid-cols-3 border-b border-rule">
+          {/* legend strip — stacks on mobile so labels don't overlap, single row from sm: up */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-rule border-b border-rule">
             <LegendCell label="UAE Local" count={14} />
-            <LegendCell label="TPA Networks" count={3} center />
-            <LegendCell label="International" count={7} alignRight />
+            <LegendCell label="TPA Networks" count={3} />
+            <LegendCell label="International" count={7} />
           </div>
 
           {/* 6 × 4 grid */}
@@ -125,19 +125,13 @@ function Hairline() {
 function LegendCell({
   label,
   count,
-  center,
-  alignRight,
 }: {
   label: string;
   count: number;
-  center?: boolean;
-  alignRight?: boolean;
 }) {
   return (
     <div
-      className={`px-5 py-3.5 flex items-center gap-3 text-[10px] tracking-[0.22em] uppercase text-muted ${
-        center ? "justify-center border-l border-r border-rule" : ""
-      } ${alignRight ? "justify-end" : ""}`}
+      className="px-5 py-3.5 flex items-center gap-3 text-[10px] tracking-[0.22em] uppercase text-muted"
     >
       <span className="w-1 h-1 rounded-full bg-teal" />
       <span>{label}</span>
