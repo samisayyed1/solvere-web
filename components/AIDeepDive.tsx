@@ -123,8 +123,8 @@ export default function AIDeepDive() {
                   aria-pressed={active === i}
                   className={`relative overflow-hidden rounded-full px-4 sm:px-5 py-2.5 text-[12.5px] sm:text-[13px] tracking-[0.14em] uppercase border font-medium transition-colors ${
                     active === i
-                      ? "bg-teal/[0.22] border-teal/60 text-cream shadow-[0_0_0_1px_rgba(14,94,94,0.18)]"
-                      : "bg-white/[0.03] border-white/15 text-cream/80 hover:bg-white/[0.06] hover:border-white/30 hover:text-cream"
+                      ? "bg-teal/[0.10] border-teal/55 text-cream"
+                      : "bg-white/[0.03] border-white/[0.18] text-cream/80 hover:bg-white/[0.06] hover:border-white/30 hover:text-cream"
                   }`}
                 >
                   {active === i && (
@@ -134,11 +134,11 @@ export default function AIDeepDive() {
                       initial={{ scaleX: 0 }}
                       animate={{ scaleX: 1 }}
                       transition={{ duration: AUTO_MS / 1000, ease: "linear" }}
-                      className="absolute inset-y-0 left-0 right-0 bg-teal/[0.18] origin-left"
+                      className="absolute inset-y-0 left-0 right-0 bg-teal/[0.28] origin-left"
                     />
                   )}
                   <span className="relative inline-flex items-baseline gap-2.5 tabular-nums">
-                    <span className={active === i ? "text-teal" : "text-teal/85"}>
+                    <span className={active === i ? "text-teal" : "text-teal/80"}>
                       {t.no}
                     </span>
                     <span>{t.key}</span>
