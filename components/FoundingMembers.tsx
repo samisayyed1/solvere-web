@@ -45,9 +45,12 @@ export default function FoundingMembers() {
               </a>
             )}
           </div>
-          <div className="mt-4 text-[11px] tracking-[0.22em] uppercase text-muted">
-            Spots remaining: limited
-          </div>
+          {/* caption — flip `false` → `true` to re-enable */}
+          {false && (
+            <div className="mt-4 text-[11px] tracking-[0.22em] uppercase text-muted">
+              Spots remaining: limited
+            </div>
+          )}
         </div>
 
         <div className="relative">
