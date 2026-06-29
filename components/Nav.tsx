@@ -95,24 +95,26 @@ export default function Nav() {
           ))}
         </nav>
 
-        {/* right cluster */}
+        {/* right cluster — flip `false` → `true` to re-enable "Book a call" */}
         <div className="flex items-center gap-2">
-          <a
-            href="#final-cta"
-            className="group inline-flex items-center gap-2 rounded-full bg-ink text-cream pl-4 pr-1.5 py-1.5 text-[13px] font-medium hover:bg-teal-deep transition-colors"
-          >
-            Book a call
-            <span className="grid place-items-center w-7 h-7 rounded-full bg-cream text-ink transition-transform group-hover:translate-x-0.5">
-              <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-                <path
-                  d="M1 5.5h9M6 1.5l4 4-4 4"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="square"
-                />
-              </svg>
-            </span>
-          </a>
+          {false && (
+            <a
+              href="#final-cta"
+              className="group inline-flex items-center gap-2 rounded-full bg-ink text-cream pl-4 pr-1.5 py-1.5 text-[13px] font-medium hover:bg-teal-deep transition-colors"
+            >
+              Book a call
+              <span className="grid place-items-center w-7 h-7 rounded-full bg-cream text-ink transition-transform group-hover:translate-x-0.5">
+                <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                  <path
+                    d="M1 5.5h9M6 1.5l4 4-4 4"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="square"
+                  />
+                </svg>
+              </span>
+            </a>
+          )}
         </div>
       </motion.div>
     </motion.header>

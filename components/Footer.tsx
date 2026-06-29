@@ -58,22 +58,25 @@ export default function Footer() {
               <p className="h-serif text-[22px] md:text-[26px] text-ink leading-[1.2] mb-6">
                 Send us ninety days of denials. We return an audit in 24 hours.
               </p>
-              <a
-                href="#final-cta"
-                className="group inline-flex items-center justify-between gap-3 rounded-full bg-ink text-cream pl-5 pr-1.5 py-2 text-[14px] font-medium hover:bg-teal-deep transition-colors"
-              >
-                Book a 20-minute audit call
-                <span className="grid place-items-center w-8 h-8 rounded-full bg-cream text-ink transition-transform group-hover:translate-x-0.5">
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                    <path
-                      d="M1 6h10M6.5 1.5l4.5 4.5-4.5 4.5"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="square"
-                    />
-                  </svg>
-                </span>
-              </a>
+              {/* CTA — flip `false` → `true` to re-enable */}
+              {false && (
+                <a
+                  href="#final-cta"
+                  className="group inline-flex items-center justify-between gap-3 rounded-full bg-ink text-cream pl-5 pr-1.5 py-2 text-[14px] font-medium hover:bg-teal-deep transition-colors"
+                >
+                  Book a 20-minute audit call
+                  <span className="grid place-items-center w-8 h-8 rounded-full bg-cream text-ink transition-transform group-hover:translate-x-0.5">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      <path
+                        d="M1 6h10M6.5 1.5l4.5 4.5-4.5 4.5"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="square"
+                      />
+                    </svg>
+                  </span>
+                </a>
+              )}
               <div className="mt-6 pt-5 border-t border-rule flex items-center justify-between text-[10px] tracking-[0.22em] uppercase text-muted">
                 <span className="flex items-center gap-2">
                   <span className="w-1 h-1 rounded-full bg-teal" />

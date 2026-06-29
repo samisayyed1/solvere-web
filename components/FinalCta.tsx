@@ -67,17 +67,20 @@ export default function FinalCta() {
           transition={{ duration: 0.7, delay: 0.25 }}
           className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-3"
         >
-          <a
-            href="#top"
-            className="group inline-flex items-center justify-between gap-3 rounded-full bg-teal hover:bg-teal-deep text-cream pl-7 pr-2 py-3 text-[16px] font-medium transition-colors"
-          >
-            Book a 20-minute audit call
-            <span className="grid place-items-center w-10 h-10 rounded-full bg-cream text-ink transition-transform group-hover:translate-x-0.5">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M1 7h12M7.5 2l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" />
-              </svg>
-            </span>
-          </a>
+          {/* primary CTA — flip `false` → `true` to re-enable */}
+          {false && (
+            <a
+              href="#top"
+              className="group inline-flex items-center justify-between gap-3 rounded-full bg-teal hover:bg-teal-deep text-cream pl-7 pr-2 py-3 text-[16px] font-medium transition-colors"
+            >
+              Book a 20-minute audit call
+              <span className="grid place-items-center w-10 h-10 rounded-full bg-cream text-ink transition-transform group-hover:translate-x-0.5">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M1 7h12M7.5 2l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" />
+                </svg>
+              </span>
+            </a>
+          )}
         </motion.div>
 
         <motion.div
