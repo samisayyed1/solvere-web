@@ -30,17 +30,20 @@ export default function FoundingMembers() {
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row gap-3 sm:items-center">
-            <a
-              href="#final-cta"
-              className="group inline-flex items-center justify-between gap-3 rounded-full bg-ink text-cream pl-6 pr-2 py-2.5 text-[15px] font-medium hover:bg-teal-deep transition-colors"
-            >
-              Apply to the founding cohort
-              <span className="grid place-items-center w-9 h-9 rounded-full bg-cream text-ink transition-transform group-hover:translate-x-0.5">
-                <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                  <path d="M1 6.5h11M7 2.5l4.5 4-4.5 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" />
-                </svg>
-              </span>
-            </a>
+            {/* CTA — flip `false` → `true` to re-enable */}
+            {false && (
+              <a
+                href="#final-cta"
+                className="group inline-flex items-center justify-between gap-3 rounded-full bg-ink text-cream pl-6 pr-2 py-2.5 text-[15px] font-medium hover:bg-teal-deep transition-colors"
+              >
+                Apply to the founding cohort
+                <span className="grid place-items-center w-9 h-9 rounded-full bg-cream text-ink transition-transform group-hover:translate-x-0.5">
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                    <path d="M1 6.5h11M7 2.5l4.5 4-4.5 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" />
+                  </svg>
+                </span>
+              </a>
+            )}
           </div>
           <div className="mt-4 text-[11px] tracking-[0.22em] uppercase text-muted">
             Spots remaining: limited
