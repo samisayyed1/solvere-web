@@ -2,7 +2,6 @@
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useEffect, useState } from "react";
-import { WhatsAppIconButton } from "./WhatsApp";
 
 const links = [
   { href: "#dashboard", label: "Inside Solvere" },
@@ -98,14 +97,6 @@ export default function Nav() {
 
         {/* right cluster */}
         <div className="flex items-center gap-2">
-          <a
-            href="mailto:hello@solvere.ai"
-            className="hidden lg:inline-flex items-center gap-2 text-[12px] text-muted hover:text-ink transition-colors px-3 py-1.5"
-          >
-            hello@solvere.ai
-          </a>
-          <span aria-hidden className="hidden lg:block w-px h-4 bg-rule" />
-          <WhatsAppIconButton className="!w-8 !h-8" />
           <a
             href="#final-cta"
             className="group inline-flex items-center gap-2 rounded-full bg-ink text-cream pl-4 pr-1.5 py-1.5 text-[13px] font-medium hover:bg-teal-deep transition-colors"
