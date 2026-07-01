@@ -29,9 +29,9 @@ export default function FoundingMembers() {
             recovery system in the open with you.
           </p>
 
-          <div className="mt-10 flex flex-col sm:flex-row gap-3 sm:items-center">
-            {/* CTA — flip `false` → `true` to re-enable */}
-            {false && (
+          {/* CTA wrapper — flip `false` → `true` to re-enable */}
+          {false && (
+            <div className="mt-10 flex flex-col sm:flex-row gap-3 sm:items-center">
               <a
                 href="#final-cta"
                 className="group inline-flex items-center justify-between gap-3 rounded-full bg-ink text-cream pl-6 pr-2 py-2.5 text-[15px] font-medium hover:bg-teal-deep transition-colors"
@@ -43,8 +43,8 @@ export default function FoundingMembers() {
                   </svg>
                 </span>
               </a>
-            )}
-          </div>
+            </div>
+          )}
           {/* caption — flip `false` → `true` to re-enable */}
           {false && (
             <div className="mt-4 text-[11px] tracking-[0.22em] uppercase text-muted">

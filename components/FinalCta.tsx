@@ -60,15 +60,15 @@ export default function FinalCta() {
           fee. No risk.
         </motion.p>
 
-        <motion.div
-          initial={{ opacity: 0, y: 14 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7, delay: 0.25 }}
-          className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-3"
-        >
-          {/* primary CTA — flip `false` → `true` to re-enable */}
-          {false && (
+        {/* primary CTA wrapper — flip `false` → `true` to re-enable */}
+        {false && (
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, delay: 0.25 }}
+            className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-3"
+          >
             <a
               href="#top"
               className="group inline-flex items-center justify-between gap-3 rounded-full bg-teal hover:bg-teal-deep text-cream pl-7 pr-2 py-3 text-[16px] font-medium transition-colors"
@@ -80,8 +80,8 @@ export default function FinalCta() {
                 </svg>
               </span>
             </a>
-          )}
-        </motion.div>
+          </motion.div>
+        )}
 
         <motion.div
           initial={{ opacity: 0 }}
