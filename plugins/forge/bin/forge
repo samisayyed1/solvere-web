@@ -1,0 +1,24 @@
+#!/usr/bin/env python3
+"""forge: Forge's supply-chain and health-check CLI.
+
+Usage: see plugins/forge/bin/README.md.
+
+Standard library only (Python 3.12+), so this runs anywhere with a bare
+`python3` -- no venv, no third-party install step.
+"""
+
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+_BIN_DIR = Path(__file__).resolve().parent
+_PLUGIN_ROOT = _BIN_DIR.parent  # plugins/forge
+_REPO_ROOT = _PLUGIN_ROOT.parent.parent  # repo root
+
+sys.path.insert(0, str(_PLUGIN_ROOT / "lib"))
+
+from forge.cli import main  # noqa: E402  (path must be set up first)
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:], repo_root=_REPO_ROOT))

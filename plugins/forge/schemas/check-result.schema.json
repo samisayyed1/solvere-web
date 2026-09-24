@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "forge.check/1",
+  "title": "Forge check result",
+  "type": "object",
+  "required": ["schema", "check_id", "target", "status", "level", "measurements", "tool_versions", "git_sha", "started", "duration_s"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {"const": "forge.check/1"},
+    "check_id": {"type": "string", "pattern": "^[a-z0-9_]+(\\.[a-z0-9_]+)+$"},
+    "target": {"type": "string", "minLength": 1},
+    "status": {"enum": ["pass", "fail", "error"]},
+    "level": {"enum": ["L0", "L1", "L2", "L3", "L4", "L5"]},
+    "measurements": {"type": "array", "items": {"$ref": "#/$defs/measurement"}},
+    "tool_versions": {"type": "object", "additionalProperties": {"type": "string"}},
+    "git_sha": {"type": "string"},
+    "started": {"type": "string", "format": "date-time"},
+    "duration_s": {"type": "number", "minimum": 0},
+    "error": {"type": "string"},
+    "notes": {"type": "string"}
+  },
+  "$defs": {
+    "measurement": {
+      "type": "object",
+      "required": ["name", "value", "unit", "limit", "pass"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {"type": "string"},
+        "value": {"type": ["number", "string", "boolean", "null"]},
+        "unit": {"type": "string", "minLength": 1},
+        "limit": {"type": "object", "properties": {"min": {"type": "number"}, "max": {"type": "number"}, "equals": {}, "tol": {"type": "number", "minimum": 0}}, "additionalProperties": false},
+        "pass": {"type": "boolean"},
+        "requirement": {"type": "string", "pattern": "^REQ-[A-Z]+-[0-9]{3,}$"},
+        "location": {"type": "string"},
+        "remediation": {"type": "string", "minLength": 10}
+      },
+      "if": {"properties": {"pass": {"const": false}}},
+      "then": {"required": ["remediation"]}
+    }
+  },
+  "allOf": [
+    {"if": {"properties": {"status": {"const": "error"}}}, "then": {"required": ["error"]}}
+  ]
+}

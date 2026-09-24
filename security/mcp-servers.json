@@ -1,0 +1,69 @@
+{
+  "schema": 1,
+  "servers": [
+    {
+      "id": "build123d-mcp",
+      "notes": "ADR-001 D12: build123d-mcp 0.3.87 under srt (no network, no credential reads, writes only cwd/tmp; denyWrite .claude, AGENTS.md, CLAUDE.md, .mcp.json, security). Tool allowlist is applied with --tools once the full list is reviewed (install_skill must never be exposed). Launch only via forge-mcp-guard.",
+      "command": [
+        "/Users/samisayyed/.forge/bin/srt",
+        "--settings",
+        "/Users/samisayyed/solvere/.claude/worktrees/forge-product-engineering-55a284/security/srt/build123d-mcp.json",
+        "/Users/samisayyed/.forge/envs/build123d-mcp/bin/build123d-mcp",
+        "--memory-limit-mb",
+        "2048",
+        "--cpu-limit-s",
+        "120",
+        "--exec-timeout",
+        "60",
+        "--disable-tool-groups",
+        "drawing",
+        "--tools",
+        "execute,render_view,measure,validate,locate_gate_defects,design_audit,analyze_printability,cross_sections,inspect_part,export,save_snapshot,restore_snapshot,session_state,health_check,reset,compare,find_holes,find_hole_patterns,find_bosses,find_bored_bosses,find_countersinks,recognise_features,resolve,script,import_cad_file,repair_hints,repair_advice,last_error,version,workflow_hints"
+      ],
+      "cwd": null,
+      "env": [],
+      "artifact": {
+        "ecosystem": "pypi",
+        "name": "build123d-mcp",
+        "version": "0.3.87",
+        "sha256": "88ee44d23c0f9174754622777a727398542bc9ee859e10a69a0f4ee8d4e1bf0d"
+      },
+      "excluded_tools": {
+        "install_skill": "writes agent config files (.claude/skills, AGENTS.md) into the project",
+        "execute_file": "executes an arbitrary file",
+        "bank_candidate": "ADR-001 \u00a79 exclusion",
+        "list_sessions": "HTTP-deployment admin",
+        "destroy_session": "HTTP-deployment admin",
+        "drawing suite": "deprecated upstream (moved to draftwright); drawings use FreeCAD TechDraw (ADR-001 \u00a715.3)"
+      }
+    },
+    {
+      "id": "kicad-mcp-pro",
+      "notes": "ADR-001 D12: kicad-mcp-pro 3.35.0, review profile, KICAD_MCP_OPERATING_MODE=readonly, under srt (no network). Optional. Launch only via forge-mcp-guard.",
+      "command": [
+        "/Users/samisayyed/.forge/bin/srt",
+        "--settings",
+        "/Users/samisayyed/solvere/.claude/worktrees/forge-product-engineering-55a284/security/srt/kicad-mcp-pro.json",
+        "/Users/samisayyed/.forge/envs/kicad-mcp-pro/bin/kicad-mcp-pro",
+        "--transport",
+        "stdio",
+        "--profile",
+        "review"
+      ],
+      "cwd": null,
+      "env": [
+        "KICAD_MCP_OPERATING_MODE",
+        "KICAD_MCP_WORKSPACE_ROOT"
+      ],
+      "artifact": {
+        "ecosystem": "pypi",
+        "name": "kicad-mcp-pro",
+        "version": "3.35.0",
+        "sha256": "b2297186a61dfbf5fe57fce26a6b8d7fc5b0877514444a26d5b5786f50e017a0"
+      },
+      "excluded_tools": {
+        "lib_get_bom_with_pricing": "network call (JLCPCB pricing); blocked by srt no-network profile and by a permissions.deny rule in product repos"
+      }
+    }
+  ]
+}

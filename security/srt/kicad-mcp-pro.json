@@ -1,0 +1,8 @@
+{
+  "network": { "allowedDomains": [], "deniedDomains": [] },
+  "filesystem": {
+    "denyRead": ["~/.ssh", "~/.aws", "~/.config/gh", "~/.claude", "~/.netrc", "~/.npmrc", "~/.pypirc", "~/Library/Keychains", "~/.gnupg"],
+    "allowWrite": [".", "/tmp", "/private/tmp", "/private/var/folders"],
+    "denyWrite": [".claude", "AGENTS.md", "CLAUDE.md", ".mcp.json", "security"]
+  }
+}

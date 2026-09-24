@@ -1,0 +1,12 @@
+# conda-forge tools with no PyPI/brew build (ADR-001 §8, T4/T6). Installed to ~/.forge/envs/conda.
+[workspace]
+name = "forge-conda-env"
+channels = ["conda-forge"]
+platforms = ["osx-arm64"]
+
+[dependencies]
+calculix = "==2.23"
+jupyter-sysml-kernel = "==0.62.0"
+openjdk = "21.*"
+jupyter_client = "*"
+jupyter_core = "*"

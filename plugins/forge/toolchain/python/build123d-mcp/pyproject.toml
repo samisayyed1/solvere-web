@@ -1,0 +1,15 @@
+# build123d-mcp server environment (ADR-001 §9). Launched only via forge-mcp-guard under srt.
+[project]
+name = "forge-build123d-mcp-env"
+version = "0.1.0"
+requires-python = "==3.12.*"
+dependencies = [
+  "build123d-mcp==0.3.87",
+  "build123d==0.11.1",
+  "cadquery-ocp-novtk==7.9.3.1",
+]
+
+[tool.uv]
+package = false
+constraint-dependencies = ["cadquery-ocp-novtk!=7.9.3.1.1"]
+exclude-newer = "2026-09-25T00:00:00Z"

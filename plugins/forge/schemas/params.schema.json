@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "forge.params/1",
+  "title": "Forge parameter (one leaf table in params/params.toml)",
+  "type": "object",
+  "required": ["value", "unit", "status", "source"],
+  "additionalProperties": false,
+  "properties": {
+    "value": {"type": ["number", "string", "boolean"]},
+    "unit": {"type": "string", "minLength": 1},
+    "tol": {"type": "object", "properties": {"minus": {"type": "number", "minimum": 0}, "plus": {"type": "number", "minimum": 0}}, "required": ["minus", "plus"], "additionalProperties": false},
+    "status": {"enum": ["assumed", "datasheet", "measured", "verified"]},
+    "source": {"type": "string", "minLength": 3},
+    "verified_by": {"type": "string"},
+    "evidence": {"type": "array", "items": {"type": "string", "pattern": "^EV-[0-9]{4,}$"}}
+  },
+  "allOf": [
+    {"if": {"properties": {"status": {"const": "verified"}}}, "then": {"required": ["verified_by", "evidence"], "properties": {"verified_by": {"minLength": 2}, "evidence": {"minItems": 1}}}}
+  ]
+}

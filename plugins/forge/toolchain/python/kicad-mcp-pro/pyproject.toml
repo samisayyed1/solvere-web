@@ -1,0 +1,11 @@
+# kicad-mcp-pro environment (ADR-001 §9): optional, review/readonly profile only.
+# Wheel sha256 must equal b2297186a61dfbf5fe57fce26a6b8d7fc5b0877514444a26d5b5786f50e017a0 (checked by install.sh).
+[project]
+name = "forge-kicad-mcp-pro-env"
+version = "0.1.0"
+requires-python = "==3.13.*"   # kicad-mcp-pro 3.35.0 requires >= 3.13
+dependencies = ["kicad-mcp-pro==3.35.0"]
+
+[tool.uv]
+package = false
+exclude-newer = "2026-09-25T00:00:00Z"

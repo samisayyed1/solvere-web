@@ -1,0 +1,13 @@
+# Python / test caches
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+# Node
+node_modules/
+# Build and check outputs (promoted evidence is committed explicitly)
+out/
+# OS
+.DS_Store
+# forge doctor transient cache
+security/*.doctor-cache.json

@@ -1,0 +1,26 @@
+# Forge CAD / simulation / rendering Python environment (ADR-001 §8, T1/T4/T5).
+# Installed to ~/.forge/envs/cad by install.sh; hash-locked in uv.lock.
+[project]
+name = "forge-cad-env"
+version = "0.1.0"
+requires-python = "==3.12.*"
+dependencies = [
+  "build123d==0.11.1",
+  "cadquery-ocp-novtk==7.9.3.1",
+  "trimesh==5.1.0",
+  "pyvista==0.49.0",
+  "vtk==9.7.0",          # >= 9.5.1 required (CVE-2025-57106/7/8)
+  "gmsh==4.15.2",
+  "skidl==2.3.0",
+  "ezdxf==1.4.4",
+  "resvg-py==0.5.0",
+  "matplotlib",
+  "jsonschema",
+  "pytest",
+]
+
+[tool.uv]
+package = false
+# 7.9.3.1.1 macOS wheel reported broken by build123d-mcp's maintainer (R4a; single report, not yanked).
+constraint-dependencies = ["cadquery-ocp-novtk!=7.9.3.1.1"]
+exclude-newer = "2026-09-25T00:00:00Z"

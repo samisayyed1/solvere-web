@@ -1,0 +1,10 @@
+{
+  "name": "forge-node-env",
+  "private": true,
+  "description": "Forge Node tools (ADR-001 §8): srt sandbox runtime, tscircuit. Installed to ~/.forge/envs/node with npm ci --ignore-scripts.",
+  "dependencies": {
+    "@anthropic-ai/sandbox-runtime": "0.0.77",
+    "tscircuit": "0.0.2646",
+    "@tscircuit/cli": "0.1.2152"
+  }
+}

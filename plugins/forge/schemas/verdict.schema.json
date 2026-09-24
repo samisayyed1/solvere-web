@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "forge.verdict/1",
+  "title": "Forge reviewer verdict",
+  "type": "object",
+  "required": ["schema", "reviewer", "gate", "subject", "criteria", "overall", "summary", "not_checked"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {"const": "forge.verdict/1"},
+    "reviewer": {"type": "string", "minLength": 2},
+    "gate": {"enum": ["G0", "G1", "G2", "G3", "G4", "G5", "G6", "adhoc"]},
+    "subject": {"type": "string", "minLength": 2},
+    "criteria": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/criterion"}},
+    "overall": {"enum": ["PASS", "FAIL", "BLOCKED"]},
+    "summary": {"type": "string"},
+    "not_checked": {"type": "array", "items": {"type": "string"}}
+  },
+  "$defs": {
+    "criterion": {
+      "type": "object",
+      "required": ["id", "verdict", "evidence", "finding"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string", "minLength": 2},
+        "verdict": {"enum": ["PASS", "FAIL", "BLOCKED"]},
+        "evidence": {"type": "array", "items": {"type": "string"}},
+        "finding": {"type": "string"},
+        "severity": {"enum": ["critical", "major", "minor"]},
+        "affects": {"type": "array", "minItems": 1, "items": {"enum": ["requirements", "safety", "fit", "function", "manufacturability", "cost"]}}
+      },
+      "allOf": [
+        {"if": {"properties": {"verdict": {"const": "FAIL"}}}, "then": {"required": ["severity", "affects"]}},
+        {"if": {"properties": {"verdict": {"const": "PASS"}}}, "then": {"properties": {"evidence": {"minItems": 1}}}}
+      ]
+    }
+  }
+}

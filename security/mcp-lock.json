@@ -1,0 +1,3697 @@
+{
+  "generated_at": "2026-09-24T21:18:11Z",
+  "lock_hash": "sha256:31ab70b5301eaaef9967e5de11489d01ae52d41e18d2e8d19f5c2494ee8abe85",
+  "schema": 1,
+  "servers": {
+    "build123d-mcp": {
+      "artifact": {
+        "ecosystem": "pypi",
+        "hash": "sha256:8fa3f0e3c51a74dab96ba91b54ab1d5ca1977f06e6a1a73d67329eba521db157",
+        "name": "build123d-mcp",
+        "sha256": "88ee44d23c0f9174754622777a727398542bc9ee859e10a69a0f4ee8d4e1bf0d",
+        "version": "0.3.87"
+      },
+      "fingerprint": "sha256:c4982c27a0331456ad7eb9e4d00d7bf0408056fa81e680f44a1af2d31638ebe9",
+      "id": "build123d-mcp",
+      "launch": {
+        "command": [
+          "/Users/samisayyed/.forge/bin/srt",
+          "--settings",
+          "/Users/samisayyed/solvere/.claude/worktrees/forge-product-engineering-55a284/security/srt/build123d-mcp.json",
+          "/Users/samisayyed/.forge/envs/build123d-mcp/bin/build123d-mcp",
+          "--memory-limit-mb",
+          "2048",
+          "--cpu-limit-s",
+          "120",
+          "--exec-timeout",
+          "60",
+          "--disable-tool-groups",
+          "drawing",
+          "--tools",
+          "execute,render_view,measure,validate,locate_gate_defects,design_audit,analyze_printability,cross_sections,inspect_part,export,save_snapshot,restore_snapshot,session_state,health_check,reset,compare,find_holes,find_hole_patterns,find_bosses,find_bored_bosses,find_countersinks,recognise_features,resolve,script,import_cad_file,repair_hints,repair_advice,last_error,version,workflow_hints"
+        ],
+        "cwd": null,
+        "env": [],
+        "hash": "sha256:14a1bc48cf6655c567a11e1d8575af5c98e98039a0ee7beef2ba7d0784021dda"
+      },
+      "probed_at": 1790284689.7117891,
+      "protocol": {
+        "capabilities": {
+          "experimental": {},
+          "prompts": {
+            "listChanged": false
+          },
+          "resources": {
+            "listChanged": false,
+            "subscribe": false
+          },
+          "tools": {
+            "listChanged": false
+          }
+        },
+        "era": "legacy",
+        "server_info": {
+          "name": "build123d-mcp",
+          "version": "0.3.87"
+        },
+        "version": "2025-11-25"
+      },
+      "surfaces": {
+        "instructions": {
+          "hash": "sha256:672f9e2fbcecf8ffe3a38aa39d474b0a80b8617a07430de1176770687f7a4d36",
+          "value": "Persistent CAD modeling server for build123d. Use these tools for ANY task that\nbuilds, modifies, measures, or renders 3D geometry or engineering drawings —\n\"model this part\", \"build this from the technical drawing\", \"does A fit inside\nB\", \"make a drawing of X\" — instead of writing standalone Python scripts run\nvia the shell. The server keeps a persistent build123d session, so you can\nbuild incrementally with execute(), verify each step numerically with measure()\n(volume, bounding box, face inventory), inspect visually with render_view(),\ncompare shapes/fits/snapshots with compare(), and undo experiments with\nsnapshots — a feedback loop a one-shot script cannot give.\n\nQuick start: execute(\"from build123d import *\"), build in small steps,\nregister parts with show(part, \"name\"), measure() after every boolean,\nbank_candidate() when establishing a safe STEP floor or final output, and\nexport() for ordinary diagnostic/interchange writes. For edits to imported\nB-reps, call recognise_features() once for a compact inventory after the\nbaseline is gate-clean, before hand-walking topology; then expand only the\nlikely feature families and use their exact face evidence where available.\nRead the build123d://quickref resource before writing build code. Step-by-step\nworkflows: build123d://skill/modeling (build 3D\nparts, incl. from technical drawings), build123d://skill/edit (modify an\nexisting model), and build123d://skill/repair (repair a solid that fails the\nvalidity gate); install any into the project with install_skill(). Engineering\ndrawings have moved to draftwright (https://github.com/pzfreo/draftwright),\nwhich publishes its own skill; it is importable inside execute(), so a drawing\nis built from live session geometry without leaving the session.\n"
+        },
+        "prompts": {
+          "count": 1,
+          "hash": "sha256:b381c54ce74161324560b43f9b331b7ed44589eaceba7a7e67d2931dba735c47",
+          "items": {
+            "start-cad-session": {
+              "hash": "sha256:14c319e79bf847541f31e004774877aef642c8f080c2dba5f5a47727a9ff18cd",
+              "value": {
+                "arguments": [
+                  {
+                    "name": "description",
+                    "required": true
+                  }
+                ],
+                "description": "Prime a new CAD design session with the task description and workflow reminders.",
+                "name": "start-cad-session"
+              }
+            }
+          }
+        },
+        "resource_templates": {
+          "count": 0,
+          "hash": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "items": {}
+        },
+        "resources": {
+          "count": 11,
+          "hash": "sha256:11cd050e6a9b61fa6b0e83141f7c79bb0c8617e7b8d0a6baa7f37397b9b28c6a",
+          "items": {
+            "build123d://bd_warehouse": {
+              "hash": "sha256:f0e953ffe36944d8540c2847618b62ae5c07b91a740781323cd7813f0d8aa59b",
+              "value": {
+                "description": "Catalogue of pre-built parametric parts in bd_warehouse: bearings, fasteners, gears, pipes, threads, and more.",
+                "mimeType": "text/plain",
+                "name": "build123d_bd_warehouse",
+                "uri": "build123d://bd_warehouse"
+              }
+            },
+            "build123d://drafting": {
+              "hash": "sha256:845a8f67b1dcc872abc1b38f4c15bd265adb4b42872a5bb8b6ed9d1c3ebd3dd7",
+              "value": {
+                "description": "DEPRECATED (#465) — moving to draftwright (https://github.com/pzfreo/draftwright), which owns drawing generation and publishes its own skill; importable inside execute(). Code-first 2D engineering drawings cookbook: project a 3D part to a 2D view, dimension with ExtensionLine/DimensionLine, add tolerances, compose a TechnicalDrawing title block, multi-view sheet layout, hole-table pattern, export to DXF/SVG.",
+                "mimeType": "text/plain",
+                "name": "build123d_drafting_cookbook",
+                "uri": "build123d://drafting"
+              }
+            },
+            "build123d://drafting-api": {
+              "hash": "sha256:368626d08464e336e9e2b540613ac83e9b042ca7b84d555f8e2f98220d4b8561",
+              "value": {
+                "description": "DEPRECATED (#465) — moving to draftwright (https://github.com/pzfreo/draftwright), which owns drawing generation and publishes its own skill; importable inside execute(). Auto-generated API reference for build123d-drafting-helpers: exact signatures and one-line descriptions for every public class (Dimension, Leader, TitleBlock, Drawing, ...) and function, generated from the installed library so it always matches what execute() imports.",
+                "mimeType": "text/plain",
+                "name": "build123d_drafting_api",
+                "uri": "build123d://drafting-api"
+              }
+            },
+            "build123d://presentation": {
+              "hash": "sha256:6c4b0d829b0ea06b60fe6d3591f15ed64a0576e233a8dfd003270dfd14497e44",
+              "value": {
+                "description": "Code-first design-discussion diagrams: per-group colour via ExportSVG layers, filled feature highlights, legends with swatches, reference axes, titles, and Draft scaling for small parts. Presentation diagrams are NOT engineering drawings and are unaffected by the drawing deprecation (#465); this resource stays.",
+                "mimeType": "text/plain",
+                "name": "build123d_presentation_cookbook",
+                "uri": "build123d://presentation"
+              }
+            },
+            "build123d://quickref": {
+              "hash": "sha256:91ca675beadc66f37e87927c1d2f076209838dd1798a74505f67b2c75dc3e333",
+              "value": {
+                "description": "build123d API quick reference: primitives, booleans, positioning, sketch-to-3D, selectors, fillets.",
+                "mimeType": "text/plain",
+                "name": "build123d_quickref",
+                "uri": "build123d://quickref"
+              }
+            },
+            "build123d://selectors": {
+              "hash": "sha256:2079a3353779f863ae59204116e3f50c88e059c5ce5eae43cf3015038099dc47",
+              "value": {
+                "description": "Task-indexed cookbook of selector patterns: get the top face, find circular edges, filter by area/length/radius, Select.LAST in builder context, fillet detection, and the operator shortcuts.",
+                "mimeType": "text/plain",
+                "name": "build123d_selectors_cookbook",
+                "uri": "build123d://selectors"
+              }
+            },
+            "build123d://session": {
+              "hash": "sha256:344498d22999d359cead4029f45992f8110ca7a14f8ed5104bc74d6796b7dd06",
+              "value": {
+                "description": "Live session state: current shape diagnostics, named objects, snapshots, and user-defined variables.",
+                "mimeType": "application/json",
+                "name": "build123d_session_state",
+                "uri": "build123d://session"
+              }
+            },
+            "build123d://skill/drawing": {
+              "hash": "sha256:1e35e84424b0b64641f402e707ecb2a074c50d0990118f4fef6fe4d7da1a7b42",
+              "value": {
+                "description": "DEPRECATED (#465) — moving to draftwright (https://github.com/pzfreo/draftwright), which owns drawing generation and publishes its own skill; importable inside execute(). The b123d-drawing engineering workflow skill: step-by-step guide for creating multi-view engineering drawings from build123d geometry (views, scale, annotation, lint, SVG/DXF/PDF export).",
+                "mimeType": "text/plain",
+                "name": "build123d_drawing_skill",
+                "uri": "build123d://skill/drawing"
+              }
+            },
+            "build123d://skill/edit": {
+              "hash": "sha256:817f02838fc71a6a29535c2d481683aef6ecf9dd530fe9e3edb1b82ed084efb0",
+              "value": {
+                "description": "The b123d-edit workflow skill: modify existing build123d source code explicitly, then verify geometry deltas, fit, validity, and export-gate results with build123d-mcp.",
+                "mimeType": "text/plain",
+                "name": "build123d_edit_skill",
+                "uri": "build123d://skill/edit"
+              }
+            },
+            "build123d://skill/modeling": {
+              "hash": "sha256:0fc558b645760340352561768063be16a8265daf9007b1118814f4e7a4a64f76",
+              "value": {
+                "description": "The b123d-modeling workflow skill: step-by-step guide for building 3D parts and assemblies with build123d via this server — including extracting a spec from a technical drawing, the incremental build/measure/render loop, dominant-form correction after the first render, snapshots, and export.",
+                "mimeType": "text/plain",
+                "name": "build123d_modeling_skill",
+                "uri": "build123d://skill/modeling"
+              }
+            },
+            "build123d://skill/repair": {
+              "hash": "sha256:acea960ffb97be467cb513f8f9c886ce5a305ad43e1743a9de701ddb82823403",
+              "value": {
+                "description": "The b123d-repair workflow skill: diagnose a validity-gate failure with validate()/export()/locate_gate_defects(), then write explicit build123d/OCP repair code in execute() using field-proven patterns, snapshots, and export-gate verification.",
+                "mimeType": "text/plain",
+                "name": "build123d_repair_skill",
+                "uri": "build123d://skill/repair"
+              }
+            }
+          }
+        },
+        "tools": {
+          "count": 30,
+          "hash": "sha256:9cea829ca694123a4bd7a944aa5e88aa6da607627e44caf3f0af98ad5262cb28",
+          "items": {
+            "analyze_printability": {
+              "hash": "sha256:5e6602bd48e56575e29ffeceb662551f400f4b3027faa8ca7df1f3dc059a6058",
+              "value": {
+                "annotations": {
+                  "readOnlyHint": true
+                },
+                "description": "Analyse a build123d shape for FDM printability using augura (BREP-exact analysis).\n\n    Checks: overhangs, manifold/watertight, tip-over risk, brim/raft need,\n    minimum vertical feature (→ max layer height), and thin walls. Optionally\n    checks bed-fit against a declared build volume.\n\n    Returns a plain-text summary followed by a JSON report with per-finding\n    detail (kind, severity, message, area/location where applicable).\n\n    object_name: named object from show() (default: current shape).\n    support_angle: faces shallower than this many degrees from horizontal need\n        support (default 45).\n    nozzle: nozzle diameter in mm for wall-thickness check (default 0.4).\n    min_perimeters: walls thinner than min_perimeters × nozzle are flagged\n        (default 2).\n    build_volume: optional build envelope as 'X Y Z' in mm, e.g. '256 256 256';\n        omit to skip the bed-fit check.\n    bed_tol: Z tolerance in mm for identifying bed-contact faces (default 0.001);\n        raise it for parts whose bottom faces sit slightly off Z=0.\n    min_feature: minimum vertical feature size in mm to flag (default 0.5).\n    ",
+                "inputSchema": {
+                  "properties": {
+                    "bed_tol": {
+                      "default": 0.001,
+                      "title": "Bed Tol",
+                      "type": "number"
+                    },
+                    "build_volume": {
+                      "default": "",
+                      "title": "Build Volume",
+                      "type": "string"
+                    },
+                    "min_feature": {
+                      "default": 0.5,
+                      "title": "Min Feature",
+                      "type": "number"
+                    },
+                    "min_perimeters": {
+                      "default": 2,
+                      "title": "Min Perimeters",
+                      "type": "integer"
+                    },
+                    "nozzle": {
+                      "default": 0.4,
+                      "title": "Nozzle",
+                      "type": "number"
+                    },
+                    "object_name": {
+                      "default": "",
+                      "title": "Object Name",
+                      "type": "string"
+                    },
+                    "support_angle": {
+                      "default": 45.0,
+                      "title": "Support Angle",
+                      "type": "number"
+                    }
+                  },
+                  "title": "analyze_printabilityArguments",
+                  "type": "object"
+                },
+                "name": "analyze_printability",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "analyze_printabilityOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "compare": {
+              "hash": "sha256:e9b5ec10915b941cbe5d676e78b8b0bd9d7047f43a86de076f01f1417a50b71e",
+              "value": {
+                "annotations": {
+                  "readOnlyHint": true
+                },
+                "description": "Unified comparison tool.\n\n    kind='shape' compares two named shapes from show(), a and b, by\n    volume/bbox/topology and localized surface deviation; b is required.\n\n    kind='fit' reports the spatial relationship between two named shapes, a and b:\n    clearance, apart/touching/containing/interpenetrating status, containment,\n    and overlap volumes; b is required.\n\n    kind='align' checks two named shapes, a and b, along one axis. axis: X, Y, or Z.\n    mode: flush (bbox extreme offset), center (centroid offset), or clearance\n    (nearest-face gap); b is required.\n\n    kind='snapshot' compares snapshot a against the current session state\n    or b as a second snapshot. format: 'text' or 'json'.\n    ",
+                "inputSchema": {
+                  "properties": {
+                    "a": {
+                      "title": "A",
+                      "type": "string"
+                    },
+                    "axis": {
+                      "default": "Z",
+                      "title": "Axis",
+                      "type": "string"
+                    },
+                    "b": {
+                      "default": "",
+                      "title": "B",
+                      "type": "string"
+                    },
+                    "format": {
+                      "default": "text",
+                      "title": "Format",
+                      "type": "string"
+                    },
+                    "kind": {
+                      "default": "shape",
+                      "title": "Kind",
+                      "type": "string"
+                    },
+                    "mode": {
+                      "default": "flush",
+                      "title": "Mode",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "a"
+                  ],
+                  "title": "compareArguments",
+                  "type": "object"
+                },
+                "name": "compare",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "compareOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "cross_sections": {
+              "hash": "sha256:808e8de1558ce73292ca10812a0384ae07370fdec8bcd5e856c5cbaf328be317",
+              "value": {
+                "annotations": {
+                  "readOnlyHint": true
+                },
+                "description": "Compute cross-sectional areas at evenly spaced planes along an axis. Returns a list of {position, area} pairs. axis: X, Y, or Z (default Z). num_slices: number of planes (default 10, minimum 2). Useful for detecting internal voids, wall-thickness variation, or verifying that a shape's cross-section profile matches a reference. object_name: named object from show() (default: current shape).",
+                "inputSchema": {
+                  "properties": {
+                    "axis": {
+                      "default": "Z",
+                      "title": "Axis",
+                      "type": "string"
+                    },
+                    "num_slices": {
+                      "default": 10,
+                      "title": "Num Slices",
+                      "type": "integer"
+                    },
+                    "object_name": {
+                      "default": "",
+                      "title": "Object Name",
+                      "type": "string"
+                    }
+                  },
+                  "title": "cross_sectionsArguments",
+                  "type": "object"
+                },
+                "name": "cross_sections",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "cross_sectionsOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "design_audit": {
+              "hash": "sha256:ee99ff9bbf4d5dbe1aa88a2070da1e5771a2f6f55be754983c26c2e43bbe12a7",
+              "value": {
+                "annotations": {
+                  "readOnlyHint": true
+                },
+                "description": "Audit the current session program as a *design*, not just a shape: surface its named numeric parameters (Θ) and test how robust each is to editing. Parses the assembled program (see script()) for top-level numeric assignments (e.g. `plate_thickness = 5.0`), then rebuilds the program with each parameter nudged ±epsilon (default ±10%) in a hard-bounded subprocess (the live session is never mutated) and runs the validity gate on each result. Returns JSON: {parameters, baseline, audit:[{name, value, perturbations:[{delta_pct (realized), new_value, discrete_step?, rebuilt, passes_gate, volume_delta_pct, reasons?}], brittle}], summary:{robust, brittle, inconclusive, ...}, note}. A parameter is `brittle` if a small change fails to rebuild or drops below the validity gate — the thin-wall / coordinate-reasoning failure mode where a valid *shape* is not an editable *design* (Arko-T §6); a parameter reassigned at the top level is `inconclusive` (perturbation is overwritten), not counted as robust. If no named parameters are found, the program uses inline magic constants and the note advises hoisting them to a parameter block. Known limitation: only literal-valued top-level names are surfaced as Θ — a derived parameter (`radius = diameter / 2`) is not listed, though perturbing its upstream literal flows through. Bounded by a wall-clock budget and max_params (returns a partial report rather than risking a timeout). epsilon: relative nudge, 0<epsilon<1. max_params: cap on parameters audited.",
+                "inputSchema": {
+                  "properties": {
+                    "epsilon": {
+                      "default": 0.1,
+                      "title": "Epsilon",
+                      "type": "number"
+                    },
+                    "max_params": {
+                      "default": 8,
+                      "title": "Max Params",
+                      "type": "integer"
+                    }
+                  },
+                  "title": "design_auditArguments",
+                  "type": "object"
+                },
+                "name": "design_audit",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "design_auditOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "execute": {
+              "hash": "sha256:fcfef5983dde69d04b1e5ddbf0548a67fb093c1131963baa7b60491a7c5463d9",
+              "value": {
+                "annotations": {
+                  "destructiveHint": false,
+                  "readOnlyHint": false
+                },
+                "description": "Execute build123d Python code in the persistent session. Errors include automatic fix hints — read them before retrying. Use show(shape, name) to register named objects (name defaults to 'shape'); show() immediately prints volume and face count confirming the shape is non-empty. After any boolean operation (-, +, &) call measure() to confirm it succeeded (check topology.faces). named_face(shape, name) is a built-in helper: named_face(box, 'top') returns the highest-Z face, 'bottom'/'front'/'back'/'left'/'right' work similarly. find_edges(shape, geom='circle', radius=4.25, at_z=10.2, length=None, tol=0.05) filters edges for fillet/chamfer selection and prints what matched. Analysis primitives are callable INSIDE this execute() code and return real Python objects so you compose (filter, do arithmetic) instead of copying numbers out of a tool result: measure(shape) -> dict (measure(part)['volume']), clearance(a, b) -> dict, cross_sections(shape) -> list of {position,area}, find_holes(shape) -> hole records with .location (an (x,y,z) tuple), .diameter, .depth, … ([h for h in find_holes(part) if h.location[0] < 5]); find_bosses(shape) / find_bored_bosses(shape) / find_countersinks(shape) / find_hole_patterns(shape) return recogniser records too; align_check(a, b, axis='Z', mode='flush') -> dict (align_check(a,b)['delta'] is a float). For standalone MCP comparison calls, use compare(a='axle', b='frame', kind='fit'), compare(a='a', b='b', kind='align'), compare(a='before', b='after', kind='shape'), or compare(a='before', kind='snapshot'). shape defaults to the current shape, and measure/clearance/cross_sections stay bounded on large shapes. save_json(name, obj) writes structured analysis data (face inventories, hole tables) to a server scratch file and returns its path — use it instead of printing large results; open()/os stay blocked.",
+                "inputSchema": {
+                  "properties": {
+                    "code": {
+                      "title": "Code",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code"
+                  ],
+                  "title": "executeArguments",
+                  "type": "object"
+                },
+                "name": "execute",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "executeOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "export": {
+              "hash": "sha256:9279074b9f4018d478086931b4bbaf0f8db777cee9aaed40bacf3994232e253a",
+              "value": {
+                "annotations": {
+                  "destructiveHint": false,
+                  "idempotentHint": true,
+                  "readOnlyHint": false
+                },
+                "description": "Export model. format: step, stl, 3mf, dxf, svg, or comma-separated list e.g. 'step,stl' or 'dxf,svg'. 3D shapes (solids) export to step/stl/3mf; 2D shapes (Sketches and dimensioned drawings composed via build123d.drafting) export to dxf/svg. 3mf is a minimal core-spec mesh export (single object, no color/material) intended for slicers (Bambu Studio, PrusaSlicer, Orca) — use step for downstream CAD interop instead. Mixing 2D and 3D formats for the same shape errors with a clear message. object_name: named object from show(), '*' to export all named shapes as a combined assembly (default: current shape). STEP exports carry the session names as labels — single-object exports use the object_name, '*' exports produce a Compound labelled 'assembly' with each child labelled by its show() name. Downstream CAD tools (FreeCAD, Fusion) will see the structured assembly with named bodies. Use dxf for engineering-drawing handoff to other CAD tools; svg for embedding in docs/wikis. The result echoes the exported shape's volume/bbox/face count (or bbox/edge count for 2D) as a final sanity check that the right, non-degenerate object was written.",
+                "inputSchema": {
+                  "properties": {
+                    "filename": {
+                      "title": "Filename",
+                      "type": "string"
+                    },
+                    "format": {
+                      "default": "step",
+                      "title": "Format",
+                      "type": "string"
+                    },
+                    "object_name": {
+                      "default": "",
+                      "title": "Object Name",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "filename"
+                  ],
+                  "title": "exportArguments",
+                  "type": "object"
+                },
+                "name": "export",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "exportOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "find_bored_bosses": {
+              "hash": "sha256:97d73f6ee76515ff74f5984e5f1adaa4d5492b531b6839fd6a0394be3de494bb",
+              "value": {
+                "annotations": {
+                  "readOnlyHint": true
+                },
+                "description": "Find candidate bored bosses and report target-selection/edit evidence: bore opening location, axis into the part, outward axis, bore diameter/depth, planar cap faces at the opening, whether the cap is split across multiple faces, and construction advice. Use this before lengthening any boss that carries a bore, whatever its outer profile; it is read-only and diagnostic, not proof of the requested target.",
+                "inputSchema": {
+                  "properties": {
+                    "object_name": {
+                      "default": "",
+                      "title": "Object Name",
+                      "type": "string"
+                    }
+                  },
+                  "title": "find_bored_bossesArguments",
+                  "type": "object"
+                },
+                "name": "find_bored_bosses",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "find_bored_bossesOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "find_bosses": {
+              "hash": "sha256:965c0fbc3f51b58d7e50477bee7c1b4871b315f2a1aa42f7afbc151346f48478",
+              "value": {
+                "annotations": {
+                  "readOnlyHint": true
+                },
+                "description": "Recognise external cylindrical bosses on a session object (defaults to current shape), including a turned part's OD — filter on diameter against the part envelope for local bosses only. Returns JSON: {count, bosses: [{axis (base toward free end), location (free-end point), diameter, height}]}.",
+                "inputSchema": {
+                  "properties": {
+                    "object_name": {
+                      "default": "",
+                      "title": "Object Name",
+                      "type": "string"
+                    }
+                  },
+                  "title": "find_bossesArguments",
+                  "type": "object"
+                },
+                "name": "find_bosses",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "find_bossesOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "find_countersinks": {
+              "hash": "sha256:f9ff70b815f7e98e03d7e90d36302bf1017962e86835cc6890d145ecde9d69a0",
+              "value": {
+                "annotations": {
+                  "readOnlyHint": true
+                },
+                "description": "Recognise countersinks (conical screw-head recesses) on a session object (defaults to current shape) — the feature find_holes reports only as a plain opening. A countersink is an internal cone flaring from a drilled bore out to a larger opening, coaxial with the drill; drill-point cones and external edge chamfers are excluded. Returns JSON: {count, countersinks: [{location (opening centre), axis (into the part), major_diameter (countersink Ø at the surface), drill_diameter, included_angle (deg, e.g. 82/90/100/120), depth}]}. object_name: named object from show() (default: current shape).",
+                "inputSchema": {
+                  "properties": {
+                    "object_name": {
+                      "default": "",
+                      "title": "Object Name",
+                      "type": "string"
+                    }
+                  },
+                  "title": "find_countersinksArguments",
+                  "type": "object"
+                },
+                "name": "find_countersinks",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "find_countersinksOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "find_hole_patterns": {
+              "hash": "sha256:35638f24946ee80796f56cb4b2461dd76256a44a5f770d3b0e746a2321d2c5a3",
+              "value": {
+                "annotations": {
+                  "readOnlyHint": true
+                },
+                "description": "Recognise hole patterns on a session object (defaults to current shape): ≥3 identical-spec holes equally spaced on a circle → bolt_circle (center, diameter/BCD), collinear at constant pitch → linear_array (pitch, direction). Returns JSON: {count, patterns: [{type, holes: [HoleFeature records], center/diameter | pitch/direction}]}. Each hole belongs to at most one pattern; make_drawing already annotates these automatically.",
+                "inputSchema": {
+                  "properties": {
+                    "object_name": {
+                      "default": "",
+                      "title": "Object Name",
+                      "type": "string"
+                    }
+                  },
+                  "title": "find_hole_patternsArguments",
+                  "type": "object"
+                },
+                "name": "find_hole_patterns",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "find_hole_patternsOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "find_holes": {
+              "hash": "sha256:71e5a80c75131bf7aeea206455ed9a05baad80e933a7db1c2a6da52212acf22e",
+              "value": {
+                "annotations": {
+                  "readOnlyHint": true
+                },
+                "description": "Recognise drilled holes on a session object (defaults to current shape). Coaxial internal cylinders are grouped into one record per hole: drill + counterbore + spotface stacks, keyway-split bores, and bores interrupted by crossing holes all count once. Returns JSON: {count, holes: [{axis (drilling direction, unit vector), location (opening point), diameter, depth (bore top to deep end; drill-point cone excluded), bottom: through|flat|drill_point|unknown, cbore: {diameter, depth}|null, spotface: {diameter, depth}|null}]}. Countersinks read as openings (not steps); threads and non-cylindrical features are not recognised.",
+                "inputSchema": {
+                  "properties": {
+                    "object_name": {
+                      "default": "",
+                      "title": "Object Name",
+                      "type": "string"
+                    }
+                  },
+                  "title": "find_holesArguments",
+                  "type": "object"
+                },
+                "name": "find_holes",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "find_holesOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "health_check": {
+              "hash": "sha256:cb06985695644a1a1a9a5000e7a640a2f17c7906e5a6acafd89276582d92714d",
+              "value": {
+                "annotations": {
+                  "readOnlyHint": true
+                },
+                "description": "Verify that render and export dependencies are working. Tests PNG render (VTK), SVG render (build123d HLR), STEP export, and STL export with a trivial shape. Returns JSON with ok/error per capability. Run at session start if you suspect a missing dependency.",
+                "inputSchema": {
+                  "properties": {},
+                  "title": "health_checkArguments",
+                  "type": "object"
+                },
+                "name": "health_check",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "health_checkOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "import_cad_file": {
+              "hash": "sha256:0828777b6505fd2a516f67230b5bbc503c033f4cbe5c58e7a12544a45bfdd6bd",
+              "value": {
+                "annotations": {
+                  "destructiveHint": false,
+                  "readOnlyHint": false
+                },
+                "description": "Import a STEP (.step/.stp), STL (.stl), or 3MF (.3mf) file as a named object in the session. path: absolute or relative path to the file. name: name to register the shape under (defaults to the filename stem). The shape becomes both the named object and the current_shape. A multi-object 3MF registers an aggregate under name plus each member as name_1, name_2, etc.; the result includes per-member topology summaries. After importing, use render_view() to visualise the shape, measure() for geometry queries, or compare(a='imported', b='model', kind='shape') to diff against a show() object. Note: STL imports produce a shell (volume=0) rather than a solid. 3MF commonly yields editable solids when its meshes are closed, but callers must check the returned solids and volume fields rather than assuming every mesh is valid. If you have both the original built shape and an imported copy in session.objects, render the imported one by name (e.g. objects='mypart') to avoid Z-fighting artifacts from two co-located shapes.",
+                "inputSchema": {
+                  "properties": {
+                    "name": {
+                      "default": "",
+                      "title": "Name",
+                      "type": "string"
+                    },
+                    "path": {
+                      "title": "Path",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "path"
+                  ],
+                  "title": "import_cad_fileArguments",
+                  "type": "object"
+                },
+                "name": "import_cad_file",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "import_cad_fileOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "inspect_part": {
+              "hash": "sha256:b9ed0b2caf0670d804a945d22604a92a25dd623a8ffc6d80271a1a2f8e8b0b70",
+              "value": {
+                "annotations": {
+                  "readOnlyHint": true
+                },
+                "description": "Return one compact generation-checkpoint inventory: bbox, solid/topology counts, holes grouped by axis/diameter/depth/bottom, bosses grouped by axis/diameter/height, recognised patterns with member counts, and a cross-section area profile. expected is an optional JSON object derived from the drawing/spec; supported keys are bbox [x,y,z], solid_count, holes/bosses/patterns group lists, section_varying, and tolerance. Pattern groups can check type, diameter, pitch, direction, center, member_count, and member_diameter. A supplied feature category is an exact inventory: unexpected or ambiguously matched groups fail. With expectations, returns explicit PASS/FAIL plus mismatches. Without them, returns INVENTORY plus heuristic warnings for shallow partial cuts and nearly constant sections. Unsupported expectation keys are rejected; this tool contains no built-in fixture expectations.",
+                "inputSchema": {
+                  "properties": {
+                    "expected": {
+                      "default": "",
+                      "title": "Expected",
+                      "type": "string"
+                    },
+                    "object_name": {
+                      "default": "",
+                      "title": "Object Name",
+                      "type": "string"
+                    },
+                    "section_axis": {
+                      "default": "Z",
+                      "title": "Section Axis",
+                      "type": "string"
+                    },
+                    "section_slices": {
+                      "default": 7,
+                      "title": "Section Slices",
+                      "type": "integer"
+                    }
+                  },
+                  "title": "inspect_partArguments",
+                  "type": "object"
+                },
+                "name": "inspect_part",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "inspect_partOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "last_error": {
+              "hash": "sha256:8ef88b2c532dbaac91248bd4b7d8b51b36223a5534b3616a3599874cfa6ce565",
+              "value": {
+                "annotations": {
+                  "readOnlyHint": true
+                },
+                "description": "Return details of the last failed execute() call: exception type, message, and (for runtime and syntax errors) line number and a 5-line excerpt around the failing line. Security errors include a message but no line/excerpt. Returns {\"error\": null} if the last execute() succeeded or no execute() has failed yet. Call this immediately after an execute() error to get the exact failing line — much faster than re-reading the submitted code.",
+                "inputSchema": {
+                  "properties": {},
+                  "title": "last_errorArguments",
+                  "type": "object"
+                },
+                "name": "last_error",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "last_errorOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "locate_gate_defects": {
+              "hash": "sha256:632d52dabea2d95badd95f6d9f74f59f6a881a4d2f3ce08d80273ab5c519e1b0",
+              "value": {
+                "annotations": {
+                  "readOnlyHint": true
+                },
+                "description": "Report WHERE a solid fails the validity gate, with 3D coordinates — so you can fix the exact edge/face instead of guessing. validate()/export() tell you WHAT is wrong (e.g. \"1 non-manifold edge\", \"BRepCheck failed\") but not where; call this when validate() FAILs to get a per-defect list: brep_invalid_face (face index + center + BRepCheck status, e.g. an unorientable BSpline), open_edge / nonmanifold_edge (B-rep edge midpoint + faces_incident), the mesh self-touches strict CAD/mesh consumers reject — mesh_nonmanifold_edge (edge midpoint) and mesh_nonmanifold_vertex (corner-to-corner touch point), mesh_untriangulated_face (a face that cannot tessellate at the base tolerance), mesh_refined_untriangulated_face (a face that only fails at a finer tolerance) — and mesh_vertex_deflection_defect (a tessellated edge endpoint that misses its own BREP vertex by more than the mesh deflection — a patched/healed face whose boundary is topologically closed but geometrically off-vertex; BRepCheck and even the open-edge count can both read clean, but a strict mesh sanity check still rejects it). Each defect includes a generic repair hint plus diagnostic_class / repair_family / next_step metadata; the top-level diagnosis block counts defect kinds and recommends the next verification path. An empty list means the part passes the structural checks. Bounded out-of-process (it mesh-checks), so a huge part returns a clean budget error rather than hanging. object_name: named object from show() (default: current shape).",
+                "inputSchema": {
+                  "properties": {
+                    "object_name": {
+                      "default": "",
+                      "title": "Object Name",
+                      "type": "string"
+                    }
+                  },
+                  "title": "locate_gate_defectsArguments",
+                  "type": "object"
+                },
+                "name": "locate_gate_defects",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "locate_gate_defectsOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "measure": {
+              "hash": "sha256:22da45b16493f24c875ab7735d77db4e838b633ea1f69849004fbe481fc351ea",
+              "value": {
+                "annotations": {
+                  "readOnlyHint": true
+                },
+                "description": "Measure a shape and return a complete geometric summary: volume (mm³), surface area (mm²), topology (face/edge/vertex counts), bounding box with per-axis size and center, volumetric center of mass, 6-component inertia tensor (Ixx/Iyy/Izz/Ixy/Ixz/Iyz), and a face-type inventory classifying every face as Plane/Cylinder/Cone/Sphere/Torus/BSpline with area and type-specific params (e.g. cylinder diameter and axis); identical faces are collapsed with a count, non-analytic sliver faces folded into one summary line. Prefer measure over render_view for verifying geometry — numbers are unambiguous. topology is the fastest confirmation that a boolean operation succeeded: a failed cut leaves face/edge/vertex counts unchanged. object_name: named object from show() (default: current shape). density (g/cm³) or material preset (steel, stainless, aluminum/6061, brass, copper, titanium, abs, pla, petg, nylon) adds mass_g and scales inertia to true mass moments in g·mm².",
+                "inputSchema": {
+                  "properties": {
+                    "density": {
+                      "default": 0.0,
+                      "title": "Density",
+                      "type": "number"
+                    },
+                    "material": {
+                      "default": "",
+                      "title": "Material",
+                      "type": "string"
+                    },
+                    "object_name": {
+                      "default": "",
+                      "title": "Object Name",
+                      "type": "string"
+                    }
+                  },
+                  "title": "measureArguments",
+                  "type": "object"
+                },
+                "name": "measure",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "measureOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "recognise_features": {
+              "hash": "sha256:c7836e297fd47851282c41c0a2e3ffb6d3c1b390ca41bfccdba32de4d3bafc6f",
+              "value": {
+                "annotations": {
+                  "readOnlyHint": true
+                },
+                "description": "Run the shared quiddity inventory once and return exact, run-local edit evidence. With families='' the response is a compact inventory and targetable-family count; pass comma-separated families such as 'holes,bosses,blends' for structured records and @feature handles. Returned handles are usable inside execute() as recognition_faces(handle), or recognition_faces(handle, role='defining'), and fail if their source geometry has been replaced. coordinate_frame='caller' (default) preserves the imported model coordinates used by edit instructions; 'part' uses a rigid-equivariant part-relative frame and returns that frame. include_faces adds exact caller-face indices and geometry descriptors. max_features limits expanded records to 1..100; counts remain exact.",
+                "inputSchema": {
+                  "properties": {
+                    "coordinate_frame": {
+                      "default": "caller",
+                      "title": "Coordinate Frame",
+                      "type": "string"
+                    },
+                    "families": {
+                      "default": "",
+                      "title": "Families",
+                      "type": "string"
+                    },
+                    "include_faces": {
+                      "default": false,
+                      "title": "Include Faces",
+                      "type": "boolean"
+                    },
+                    "max_features": {
+                      "default": 50,
+                      "title": "Max Features",
+                      "type": "integer"
+                    },
+                    "object_name": {
+                      "default": "",
+                      "title": "Object Name",
+                      "type": "string"
+                    }
+                  },
+                  "title": "recognise_featuresArguments",
+                  "type": "object"
+                },
+                "name": "recognise_features",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "recognise_featuresOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "render_view": {
+              "hash": "sha256:c84252cba92cbf0c5884ae8a82f5702189af4a7624624741dbf6ce451c295a37",
+              "value": {
+                "annotations": {
+                  "readOnlyHint": true
+                },
+                "description": "Render model. Auto-detects 3D vs 2D: solids use VTK; flat drawings use the 2D pipeline. Renders confirm appearance, not geometry. format: png, svg, dxf, or both. direction accepts top, bottom, front, rear, side, left, right, or iso. quality: preview, standard, or high; a timed-out standard/high PNG automatically retries once as a coarse preview. azimuth/elevation apply after the preset. objects selects comma-separated registered names. clip_plane: x/y/z. save_to writes the result. mode: auto/2d/3d. label_objects and highlights add PNG labels; colors controls object/layer colours.",
+                "inputSchema": {
+                  "properties": {
+                    "azimuth": {
+                      "default": 0.0,
+                      "title": "Azimuth",
+                      "type": "number"
+                    },
+                    "clip_at": {
+                      "anyOf": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Clip At"
+                    },
+                    "clip_plane": {
+                      "default": "",
+                      "title": "Clip Plane",
+                      "type": "string"
+                    },
+                    "colors": {
+                      "anyOf": [
+                        {
+                          "additionalProperties": {
+                            "type": "string"
+                          },
+                          "type": "object"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Colors"
+                    },
+                    "direction": {
+                      "default": "iso",
+                      "title": "Direction",
+                      "type": "string"
+                    },
+                    "elevation": {
+                      "default": 0.0,
+                      "title": "Elevation",
+                      "type": "number"
+                    },
+                    "format": {
+                      "default": "png",
+                      "title": "Format",
+                      "type": "string"
+                    },
+                    "highlights": {
+                      "anyOf": [
+                        {
+                          "items": {
+                            "additionalProperties": true,
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Highlights"
+                    },
+                    "label_objects": {
+                      "default": false,
+                      "title": "Label Objects",
+                      "type": "boolean"
+                    },
+                    "mode": {
+                      "default": "auto",
+                      "title": "Mode",
+                      "type": "string"
+                    },
+                    "objects": {
+                      "default": "",
+                      "title": "Objects",
+                      "type": "string"
+                    },
+                    "quality": {
+                      "default": "standard",
+                      "title": "Quality",
+                      "type": "string"
+                    },
+                    "save_to": {
+                      "default": "",
+                      "title": "Save To",
+                      "type": "string"
+                    }
+                  },
+                  "title": "render_viewArguments",
+                  "type": "object"
+                },
+                "name": "render_view"
+              }
+            },
+            "repair_advice": {
+              "hash": "sha256:7b79986ef9dd82dffd2eba7a35810f55b97907e4653de088a6406429b097f5e8",
+              "value": {
+                "annotations": {
+                  "readOnlyHint": true
+                },
+                "description": "Return structured, field-proven repair/edit recipes for an agent to implement explicitly in execute(). Unlike repair_hints(), which gives short error-specific tips, this emits a sequenced plan with code-pattern names, acceptance checks, and stop conditions. Provide the full validate()/export()/last_error() text as error_text, the intended edit as goal, and any extra notes from locate_gate_defects()/compare(a='before', b='after', kind='shape') as context. The tool is read-only and does not mutate geometry.",
+                "inputSchema": {
+                  "properties": {
+                    "context": {
+                      "default": "",
+                      "title": "Context",
+                      "type": "string"
+                    },
+                    "error_text": {
+                      "default": "",
+                      "title": "Error Text",
+                      "type": "string"
+                    },
+                    "goal": {
+                      "default": "",
+                      "title": "Goal",
+                      "type": "string"
+                    }
+                  },
+                  "title": "repair_adviceArguments",
+                  "type": "object"
+                },
+                "name": "repair_advice",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "repair_adviceOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "repair_hints": {
+              "hash": "sha256:af397d395f795be59dbdf2917ada2f84e5382f4686d06035552bae342d333e2a",
+              "value": {
+                "annotations": {
+                  "readOnlyHint": true
+                },
+                "description": "Given an error message or validity-gate reason, return targeted fix suggestions for common build123d mistakes and gate failures: wrong Location syntax, missing .part, CadQuery idioms, blocked imports, degenerate boolean results, fillet edge selection, B-rep defects, mesh non-manifold/open-edge failures, and more. Pass the full error string from execute(), last_error(), validate(), or export().",
+                "inputSchema": {
+                  "properties": {
+                    "error_text": {
+                      "title": "Error Text",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error_text"
+                  ],
+                  "title": "repair_hintsArguments",
+                  "type": "object"
+                },
+                "name": "repair_hints",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "repair_hintsOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "reset": {
+              "hash": "sha256:32d137bcc82ff1c7b5f5d748c8e3a9c6f48008c2061677020f6a40da938559aa",
+              "value": {
+                "annotations": {
+                  "destructiveHint": true,
+                  "idempotentHint": true,
+                  "readOnlyHint": false
+                },
+                "description": "Clear the current session back to empty state, including all snapshots.",
+                "inputSchema": {
+                  "properties": {},
+                  "title": "resetArguments",
+                  "type": "object"
+                },
+                "name": "reset",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "resetOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "resolve": {
+              "hash": "sha256:47d3a854288772ecd020a0b5679762d0270eb54f288580235c1d8fbc74fe1c40",
+              "value": {
+                "annotations": {
+                  "destructiveHint": false,
+                  "idempotentHint": true,
+                  "readOnlyHint": false
+                },
+                "description": "Evaluate a selector expression against a named object and return a geometry descriptor. selector is a Python expression suffix applied to the object, e.g. '.faces().filter_by(Axis.Z).last()'. If label is given, the descriptor is stored in session.geometry_refs[label] and appears in session_state(). Returns JSON: {label, ref, object, selector, type, geom_type, area/length, center}. center is the entity's true centre — the arc centre for a circular/elliptical edge, the area centroid otherwise — not the parametric midpoint, which for a circle or cylinder lies ON the entity a radius from its axis. A planar face also carries normal; a curved face carries axis {origin, direction} and radius instead, because a curved face has no single normal (a sphere carries neither — its centre and radius say everything). A list-valued selector carries count, an aggregate center averaged over every match, and per-entity descriptors in entities (first 50, with entities_truncated when there are more). The ref field uses @cad[object#label] format.",
+                "inputSchema": {
+                  "properties": {
+                    "label": {
+                      "default": "",
+                      "title": "Label",
+                      "type": "string"
+                    },
+                    "object_name": {
+                      "title": "Object Name",
+                      "type": "string"
+                    },
+                    "selector": {
+                      "title": "Selector",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "object_name",
+                    "selector"
+                  ],
+                  "title": "resolveArguments",
+                  "type": "object"
+                },
+                "name": "resolve",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "resolveOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "restore_snapshot": {
+              "hash": "sha256:9c9e1cfdac60f7ec143395568abf254878763b8dedf854864977bbca8b53bcdf",
+              "value": {
+                "annotations": {
+                  "destructiveHint": false,
+                  "idempotentHint": true,
+                  "readOnlyHint": false
+                },
+                "description": "Restore geometric state from a previously saved snapshot (current_shape and the show() registry).\n    The Python variable namespace is NOT restored — execute() calls made after the snapshot are still in scope,\n    but current_shape and all show() objects revert to what they were at snapshot time.\n    Raises an error if the snapshot name does not exist.",
+                "inputSchema": {
+                  "properties": {
+                    "name": {
+                      "title": "Name",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ],
+                  "title": "restore_snapshotArguments",
+                  "type": "object"
+                },
+                "name": "restore_snapshot",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "restore_snapshotOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "save_snapshot": {
+              "hash": "sha256:4e3b648820ddb1445aa194677dd53dc544ce5d44f4e308548e2b1e91fcf96537",
+              "value": {
+                "annotations": {
+                  "destructiveHint": false,
+                  "idempotentHint": true,
+                  "readOnlyHint": false
+                },
+                "description": "Save a named checkpoint of the current geometric state (current_shape and the show() object registry).\n    The Python variable namespace is NOT saved — only geometry. Call this before risky experiments so you can\n    restore known-good geometry without re-running all prior execute() calls.",
+                "inputSchema": {
+                  "properties": {
+                    "name": {
+                      "title": "Name",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ],
+                  "title": "save_snapshotArguments",
+                  "type": "object"
+                },
+                "name": "save_snapshot",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "save_snapshotOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "script": {
+              "hash": "sha256:bd2bab57ee62a46e8d0fdf7ccbcff9a38997a270fef3e21da8d18cc0ac222432",
+              "value": {
+                "annotations": {
+                  "readOnlyHint": true
+                },
+                "description": "Return a single Python script assembled from all successfully executed code blocks in this session. Prepends 'from build123d import *' if not already present. If save_to is given, writes the script to that path and returns {script_path, blocks}; otherwise returns {script, blocks}. Useful for exporting a reproducible script after an interactive session.",
+                "inputSchema": {
+                  "properties": {
+                    "save_to": {
+                      "default": "",
+                      "title": "Save To",
+                      "type": "string"
+                    }
+                  },
+                  "title": "scriptArguments",
+                  "type": "object"
+                },
+                "name": "script",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "scriptOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "session_state": {
+              "hash": "sha256:51f3c2c1c6342c2bff0e48e02d32ff798860d9fc736bf7bba0954e76dbe94eba",
+              "value": {
+                "annotations": {
+                  "readOnlyHint": true
+                },
+                "description": "Return a structured JSON snapshot of the current session: current_shape metrics, all named objects (replaces list_objects) with geometry stats, snapshot names, and a variables summary of the Python namespace (type + volume for shapes, type + length for collections, type + value for scalars). Use this to orient after a reset, restore, or multi-step build to confirm what geometry and variables are active.",
+                "inputSchema": {
+                  "properties": {},
+                  "title": "session_stateArguments",
+                  "type": "object"
+                },
+                "name": "session_state",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "session_stateOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "validate": {
+              "hash": "sha256:955812554dd58651fc06d0b05137d7450cab9454d380213b649a389e3c67440a",
+              "value": {
+                "annotations": {
+                  "readOnlyHint": true
+                },
+                "description": "Check whether a shape would pass a CAD validity gate before exporting it. Returns a PASS/FAIL verdict plus JSON (passes_gate, n_solids, volume, is_manifold, brep_valid, reasons). The gate mirrors what strict CAD and mesh consumers require: a well-formed (BRepCheck), watertight, manifold solid with non-zero volume. A FAIL means a STEP/STL export would be rejected outright — common causes are a leftover 2D sketch or open shell as the current shape, an un-fused compound, or a degenerate boolean result. Run this immediately before export() on any part you intend to submit or hand off. object_name: named object from show() (default: current shape).",
+                "inputSchema": {
+                  "properties": {
+                    "object_name": {
+                      "default": "",
+                      "title": "Object Name",
+                      "type": "string"
+                    }
+                  },
+                  "title": "validateArguments",
+                  "type": "object"
+                },
+                "name": "validate",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "validateOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "version": {
+              "hash": "sha256:b687f9f856eb2d703929bac41b22a094f23bd8fff9cfe2cf3e35f9fc754488e8",
+              "value": {
+                "annotations": {
+                  "readOnlyHint": true
+                },
+                "description": "Return the installed versions of the build123d-mcp server, its key dependencies (build123d, build123d-drafting-helpers), and the companion packages importable inside execute() (bd_warehouse for threads/fasteners/gears/bearings, augura for printability analysis). Use this to confirm which server build is running — e.g. to check whether a feature or fix is present, or whether the client is talking to a stale install.",
+                "inputSchema": {
+                  "properties": {},
+                  "title": "versionArguments",
+                  "type": "object"
+                },
+                "name": "version",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "versionOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "workflow_hints": {
+              "hash": "sha256:3c2a7286b3f8c92fca5efc4e6a3462b5c8c154f313dc32417889df639f116415",
+              "value": {
+                "annotations": {
+                  "readOnlyHint": true
+                },
+                "description": "Return guidance on how to use these tools effectively. Call this at the start of a session or whenever unsure which tool to reach for.",
+                "inputSchema": {
+                  "properties": {},
+                  "title": "workflow_hintsArguments",
+                  "type": "object"
+                },
+                "name": "workflow_hints",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "workflow_hintsOutput",
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "kicad-mcp-pro": {
+      "artifact": {
+        "ecosystem": "pypi",
+        "hash": "sha256:29005228b21465192f9915f1ca805a18f037bcf01afc619080afc482307b7019",
+        "name": "kicad-mcp-pro",
+        "sha256": "b2297186a61dfbf5fe57fce26a6b8d7fc5b0877514444a26d5b5786f50e017a0",
+        "version": "3.35.0"
+      },
+      "fingerprint": "sha256:2340245eaab9f780be22bb2e1516993250437c6a1ecf64d3ad601a4436942351",
+      "id": "kicad-mcp-pro",
+      "launch": {
+        "command": [
+          "/Users/samisayyed/.forge/bin/srt",
+          "--settings",
+          "/Users/samisayyed/solvere/.claude/worktrees/forge-product-engineering-55a284/security/srt/kicad-mcp-pro.json",
+          "/Users/samisayyed/.forge/envs/kicad-mcp-pro/bin/kicad-mcp-pro",
+          "--transport",
+          "stdio",
+          "--profile",
+          "review"
+        ],
+        "cwd": null,
+        "env": [
+          "KICAD_MCP_OPERATING_MODE",
+          "KICAD_MCP_WORKSPACE_ROOT"
+        ],
+        "hash": "sha256:59a5474635df2b6374e7b0f72a5739a8f18854ffd72956b6aa3e4a50c1cbc587"
+      },
+      "probed_at": 1790284691.7530031,
+      "protocol": {
+        "capabilities": {
+          "experimental": {},
+          "prompts": {
+            "listChanged": false
+          },
+          "resources": {
+            "listChanged": false,
+            "subscribe": false
+          },
+          "tools": {
+            "listChanged": false
+          }
+        },
+        "era": "legacy",
+        "server_info": {
+          "name": "kicad-mcp-pro",
+          "version": "3.35.0",
+          "websiteUrl": "https://oaslananka.github.io/kicad-mcp-pro"
+        },
+        "version": "2025-11-25"
+      },
+      "surfaces": {
+        "instructions": {
+          "hash": "sha256:3a86bb36ab631111765616befdb2bd635e089617f0761efbc06e3d8a5391719f",
+          "value": "KiCad MCP Pro Server for project setup, schematic capture, PCB editing, validation, and manufacturing export. Start with kicad_get_version(), kicad_set_project(), and project_get_next_action()."
+        },
+        "prompts": {
+          "count": 23,
+          "hash": "sha256:a034594b5c882b40af5546cfb9c8f21af881976db9c4822518ed23c4c6f96dc5",
+          "items": {
+            "design_review_loop": {
+              "hash": "sha256:136bf8db3507e8acacac033dc12c724c4851984756520ec47ce9cb34683f6da0",
+              "value": {
+                "arguments": [],
+                "description": "Closed-loop inspection workflow driven by quality gates.",
+                "name": "design_review_loop"
+              }
+            },
+            "dfm_polish_loop": {
+              "hash": "sha256:7085487179a2cdd0e03c9bc1e5ed93272d3884070ca8e3b27080f559fe60a341",
+              "value": {
+                "arguments": [],
+                "description": "Agent loop for manufacturer-specific DFM cleanup.",
+                "name": "dfm_polish_loop"
+              }
+            },
+            "error_recovery": {
+              "hash": "sha256:48959a7cf50979e56f37f3451b18248177eac3ef99b0df42ca0814db6c593514",
+              "value": {
+                "arguments": [],
+                "description": "How to read structured errors and retry safely (idempotency contract).",
+                "name": "error_recovery"
+              }
+            },
+            "first_pcb": {
+              "hash": "sha256:73813f26aee112d1ec69d6a566e842d21c0ca05aeb6c8eadd93caab76cf73c89",
+              "value": {
+                "arguments": [
+                  {
+                    "name": "component_count",
+                    "required": false
+                  },
+                  {
+                    "name": "board_size_mm",
+                    "required": false
+                  },
+                  {
+                    "name": "layers",
+                    "required": false
+                  }
+                ],
+                "description": "Guide an agent through a first-board workflow.",
+                "name": "first_pcb"
+              }
+            },
+            "fix_blocking_issues": {
+              "hash": "sha256:1cfbade928952b8fe68fc376bd91da4293bc39a7454a9fa4e8012c5cc2ab8238",
+              "value": {
+                "arguments": [],
+                "description": "Prompt focused on consuming the fix queue and clearing blockers.",
+                "name": "fix_blocking_issues"
+              }
+            },
+            "high_speed_review_loop": {
+              "hash": "sha256:b2dd2e12b6d3a5360c933d18c51fa8d38563e5ee2da24f6de382b3da4ebd1baa",
+              "value": {
+                "arguments": [],
+                "description": "Agent loop for SI, stackup, routing, and high-speed checkpoint review.",
+                "name": "high_speed_review_loop"
+              }
+            },
+            "kicad_component_placement_review": {
+              "hash": "sha256:c9e71df1062cff7f0f49c01a6cb1db6d4a9ec9f23115a093d0cba6816be8c28d",
+              "value": {
+                "arguments": [],
+                "description": "Review and optimize component placement quality.",
+                "name": "kicad_component_placement_review"
+              }
+            },
+            "kicad_fix_drc": {
+              "hash": "sha256:c544f75345aaf4b004db66fecf4652669972e84a2447de1daa28621f51973e76",
+              "value": {
+                "arguments": [],
+                "description": "Systematic approach to resolve DRC violations in the PCB layout.",
+                "name": "kicad_fix_drc"
+              }
+            },
+            "kicad_fix_erc": {
+              "hash": "sha256:a5207f5e7a8ab9827bfe31aeed3d1ff3c06cabb87b9b78883cfdeed5f0ea4aee",
+              "value": {
+                "arguments": [],
+                "description": "Systematic approach to resolve ERC violations in the schematic.",
+                "name": "kicad_fix_erc"
+              }
+            },
+            "kicad_generate_bom_strategy": {
+              "hash": "sha256:09f9aea63182b7dbfbebd2dd3d29fc5cae9f72313775ca98d532091b422dee0b",
+              "value": {
+                "arguments": [],
+                "description": "BOM generation, pricing, and sourcing strategy.",
+                "name": "kicad_generate_bom_strategy"
+              }
+            },
+            "kicad_high_speed_review": {
+              "hash": "sha256:6dcad9e6e388d165399ec7a93684aecf62bf1b3c75ffb8be647e32486ee17e63",
+              "value": {
+                "arguments": [],
+                "description": "High-speed design review for SI, EMC, and signal integrity.",
+                "name": "kicad_high_speed_review"
+              }
+            },
+            "kicad_prepare_manufacturing": {
+              "hash": "sha256:c339ff0958bca7ec758f5bddc92feb5ca4bbb68038596b9806fdf2d82e8acf9e",
+              "value": {
+                "arguments": [],
+                "description": "Complete manufacturing release preparation workflow.",
+                "name": "kicad_prepare_manufacturing"
+              }
+            },
+            "kicad_review_board": {
+              "hash": "sha256:311bfc6f0305592f77d855c795c33df4379b9b938b4c3dd374f32a415385a3a5",
+              "value": {
+                "arguments": [],
+                "description": "Perform a structured board review covering DRC, stackup, placement, and SI.",
+                "name": "kicad_review_board"
+              }
+            },
+            "kicad_route_diff_pair": {
+              "hash": "sha256:ffa356855ec3a1232224958967dc245770099286c69e75249bf60a10be807d79",
+              "value": {
+                "arguments": [],
+                "description": "Route differential pair nets with impedance and skew control.",
+                "name": "kicad_route_diff_pair"
+              }
+            },
+            "kicad_simulation_plan": {
+              "hash": "sha256:a4c09b73f29e686d4c9f8e357b3e0edf04557595b0388f1be974f3df1f557051",
+              "value": {
+                "arguments": [],
+                "description": "Plan and run SPICE simulations for circuit verification.",
+                "name": "kicad_simulation_plan"
+              }
+            },
+            "manufacturing_export": {
+              "hash": "sha256:7f4dd56f24c4722e8c211761552a838623e3ce3634a75122768b1ed788a2b7d8",
+              "value": {
+                "arguments": [],
+                "description": "Checklist for manufacturing exports.",
+                "name": "manufacturing_export"
+              }
+            },
+            "manufacturing_release_checklist": {
+              "hash": "sha256:190a29cffcfdc627906fd1905f5ff10aceba9edeea3ed6369790743258bff5ab",
+              "value": {
+                "arguments": [],
+                "description": "Final release checklist for fab-ready handoff.",
+                "name": "manufacturing_release_checklist"
+              }
+            },
+            "new_board_bringup": {
+              "hash": "sha256:2a4571d4d8c526db4f2b7cd05a4e6f6a9f3aaf10951dbb57309201152f9a7483",
+              "value": {
+                "arguments": [],
+                "description": "Agent loop for starting a new board from schematic through first DRC.",
+                "name": "new_board_bringup"
+              }
+            },
+            "post_placement_routing": {
+              "hash": "sha256:7f735930f4458547752bbbafc9ecbb02175394fd0cb33e3cfa095525827e3c37",
+              "value": {
+                "arguments": [],
+                "description": "Route a placed PCB through DSN, FreeRouting, SES import, and DRC.",
+                "name": "post_placement_routing"
+              }
+            },
+            "professional_circuit_design": {
+              "hash": "sha256:a3dc2b35af94ac68fd88374f8b96c72cad22a10340965b5218a94b0d50677aa7",
+              "value": {
+                "arguments": [
+                  {
+                    "name": "circuit_description",
+                    "required": false
+                  },
+                  {
+                    "name": "board_size_mm",
+                    "required": false
+                  },
+                  {
+                    "name": "layer_count",
+                    "required": false
+                  },
+                  {
+                    "name": "target_fab",
+                    "required": false
+                  }
+                ],
+                "description": "Canonical workflow for a complete professional circuit design.",
+                "name": "professional_circuit_design"
+              }
+            },
+            "regression_sweep": {
+              "hash": "sha256:99693525dd66434b9e84a794a42a12f2db93312e4ac823dc0dd47eb06c170c6f",
+              "value": {
+                "arguments": [],
+                "description": "CI-style prompt for repeatable ERC, DRC, and quality-gate regression checks.",
+                "name": "regression_sweep"
+              }
+            },
+            "schematic_to_pcb": {
+              "hash": "sha256:ecebf3699816141d26a87eb918e3f71c5ab9f62736aca7341bae34241826c4e6",
+              "value": {
+                "arguments": [],
+                "description": "Guide an agent from schematic capture to PCB layout.",
+                "name": "schematic_to_pcb"
+              }
+            },
+            "visual_excellence_loop": {
+              "hash": "sha256:6fbc81e6e762f5c42db91e86d7132a47f84f5d35e40fddaa7eec4639f1959d41",
+              "value": {
+                "arguments": [],
+                "description": "Score → fix → render → verify loop for professional schematic cosmetics.",
+                "name": "visual_excellence_loop"
+              }
+            }
+          }
+        },
+        "resource_templates": {
+          "count": 1,
+          "hash": "sha256:d0d2a5c005881d62f90ab10f487198f594ba76cca88479781a60de2c0559775d",
+          "items": {
+            "kicad://gate/{gate_name}": {
+              "hash": "sha256:320a3c1bc6e65e5817e0a6cd5d9c4cb71278510a64f91721c0b6c8c97fcd781e",
+              "value": {
+                "description": "Read a specific gate report by name.",
+                "mimeType": "text/plain",
+                "name": "named_gate_resource",
+                "uriTemplate": "kicad://gate/{gate_name}"
+              }
+            }
+          }
+        },
+        "resources": {
+          "count": 21,
+          "hash": "sha256:25b2f3e7300a5ff8eaf6592d0af09a98854c04c3485439facfb7218d616cbfb8",
+          "items": {
+            "kicad://analysis/defaults": {
+              "hash": "sha256:8d02f05c5a2fe957417fe996cfbcd429c171d805aba840727ac0590e4093a481",
+              "value": {
+                "description": "JSON defaults and schemas for built-in analysis assumptions.",
+                "mimeType": "text/plain",
+                "name": "analysis_defaults_resource",
+                "uri": "kicad://analysis/defaults"
+              }
+            },
+            "kicad://analysis/materials": {
+              "hash": "sha256:e62ed668e244efaa0420c4847d2858e3fac0b77210087afbc1a45aaae3ceb316",
+              "value": {
+                "description": "JSON dielectric material library used by SI and EMC analysis.",
+                "mimeType": "text/plain",
+                "name": "analysis_materials_resource",
+                "uri": "kicad://analysis/materials"
+              }
+            },
+            "kicad://analysis/stackup": {
+              "hash": "sha256:d44ebc8ea471a2072a5c8f37439abab1a2ff88a68efe453700b5c1330d2cb2b8",
+              "value": {
+                "description": "JSON stackup context consumed by SI, PI, and EMC workflows.",
+                "mimeType": "text/plain",
+                "name": "analysis_stackup_resource",
+                "uri": "kicad://analysis/stackup"
+              }
+            },
+            "kicad://board/layer_coverage": {
+              "hash": "sha256:75028c700d49eb63d031c691d05a2a033ccfb0a8c5bbeae565d5e9db37096fa2",
+              "value": {
+                "description": "JSON per-layer copper coverage proxy from zone presence.",
+                "mimeType": "text/plain",
+                "name": "board_layer_coverage_resource",
+                "uri": "kicad://board/layer_coverage"
+              }
+            },
+            "kicad://board/netlist": {
+              "hash": "sha256:38dff850ba7f8d2ca81985dd79f514f5178287dfadbdb32b3c705d0a48df950c",
+              "value": {
+                "description": "Current board S-expression, bounded for safety.",
+                "mimeType": "text/plain",
+                "name": "board_netlist_resource",
+                "uri": "kicad://board/netlist"
+              }
+            },
+            "kicad://board/placement_quality": {
+              "hash": "sha256:7048a005510a6772b53cef3823479131f7faef37029aa9d333649d506fa4e378",
+              "value": {
+                "description": "Latest placement score and hard-fail placement findings.",
+                "mimeType": "text/plain",
+                "name": "board_placement_quality_resource",
+                "uri": "kicad://board/placement_quality"
+              }
+            },
+            "kicad://board/summary": {
+              "hash": "sha256:4282d811c80813a792c7fc013f5795b5caf987d475f9f239be230a8fcbb04ed0",
+              "value": {
+                "description": "Live PCB board summary.",
+                "mimeType": "text/plain",
+                "name": "board_summary_resource",
+                "uri": "kicad://board/summary"
+              }
+            },
+            "kicad://drc/latest": {
+              "hash": "sha256:bac10ef3dbf73d8aacbc66284a05a3c64981b60df9234ca70c39face5c1d5374",
+              "value": {
+                "description": "Latest DRC (design rule check) results from the most recent kicad-cli run.",
+                "mimeType": "text/plain",
+                "name": "drc_latest_resource",
+                "uri": "kicad://drc/latest"
+              }
+            },
+            "kicad://erc/latest": {
+              "hash": "sha256:a990a542948cd598d4d15eb7531db52e1cd1e8009abad7c4a61cf0d360d83de2",
+              "value": {
+                "description": "Latest ERC (electrical rule check) results from the most recent kicad-cli run.",
+                "mimeType": "text/plain",
+                "name": "erc_latest_resource",
+                "uri": "kicad://erc/latest"
+              }
+            },
+            "kicad://manufacturing/checklist": {
+              "hash": "sha256:a378fb05f2af29d830fc3537fff438d457ee5e45021f6a4cd0d5b431ea998f23",
+              "value": {
+                "description": "Manufacturing release checklist for fab-ready handoff.",
+                "mimeType": "text/plain",
+                "name": "manufacturing_checklist_resource",
+                "uri": "kicad://manufacturing/checklist"
+              }
+            },
+            "kicad://project/design_intent": {
+              "hash": "sha256:c9307191e5d45f1bc908de80c843f3d99cc160800c093ea1d3f8cbfa4f166175",
+              "value": {
+                "description": "Structured JSON view of the persisted project design intent.",
+                "mimeType": "text/plain",
+                "name": "project_design_intent_resource",
+                "uri": "kicad://project/design_intent"
+              }
+            },
+            "kicad://project/fix_queue": {
+              "hash": "sha256:e2b047fe4f2c6bd8e9da2d5b47e518ce7752f1e8a1ad2d3893c7fc4216c36ed3",
+              "value": {
+                "description": "Prioritized blocking issues derived from the project quality gate.",
+                "mimeType": "text/plain",
+                "name": "project_fix_queue_resource",
+                "uri": "kicad://project/fix_queue"
+              }
+            },
+            "kicad://project/gate_history": {
+              "hash": "sha256:cafab5f27b27948ec2440e3b3cef45b410a61856ee127146fb8f53637f550c93",
+              "value": {
+                "description": "JSON history snapshot of recent project quality gate outcomes.",
+                "mimeType": "text/plain",
+                "name": "project_gate_history_resource",
+                "uri": "kicad://project/gate_history"
+              }
+            },
+            "kicad://project/info": {
+              "hash": "sha256:4757b136c1e31361d3add6c86f80cbcd5a232eb809fbc735f9d448fc7867d7f3",
+              "value": {
+                "description": "Current project configuration.",
+                "mimeType": "text/plain",
+                "name": "project_info_resource",
+                "uri": "kicad://project/info"
+              }
+            },
+            "kicad://project/manifest": {
+              "hash": "sha256:1c267e2fb57e3d09f5f7e8c1767679d8236f8e6064847a71383b01f78d6d533c",
+              "value": {
+                "description": "JSON manifest of KiCad-owned project files and hashes.",
+                "mimeType": "text/plain",
+                "name": "project_manifest_resource",
+                "uri": "kicad://project/manifest"
+              }
+            },
+            "kicad://project/next_action": {
+              "hash": "sha256:f94e54de719072c46904add17f7e60a9a31754108cfe8541438dc7d114539c2b",
+              "value": {
+                "description": "Server-recommended next action derived from the fix queue.",
+                "mimeType": "text/plain",
+                "name": "project_next_action_resource",
+                "uri": "kicad://project/next_action"
+              }
+            },
+            "kicad://project/quality_gate": {
+              "hash": "sha256:5e5c213407434f73902627fe843bfe8aca4c0c8905a18f1bd93b110e017b8dc8",
+              "value": {
+                "description": "Latest full project quality gate report.",
+                "mimeType": "text/plain",
+                "name": "project_quality_gate_resource",
+                "uri": "kicad://project/quality_gate"
+              }
+            },
+            "kicad://project/spec": {
+              "hash": "sha256:b3dd4c6fa684ba1189361a25484077a4e265254e70e819cfe614bfbaad7a8675",
+              "value": {
+                "description": "Resolved project design spec including explicit and inferred fields.",
+                "mimeType": "text/plain",
+                "name": "project_spec_resource",
+                "uri": "kicad://project/spec"
+              }
+            },
+            "kicad://schematic/connectivity": {
+              "hash": "sha256:3fec01246487c1b7b96b7904da074047e7dd6145f5af6570f30b8e6b3374cfc0",
+              "value": {
+                "description": "Latest schematic connectivity gate report.",
+                "mimeType": "text/plain",
+                "name": "schematic_connectivity_resource",
+                "uri": "kicad://schematic/connectivity"
+              }
+            },
+            "kicad://server/info": {
+              "hash": "sha256:8310990c327120f537c05928d7ed93b622b06b8af66f6268a3a85b1687360a60",
+              "value": {
+                "description": "Return versioned server information and capability diagnostics.",
+                "mimeType": "text/plain",
+                "name": "server_info_resource",
+                "uri": "kicad://server/info"
+              }
+            },
+            "kicad://studio/context": {
+              "hash": "sha256:26776aa52a9ffa3c2dd19b329adf756caa1112772193e484c0b1dab7f632b306",
+              "value": {
+                "description": "Return the latest KiCad Studio IDE context.",
+                "mimeType": "text/plain",
+                "name": "get_studio_context",
+                "uri": "kicad://studio/context"
+              }
+            }
+          }
+        },
+        "tools": {
+          "count": 24,
+          "hash": "sha256:5a495e4267b89aa437c2812591c40d44ceed958f53642a52e19399529e8a66b4",
+          "items": {
+            "dfm_run_manufacturer_check": {
+              "hash": "sha256:7d588b0a9041503132daa604fd590058c1c314726ef2ea1f19e0bab183493aff",
+              "value": {
+                "annotations": {
+                  "idempotentHint": false
+                },
+                "description": "Run a manufacturer-aware DFM review using the active bundled profile.",
+                "inputSchema": {
+                  "properties": {},
+                  "title": "dfm_run_manufacturer_checkArguments",
+                  "type": "object"
+                },
+                "name": "dfm_run_manufacturer_check",
+                "outputSchema": {
+                  "$defs": {
+                    "Finding": {
+                      "description": "A single structured finding with a stable id and agent-actionable context.",
+                      "properties": {
+                        "description": {
+                          "default": "",
+                          "title": "Description",
+                          "type": "string"
+                        },
+                        "evidence": {
+                          "items": {
+                            "additionalProperties": true,
+                            "type": "object"
+                          },
+                          "title": "Evidence",
+                          "type": "array"
+                        },
+                        "failure_mode": {
+                          "default": "design",
+                          "enum": [
+                            "none",
+                            "design",
+                            "environment",
+                            "configuration",
+                            "manual_review"
+                          ],
+                          "title": "Failure Mode",
+                          "type": "string"
+                        },
+                        "id": {
+                          "title": "Id",
+                          "type": "string"
+                        },
+                        "location": {
+                          "default": "",
+                          "title": "Location",
+                          "type": "string"
+                        },
+                        "metadata": {
+                          "additionalProperties": true,
+                          "title": "Metadata",
+                          "type": "object"
+                        },
+                        "remediation": {
+                          "default": "",
+                          "title": "Remediation",
+                          "type": "string"
+                        },
+                        "retryable": {
+                          "default": false,
+                          "title": "Retryable",
+                          "type": "boolean"
+                        },
+                        "severity": {
+                          "default": "error",
+                          "title": "Severity",
+                          "type": "string"
+                        },
+                        "suggested_fix": {
+                          "anyOf": [
+                            {
+                              "$ref": "#/$defs/SuggestedFix"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "default": null
+                        }
+                      },
+                      "required": [
+                        "id"
+                      ],
+                      "title": "Finding",
+                      "type": "object"
+                    },
+                    "SuggestedFix": {
+                      "description": "A concrete, machine-actionable next step for a finding.",
+                      "properties": {
+                        "args": {
+                          "additionalProperties": true,
+                          "title": "Args",
+                          "type": "object"
+                        },
+                        "tool": {
+                          "default": "",
+                          "title": "Tool",
+                          "type": "string"
+                        }
+                      },
+                      "title": "SuggestedFix",
+                      "type": "object"
+                    }
+                  },
+                  "description": "Stable verdict envelope returned by quality gates and critic tools.\n\n``retryable`` is intentionally about retrying the same tool call without changing\nthe design. Environment/configuration failures may be retryable after setup; design\nfailures are non-transient and require remediation first.",
+                  "properties": {
+                    "evidence": {
+                      "items": {
+                        "additionalProperties": true,
+                        "type": "object"
+                      },
+                      "title": "Evidence",
+                      "type": "array"
+                    },
+                    "failure_mode": {
+                      "default": "none",
+                      "enum": [
+                        "none",
+                        "design",
+                        "environment",
+                        "configuration",
+                        "manual_review"
+                      ],
+                      "title": "Failure Mode",
+                      "type": "string"
+                    },
+                    "findings": {
+                      "items": {
+                        "$ref": "#/$defs/Finding"
+                      },
+                      "title": "Findings",
+                      "type": "array"
+                    },
+                    "metadata": {
+                      "additionalProperties": true,
+                      "title": "Metadata",
+                      "type": "object"
+                    },
+                    "next_action": {
+                      "default": "",
+                      "title": "Next Action",
+                      "type": "string"
+                    },
+                    "remediation": {
+                      "default": "",
+                      "title": "Remediation",
+                      "type": "string"
+                    },
+                    "retryable": {
+                      "default": false,
+                      "title": "Retryable",
+                      "type": "boolean"
+                    },
+                    "schema_version": {
+                      "default": "verdict.v1",
+                      "title": "Schema Version",
+                      "type": "string"
+                    },
+                    "severity": {
+                      "default": "info",
+                      "title": "Severity",
+                      "type": "string"
+                    },
+                    "summary": {
+                      "default": "",
+                      "title": "Summary",
+                      "type": "string"
+                    },
+                    "text": {
+                      "default": "",
+                      "title": "Text",
+                      "type": "string"
+                    },
+                    "verdict": {
+                      "default": "PASS",
+                      "enum": [
+                        "PASS",
+                        "WARN",
+                        "FAIL"
+                      ],
+                      "title": "Verdict",
+                      "type": "string"
+                    }
+                  },
+                  "title": "VerdictReport",
+                  "type": "object"
+                }
+              }
+            },
+            "kicad_get_project_info": {
+              "hash": "sha256:476a36e6b173dd192fc3b25a0dbf5925beffe700ca9accacd1d86171d4a74134",
+              "value": {
+                "annotations": {
+                  "idempotentHint": true,
+                  "readOnlyHint": true
+                },
+                "description": "Show the currently configured KiCad project paths. This KiCad MCP Pro tool supports production EDA automation workflows for MCP clients.",
+                "inputSchema": {
+                  "properties": {},
+                  "title": "kicad_get_project_infoArguments",
+                  "type": "object"
+                },
+                "name": "kicad_get_project_info",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "kicad_get_project_infoOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "kicad_get_server_info": {
+              "hash": "sha256:fe5314a153f2750e81b4e8f0891926a941c5546b9adef2aa668fa416ae2a6a70",
+              "value": {
+                "annotations": {
+                  "idempotentHint": true,
+                  "readOnlyHint": true
+                },
+                "description": "Return versioned server information and capability diagnostics for clients. This KiCad MCP Pro tool supports production EDA automation workflows for MCP clients.",
+                "inputSchema": {
+                  "properties": {},
+                  "title": "kicad_get_server_infoArguments",
+                  "type": "object"
+                },
+                "name": "kicad_get_server_info",
+                "outputSchema": {
+                  "additionalProperties": true,
+                  "title": "kicad_get_server_infoDictOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "kicad_get_tools_in_category": {
+              "hash": "sha256:51ad812f5e6036342206cb409f9ce40c12ef1c371570897fad623003fa215bed",
+              "value": {
+                "annotations": {
+                  "idempotentHint": true,
+                  "readOnlyHint": true
+                },
+                "description": "Get tool names in a category, optionally filtered by maturity.",
+                "inputSchema": {
+                  "properties": {
+                    "category": {
+                      "title": "Category",
+                      "type": "string"
+                    },
+                    "maturity": {
+                      "default": "",
+                      "title": "Maturity",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "category"
+                  ],
+                  "title": "kicad_get_tools_in_categoryArguments",
+                  "type": "object"
+                },
+                "name": "kicad_get_tools_in_category",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "kicad_get_tools_in_categoryOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "kicad_get_version": {
+              "hash": "sha256:dca84c897d008683e7cb6a16cb1e271f0cc5352438041500d05f54c554fcec18",
+              "value": {
+                "annotations": {
+                  "idempotentHint": true,
+                  "readOnlyHint": true
+                },
+                "description": "Get KiCad version information and current connection status. This KiCad MCP Pro tool supports production EDA automation workflows for MCP clients.",
+                "inputSchema": {
+                  "properties": {},
+                  "title": "kicad_get_versionArguments",
+                  "type": "object"
+                },
+                "name": "kicad_get_version",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "kicad_get_versionOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "kicad_list_tool_categories": {
+              "hash": "sha256:1c0f6e213bf384a4660d1241de1fbd67700c4136b349049839ca71b9c90f17ae",
+              "value": {
+                "annotations": {
+                  "idempotentHint": true,
+                  "readOnlyHint": true
+                },
+                "description": "List all available tool categories and capabilities. This KiCad MCP Pro tool supports production EDA automation workflows for MCP clients.",
+                "inputSchema": {
+                  "properties": {},
+                  "title": "kicad_list_tool_categoriesArguments",
+                  "type": "object"
+                },
+                "name": "kicad_list_tool_categories",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "kicad_list_tool_categoriesOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "kicad_set_project": {
+              "hash": "sha256:331b4ba1a1661fc5be884700decd352ff4f18cf8d32f21d52a7d2b6b6a975395",
+              "value": {
+                "annotations": {
+                  "destructiveHint": true,
+                  "idempotentHint": true
+                },
+                "description": "Set the active KiCad project directory and file paths. This KiCad MCP Pro tool supports production EDA automation workflows for MCP clients.",
+                "inputSchema": {
+                  "properties": {
+                    "output_dir": {
+                      "default": "",
+                      "title": "Output Dir",
+                      "type": "string"
+                    },
+                    "pcb_file": {
+                      "default": "",
+                      "title": "Pcb File",
+                      "type": "string"
+                    },
+                    "project_dir": {
+                      "title": "Project Dir",
+                      "type": "string"
+                    },
+                    "sch_file": {
+                      "default": "",
+                      "title": "Sch File",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "project_dir"
+                  ],
+                  "title": "kicad_set_projectArguments",
+                  "type": "object"
+                },
+                "name": "kicad_set_project",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "kicad_set_projectOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "lib_get_bom_with_pricing": {
+              "hash": "sha256:8e36d72212a2afac5ff3db69dcd04618ee8c4b364ea26d079df15cfd66ef5b0c",
+              "value": {
+                "annotations": {
+                  "idempotentHint": true,
+                  "readOnlyHint": true
+                },
+                "description": "Generate a live BOM summary with unit and extended pricing.",
+                "inputSchema": {
+                  "properties": {
+                    "quantity": {
+                      "default": 1,
+                      "title": "Quantity",
+                      "type": "integer"
+                    },
+                    "source": {
+                      "default": "jlcsearch",
+                      "title": "Source",
+                      "type": "string"
+                    }
+                  },
+                  "title": "lib_get_bom_with_pricingArguments",
+                  "type": "object"
+                },
+                "name": "lib_get_bom_with_pricing",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "lib_get_bom_with_pricingOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "lib_verify_component_contract": {
+              "hash": "sha256:b57367beb8d201f0dedb2574bb9c7fd0f1f4c650cdd49821f05b9bd31c876046",
+              "value": {
+                "annotations": {
+                  "idempotentHint": false
+                },
+                "description": "Verify a placed component's symbol, footprint, and pins actually match.\n\nFor the given schematic reference designator this checks, entirely from\nlocal project files (no network access):\n\n- symbol pin count vs footprint connectable pad count\n- pin numbers vs pad numbers\n- footprint courtyard / fabrication / silkscreen completeness\n- 3D model presence (advisory)\n- datasheet evidence (advisory; never auto-filled)\n\nReturns a JSON object with a ``status`` of PASS / WARN / FAIL and a list\nof per-check ``findings``. FAIL marks a structural contract violation,\nWARN marks a quality/completeness smell, and INFO is advisory evidence\nthat never changes the overall status.",
+                "inputSchema": {
+                  "properties": {
+                    "reference": {
+                      "title": "Reference",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "reference"
+                  ],
+                  "title": "lib_verify_component_contractArguments",
+                  "type": "object"
+                },
+                "name": "lib_verify_component_contract",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "lib_verify_component_contractOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "pcb_get_board_summary": {
+              "hash": "sha256:ca9ea49cb85e78900639462cd28a468309df8bfbb8df9f2550bb57ee298d32bb",
+              "value": {
+                "annotations": {
+                  "idempotentHint": true,
+                  "readOnlyHint": true
+                },
+                "description": "Summarize the current board. This KiCad MCP Pro tool supports production EDA automation workflows for MCP clients.",
+                "inputSchema": {
+                  "properties": {},
+                  "title": "pcb_get_board_summaryArguments",
+                  "type": "object"
+                },
+                "name": "pcb_get_board_summary",
+                "outputSchema": {
+                  "$defs": {
+                    "Finding": {
+                      "description": "A single structured finding with a stable id and agent-actionable context.",
+                      "properties": {
+                        "description": {
+                          "default": "",
+                          "title": "Description",
+                          "type": "string"
+                        },
+                        "evidence": {
+                          "items": {
+                            "additionalProperties": true,
+                            "type": "object"
+                          },
+                          "title": "Evidence",
+                          "type": "array"
+                        },
+                        "failure_mode": {
+                          "default": "design",
+                          "enum": [
+                            "none",
+                            "design",
+                            "environment",
+                            "configuration",
+                            "manual_review"
+                          ],
+                          "title": "Failure Mode",
+                          "type": "string"
+                        },
+                        "id": {
+                          "title": "Id",
+                          "type": "string"
+                        },
+                        "location": {
+                          "default": "",
+                          "title": "Location",
+                          "type": "string"
+                        },
+                        "metadata": {
+                          "additionalProperties": true,
+                          "title": "Metadata",
+                          "type": "object"
+                        },
+                        "remediation": {
+                          "default": "",
+                          "title": "Remediation",
+                          "type": "string"
+                        },
+                        "retryable": {
+                          "default": false,
+                          "title": "Retryable",
+                          "type": "boolean"
+                        },
+                        "severity": {
+                          "default": "error",
+                          "title": "Severity",
+                          "type": "string"
+                        },
+                        "suggested_fix": {
+                          "anyOf": [
+                            {
+                              "$ref": "#/$defs/SuggestedFix"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "default": null
+                        }
+                      },
+                      "required": [
+                        "id"
+                      ],
+                      "title": "Finding",
+                      "type": "object"
+                    },
+                    "SuggestedFix": {
+                      "description": "A concrete, machine-actionable next step for a finding.",
+                      "properties": {
+                        "args": {
+                          "additionalProperties": true,
+                          "title": "Args",
+                          "type": "object"
+                        },
+                        "tool": {
+                          "default": "",
+                          "title": "Tool",
+                          "type": "string"
+                        }
+                      },
+                      "title": "SuggestedFix",
+                      "type": "object"
+                    }
+                  },
+                  "description": "Stable verdict envelope returned by quality gates and critic tools.\n\n``retryable`` is intentionally about retrying the same tool call without changing\nthe design. Environment/configuration failures may be retryable after setup; design\nfailures are non-transient and require remediation first.",
+                  "properties": {
+                    "evidence": {
+                      "items": {
+                        "additionalProperties": true,
+                        "type": "object"
+                      },
+                      "title": "Evidence",
+                      "type": "array"
+                    },
+                    "failure_mode": {
+                      "default": "none",
+                      "enum": [
+                        "none",
+                        "design",
+                        "environment",
+                        "configuration",
+                        "manual_review"
+                      ],
+                      "title": "Failure Mode",
+                      "type": "string"
+                    },
+                    "findings": {
+                      "items": {
+                        "$ref": "#/$defs/Finding"
+                      },
+                      "title": "Findings",
+                      "type": "array"
+                    },
+                    "metadata": {
+                      "additionalProperties": true,
+                      "title": "Metadata",
+                      "type": "object"
+                    },
+                    "next_action": {
+                      "default": "",
+                      "title": "Next Action",
+                      "type": "string"
+                    },
+                    "remediation": {
+                      "default": "",
+                      "title": "Remediation",
+                      "type": "string"
+                    },
+                    "retryable": {
+                      "default": false,
+                      "title": "Retryable",
+                      "type": "boolean"
+                    },
+                    "schema_version": {
+                      "default": "verdict.v1",
+                      "title": "Schema Version",
+                      "type": "string"
+                    },
+                    "severity": {
+                      "default": "info",
+                      "title": "Severity",
+                      "type": "string"
+                    },
+                    "summary": {
+                      "default": "",
+                      "title": "Summary",
+                      "type": "string"
+                    },
+                    "text": {
+                      "default": "",
+                      "title": "Text",
+                      "type": "string"
+                    },
+                    "verdict": {
+                      "default": "PASS",
+                      "enum": [
+                        "PASS",
+                        "WARN",
+                        "FAIL"
+                      ],
+                      "title": "Verdict",
+                      "type": "string"
+                    }
+                  },
+                  "title": "VerdictReport",
+                  "type": "object"
+                }
+              }
+            },
+            "pcb_get_design_rules": {
+              "hash": "sha256:383a43d67f0309de436113a6d8e51d3ccda51834b1c7bbc37b2e89dc17a6852b",
+              "value": {
+                "annotations": {
+                  "idempotentHint": true,
+                  "readOnlyHint": true
+                },
+                "description": "Read the active board design rules file when available. This KiCad MCP Pro tool supports production EDA automation workflows for MCP clients.",
+                "inputSchema": {
+                  "properties": {},
+                  "title": "pcb_get_design_rulesArguments",
+                  "type": "object"
+                },
+                "name": "pcb_get_design_rules",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "pcb_get_design_rulesOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "pcb_get_stackup": {
+              "hash": "sha256:d6033178cd3274eb07c5b0875ca2703233b025bc5d1d8ed58ff7356d155ce98e",
+              "value": {
+                "annotations": {
+                  "idempotentHint": true,
+                  "readOnlyHint": true
+                },
+                "description": "Show the current stackup. This KiCad MCP Pro tool supports production EDA automation workflows for MCP clients.",
+                "inputSchema": {
+                  "properties": {},
+                  "title": "pcb_get_stackupArguments",
+                  "type": "object"
+                },
+                "name": "pcb_get_stackup",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "pcb_get_stackupOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "pcb_visual_qa": {
+              "hash": "sha256:f02c7a6324ddb9360f1077abffc34ba191e0277b855e750de39b54973a4a28c0",
+              "value": {
+                "annotations": {
+                  "idempotentHint": false
+                },
+                "description": "Headless PCB readability QA: off-board parts, silk and body overlap.\n\nA fast, file-backed first pass that runs without a live KiCad: it flags\nfootprints whose body leaves the board outline, reference designators that\ncollide on the silkscreen, and overlapping footprint bodies — directly\nfrom the ``.kicad_pcb`` geometry. It complements (does not replace) the\nauthoritative DRC run, which remains the sign-off check for courtyard and\nsilk clipping. Returns JSON with an overall PASS/INFO/WARN status and\nper-finding refs/positions.",
+                "inputSchema": {
+                  "properties": {},
+                  "title": "pcb_visual_qaArguments",
+                  "type": "object"
+                },
+                "name": "pcb_visual_qa",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "pcb_visual_qaOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "project_design_workflow": {
+              "hash": "sha256:cf26c07f171c521236bdd613a0390ffac27d71a0ab49a3f7a7c75d3ad5704422",
+              "value": {
+                "annotations": {
+                  "idempotentHint": false
+                },
+                "description": "Return the professional PCB design workflow as a typed phase state machine.\n\nLays out the canonical Planner -> Builder -> Verifier -> Fixer -> Release\nsequence, with the high-level tool and the quality gates each phase must pass.\nPass the phases already finished in ``completed_phases``; the tool marks them\nCOMPLETE, reports the first remaining phase as READY (the current step) with\nits next action and gates, and flags when a human gate is required. Read-only\nand headless — use it to drive an autonomous design run step by step.",
+                "inputSchema": {
+                  "properties": {
+                    "completed_phases": {
+                      "anyOf": [
+                        {
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Completed Phases"
+                    }
+                  },
+                  "title": "project_design_workflowArguments",
+                  "type": "object"
+                },
+                "name": "project_design_workflow",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "project_design_workflowOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "project_get_next_action": {
+              "hash": "sha256:5bb02b8c1fb72222b2bbc11ba5d9bea18d43b1d0640cf30be023feb1681f64ee",
+              "value": {
+                "annotations": {
+                  "idempotentHint": true,
+                  "readOnlyHint": true
+                },
+                "description": "Return the next high-priority action derived from the current project gate.",
+                "inputSchema": {
+                  "properties": {},
+                  "title": "project_get_next_actionArguments",
+                  "type": "object"
+                },
+                "name": "project_get_next_action",
+                "outputSchema": {
+                  "$defs": {
+                    "Finding": {
+                      "description": "A single structured finding with a stable id and agent-actionable context.",
+                      "properties": {
+                        "description": {
+                          "default": "",
+                          "title": "Description",
+                          "type": "string"
+                        },
+                        "evidence": {
+                          "items": {
+                            "additionalProperties": true,
+                            "type": "object"
+                          },
+                          "title": "Evidence",
+                          "type": "array"
+                        },
+                        "failure_mode": {
+                          "default": "design",
+                          "enum": [
+                            "none",
+                            "design",
+                            "environment",
+                            "configuration",
+                            "manual_review"
+                          ],
+                          "title": "Failure Mode",
+                          "type": "string"
+                        },
+                        "id": {
+                          "title": "Id",
+                          "type": "string"
+                        },
+                        "location": {
+                          "default": "",
+                          "title": "Location",
+                          "type": "string"
+                        },
+                        "metadata": {
+                          "additionalProperties": true,
+                          "title": "Metadata",
+                          "type": "object"
+                        },
+                        "remediation": {
+                          "default": "",
+                          "title": "Remediation",
+                          "type": "string"
+                        },
+                        "retryable": {
+                          "default": false,
+                          "title": "Retryable",
+                          "type": "boolean"
+                        },
+                        "severity": {
+                          "default": "error",
+                          "title": "Severity",
+                          "type": "string"
+                        },
+                        "suggested_fix": {
+                          "anyOf": [
+                            {
+                              "$ref": "#/$defs/SuggestedFix"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "default": null
+                        }
+                      },
+                      "required": [
+                        "id"
+                      ],
+                      "title": "Finding",
+                      "type": "object"
+                    },
+                    "SuggestedFix": {
+                      "description": "A concrete, machine-actionable next step for a finding.",
+                      "properties": {
+                        "args": {
+                          "additionalProperties": true,
+                          "title": "Args",
+                          "type": "object"
+                        },
+                        "tool": {
+                          "default": "",
+                          "title": "Tool",
+                          "type": "string"
+                        }
+                      },
+                      "title": "SuggestedFix",
+                      "type": "object"
+                    }
+                  },
+                  "description": "Structured next-action recommendation derived from the project gate.",
+                  "properties": {
+                    "findings": {
+                      "items": {
+                        "$ref": "#/$defs/Finding"
+                      },
+                      "title": "Findings",
+                      "type": "array"
+                    },
+                    "gate": {
+                      "default": "",
+                      "title": "Gate",
+                      "type": "string"
+                    },
+                    "next_action": {
+                      "default": "",
+                      "title": "Next Action",
+                      "type": "string"
+                    },
+                    "reason": {
+                      "default": "",
+                      "title": "Reason",
+                      "type": "string"
+                    },
+                    "status": {
+                      "title": "Status",
+                      "type": "string"
+                    },
+                    "suggested_tool": {
+                      "default": "",
+                      "title": "Suggested Tool",
+                      "type": "string"
+                    },
+                    "text": {
+                      "title": "Text",
+                      "type": "string"
+                    },
+                    "verdict": {
+                      "default": "PASS",
+                      "enum": [
+                        "PASS",
+                        "WARN",
+                        "FAIL"
+                      ],
+                      "title": "Verdict",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "text",
+                    "status"
+                  ],
+                  "title": "ProjectNextActionPayload",
+                  "type": "object"
+                }
+              }
+            },
+            "project_quality_gate": {
+              "hash": "sha256:d6a2040f8c1ad157bdb8b505ccd749e4ea8c9976c79503ce91c6971ea9a19cf0",
+              "value": {
+                "annotations": {
+                  "idempotentHint": true,
+                  "readOnlyHint": true
+                },
+                "description": "Run the full project quality gate across schematic, PCB, DFM, and parity checks.",
+                "inputSchema": {
+                  "properties": {
+                    "manufacturer": {
+                      "default": "",
+                      "title": "Manufacturer",
+                      "type": "string"
+                    },
+                    "tier": {
+                      "default": "",
+                      "title": "Tier",
+                      "type": "string"
+                    }
+                  },
+                  "title": "project_quality_gateArguments",
+                  "type": "object"
+                },
+                "name": "project_quality_gate",
+                "outputSchema": {
+                  "$defs": {
+                    "Finding": {
+                      "description": "A single structured finding with a stable id and agent-actionable context.",
+                      "properties": {
+                        "description": {
+                          "default": "",
+                          "title": "Description",
+                          "type": "string"
+                        },
+                        "evidence": {
+                          "items": {
+                            "additionalProperties": true,
+                            "type": "object"
+                          },
+                          "title": "Evidence",
+                          "type": "array"
+                        },
+                        "failure_mode": {
+                          "default": "design",
+                          "enum": [
+                            "none",
+                            "design",
+                            "environment",
+                            "configuration",
+                            "manual_review"
+                          ],
+                          "title": "Failure Mode",
+                          "type": "string"
+                        },
+                        "id": {
+                          "title": "Id",
+                          "type": "string"
+                        },
+                        "location": {
+                          "default": "",
+                          "title": "Location",
+                          "type": "string"
+                        },
+                        "metadata": {
+                          "additionalProperties": true,
+                          "title": "Metadata",
+                          "type": "object"
+                        },
+                        "remediation": {
+                          "default": "",
+                          "title": "Remediation",
+                          "type": "string"
+                        },
+                        "retryable": {
+                          "default": false,
+                          "title": "Retryable",
+                          "type": "boolean"
+                        },
+                        "severity": {
+                          "default": "error",
+                          "title": "Severity",
+                          "type": "string"
+                        },
+                        "suggested_fix": {
+                          "anyOf": [
+                            {
+                              "$ref": "#/$defs/SuggestedFix"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "default": null
+                        }
+                      },
+                      "required": [
+                        "id"
+                      ],
+                      "title": "Finding",
+                      "type": "object"
+                    },
+                    "SuggestedFix": {
+                      "description": "A concrete, machine-actionable next step for a finding.",
+                      "properties": {
+                        "args": {
+                          "additionalProperties": true,
+                          "title": "Args",
+                          "type": "object"
+                        },
+                        "tool": {
+                          "default": "",
+                          "title": "Tool",
+                          "type": "string"
+                        }
+                      },
+                      "title": "SuggestedFix",
+                      "type": "object"
+                    }
+                  },
+                  "description": "Stable verdict envelope returned by quality gates and critic tools.\n\n``retryable`` is intentionally about retrying the same tool call without changing\nthe design. Environment/configuration failures may be retryable after setup; design\nfailures are non-transient and require remediation first.",
+                  "properties": {
+                    "evidence": {
+                      "items": {
+                        "additionalProperties": true,
+                        "type": "object"
+                      },
+                      "title": "Evidence",
+                      "type": "array"
+                    },
+                    "failure_mode": {
+                      "default": "none",
+                      "enum": [
+                        "none",
+                        "design",
+                        "environment",
+                        "configuration",
+                        "manual_review"
+                      ],
+                      "title": "Failure Mode",
+                      "type": "string"
+                    },
+                    "findings": {
+                      "items": {
+                        "$ref": "#/$defs/Finding"
+                      },
+                      "title": "Findings",
+                      "type": "array"
+                    },
+                    "metadata": {
+                      "additionalProperties": true,
+                      "title": "Metadata",
+                      "type": "object"
+                    },
+                    "next_action": {
+                      "default": "",
+                      "title": "Next Action",
+                      "type": "string"
+                    },
+                    "remediation": {
+                      "default": "",
+                      "title": "Remediation",
+                      "type": "string"
+                    },
+                    "retryable": {
+                      "default": false,
+                      "title": "Retryable",
+                      "type": "boolean"
+                    },
+                    "schema_version": {
+                      "default": "verdict.v1",
+                      "title": "Schema Version",
+                      "type": "string"
+                    },
+                    "severity": {
+                      "default": "info",
+                      "title": "Severity",
+                      "type": "string"
+                    },
+                    "summary": {
+                      "default": "",
+                      "title": "Summary",
+                      "type": "string"
+                    },
+                    "text": {
+                      "default": "",
+                      "title": "Text",
+                      "type": "string"
+                    },
+                    "verdict": {
+                      "default": "PASS",
+                      "enum": [
+                        "PASS",
+                        "WARN",
+                        "FAIL"
+                      ],
+                      "title": "Verdict",
+                      "type": "string"
+                    }
+                  },
+                  "title": "VerdictReport",
+                  "type": "object"
+                }
+              }
+            },
+            "run_drc": {
+              "hash": "sha256:213e157dab91ce73b5887a04fabfa0de46ab5cc7a085b095a19418274025b0a9",
+              "value": {
+                "annotations": {
+                  "idempotentHint": true,
+                  "readOnlyHint": true
+                },
+                "description": "Return full DRC report with PCB violations, unconnected items, and courtyard issues.",
+                "inputSchema": {
+                  "properties": {
+                    "save_report": {
+                      "default": false,
+                      "title": "Save Report",
+                      "type": "boolean"
+                    }
+                  },
+                  "title": "run_drcArguments",
+                  "type": "object"
+                },
+                "name": "run_drc",
+                "outputSchema": {
+                  "$defs": {
+                    "Finding": {
+                      "description": "A single structured finding with a stable id and agent-actionable context.",
+                      "properties": {
+                        "description": {
+                          "default": "",
+                          "title": "Description",
+                          "type": "string"
+                        },
+                        "evidence": {
+                          "items": {
+                            "additionalProperties": true,
+                            "type": "object"
+                          },
+                          "title": "Evidence",
+                          "type": "array"
+                        },
+                        "failure_mode": {
+                          "default": "design",
+                          "enum": [
+                            "none",
+                            "design",
+                            "environment",
+                            "configuration",
+                            "manual_review"
+                          ],
+                          "title": "Failure Mode",
+                          "type": "string"
+                        },
+                        "id": {
+                          "title": "Id",
+                          "type": "string"
+                        },
+                        "location": {
+                          "default": "",
+                          "title": "Location",
+                          "type": "string"
+                        },
+                        "metadata": {
+                          "additionalProperties": true,
+                          "title": "Metadata",
+                          "type": "object"
+                        },
+                        "remediation": {
+                          "default": "",
+                          "title": "Remediation",
+                          "type": "string"
+                        },
+                        "retryable": {
+                          "default": false,
+                          "title": "Retryable",
+                          "type": "boolean"
+                        },
+                        "severity": {
+                          "default": "error",
+                          "title": "Severity",
+                          "type": "string"
+                        },
+                        "suggested_fix": {
+                          "anyOf": [
+                            {
+                              "$ref": "#/$defs/SuggestedFix"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "default": null
+                        }
+                      },
+                      "required": [
+                        "id"
+                      ],
+                      "title": "Finding",
+                      "type": "object"
+                    },
+                    "SuggestedFix": {
+                      "description": "A concrete, machine-actionable next step for a finding.",
+                      "properties": {
+                        "args": {
+                          "additionalProperties": true,
+                          "title": "Args",
+                          "type": "object"
+                        },
+                        "tool": {
+                          "default": "",
+                          "title": "Tool",
+                          "type": "string"
+                        }
+                      },
+                      "title": "SuggestedFix",
+                      "type": "object"
+                    }
+                  },
+                  "description": "Stable verdict envelope returned by quality gates and critic tools.\n\n``retryable`` is intentionally about retrying the same tool call without changing\nthe design. Environment/configuration failures may be retryable after setup; design\nfailures are non-transient and require remediation first.",
+                  "properties": {
+                    "evidence": {
+                      "items": {
+                        "additionalProperties": true,
+                        "type": "object"
+                      },
+                      "title": "Evidence",
+                      "type": "array"
+                    },
+                    "failure_mode": {
+                      "default": "none",
+                      "enum": [
+                        "none",
+                        "design",
+                        "environment",
+                        "configuration",
+                        "manual_review"
+                      ],
+                      "title": "Failure Mode",
+                      "type": "string"
+                    },
+                    "findings": {
+                      "items": {
+                        "$ref": "#/$defs/Finding"
+                      },
+                      "title": "Findings",
+                      "type": "array"
+                    },
+                    "metadata": {
+                      "additionalProperties": true,
+                      "title": "Metadata",
+                      "type": "object"
+                    },
+                    "next_action": {
+                      "default": "",
+                      "title": "Next Action",
+                      "type": "string"
+                    },
+                    "remediation": {
+                      "default": "",
+                      "title": "Remediation",
+                      "type": "string"
+                    },
+                    "retryable": {
+                      "default": false,
+                      "title": "Retryable",
+                      "type": "boolean"
+                    },
+                    "schema_version": {
+                      "default": "verdict.v1",
+                      "title": "Schema Version",
+                      "type": "string"
+                    },
+                    "severity": {
+                      "default": "info",
+                      "title": "Severity",
+                      "type": "string"
+                    },
+                    "summary": {
+                      "default": "",
+                      "title": "Summary",
+                      "type": "string"
+                    },
+                    "text": {
+                      "default": "",
+                      "title": "Text",
+                      "type": "string"
+                    },
+                    "verdict": {
+                      "default": "PASS",
+                      "enum": [
+                        "PASS",
+                        "WARN",
+                        "FAIL"
+                      ],
+                      "title": "Verdict",
+                      "type": "string"
+                    }
+                  },
+                  "title": "VerdictReport",
+                  "type": "object"
+                }
+              }
+            },
+            "run_erc": {
+              "hash": "sha256:09bf20caacb306f6f0f061851ab526d979aeb6226fdb37437d15b26daad33559",
+              "value": {
+                "annotations": {
+                  "idempotentHint": true,
+                  "readOnlyHint": true
+                },
+                "description": "Run schematic electrical rule checks. This KiCad MCP Pro tool supports production EDA automation workflows for MCP clients.",
+                "inputSchema": {
+                  "properties": {
+                    "save_report": {
+                      "default": false,
+                      "title": "Save Report",
+                      "type": "boolean"
+                    }
+                  },
+                  "title": "run_ercArguments",
+                  "type": "object"
+                },
+                "name": "run_erc",
+                "outputSchema": {
+                  "$defs": {
+                    "Finding": {
+                      "description": "A single structured finding with a stable id and agent-actionable context.",
+                      "properties": {
+                        "description": {
+                          "default": "",
+                          "title": "Description",
+                          "type": "string"
+                        },
+                        "evidence": {
+                          "items": {
+                            "additionalProperties": true,
+                            "type": "object"
+                          },
+                          "title": "Evidence",
+                          "type": "array"
+                        },
+                        "failure_mode": {
+                          "default": "design",
+                          "enum": [
+                            "none",
+                            "design",
+                            "environment",
+                            "configuration",
+                            "manual_review"
+                          ],
+                          "title": "Failure Mode",
+                          "type": "string"
+                        },
+                        "id": {
+                          "title": "Id",
+                          "type": "string"
+                        },
+                        "location": {
+                          "default": "",
+                          "title": "Location",
+                          "type": "string"
+                        },
+                        "metadata": {
+                          "additionalProperties": true,
+                          "title": "Metadata",
+                          "type": "object"
+                        },
+                        "remediation": {
+                          "default": "",
+                          "title": "Remediation",
+                          "type": "string"
+                        },
+                        "retryable": {
+                          "default": false,
+                          "title": "Retryable",
+                          "type": "boolean"
+                        },
+                        "severity": {
+                          "default": "error",
+                          "title": "Severity",
+                          "type": "string"
+                        },
+                        "suggested_fix": {
+                          "anyOf": [
+                            {
+                              "$ref": "#/$defs/SuggestedFix"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "default": null
+                        }
+                      },
+                      "required": [
+                        "id"
+                      ],
+                      "title": "Finding",
+                      "type": "object"
+                    },
+                    "SuggestedFix": {
+                      "description": "A concrete, machine-actionable next step for a finding.",
+                      "properties": {
+                        "args": {
+                          "additionalProperties": true,
+                          "title": "Args",
+                          "type": "object"
+                        },
+                        "tool": {
+                          "default": "",
+                          "title": "Tool",
+                          "type": "string"
+                        }
+                      },
+                      "title": "SuggestedFix",
+                      "type": "object"
+                    }
+                  },
+                  "description": "Stable verdict envelope returned by quality gates and critic tools.\n\n``retryable`` is intentionally about retrying the same tool call without changing\nthe design. Environment/configuration failures may be retryable after setup; design\nfailures are non-transient and require remediation first.",
+                  "properties": {
+                    "evidence": {
+                      "items": {
+                        "additionalProperties": true,
+                        "type": "object"
+                      },
+                      "title": "Evidence",
+                      "type": "array"
+                    },
+                    "failure_mode": {
+                      "default": "none",
+                      "enum": [
+                        "none",
+                        "design",
+                        "environment",
+                        "configuration",
+                        "manual_review"
+                      ],
+                      "title": "Failure Mode",
+                      "type": "string"
+                    },
+                    "findings": {
+                      "items": {
+                        "$ref": "#/$defs/Finding"
+                      },
+                      "title": "Findings",
+                      "type": "array"
+                    },
+                    "metadata": {
+                      "additionalProperties": true,
+                      "title": "Metadata",
+                      "type": "object"
+                    },
+                    "next_action": {
+                      "default": "",
+                      "title": "Next Action",
+                      "type": "string"
+                    },
+                    "remediation": {
+                      "default": "",
+                      "title": "Remediation",
+                      "type": "string"
+                    },
+                    "retryable": {
+                      "default": false,
+                      "title": "Retryable",
+                      "type": "boolean"
+                    },
+                    "schema_version": {
+                      "default": "verdict.v1",
+                      "title": "Schema Version",
+                      "type": "string"
+                    },
+                    "severity": {
+                      "default": "info",
+                      "title": "Severity",
+                      "type": "string"
+                    },
+                    "summary": {
+                      "default": "",
+                      "title": "Summary",
+                      "type": "string"
+                    },
+                    "text": {
+                      "default": "",
+                      "title": "Text",
+                      "type": "string"
+                    },
+                    "verdict": {
+                      "default": "PASS",
+                      "enum": [
+                        "PASS",
+                        "WARN",
+                        "FAIL"
+                      ],
+                      "title": "Verdict",
+                      "type": "string"
+                    }
+                  },
+                  "title": "VerdictReport",
+                  "type": "object"
+                }
+              }
+            },
+            "sch_get_bounding_boxes": {
+              "hash": "sha256:138d7be9e36e4bd12630bbe2c33f1c197b09bef07746cd69d4587d93b44f8ced",
+              "value": {
+                "annotations": {
+                  "idempotentHint": true,
+                  "readOnlyHint": true
+                },
+                "description": "Return the estimated bounding box of every symbol in the active schematic.\n\nUse this before calling sch_add_symbol or sch_build_circuit to understand\nwhich areas of the schematic sheet are already occupied.  The bounding boxes\nare heuristic estimates (KiCad does not expose exact extents via the file API)\nbut are conservative enough to avoid overlap in practice.\n\nReturns:\n    A table of all symbols with their centre position and estimated\n    bounding-box corners (x_min, y_min, x_max, y_max) in mm, plus an\n    occupied-area summary.",
+                "inputSchema": {
+                  "properties": {},
+                  "title": "sch_get_bounding_boxesArguments",
+                  "type": "object"
+                },
+                "name": "sch_get_bounding_boxes",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "sch_get_bounding_boxesOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "sch_get_connectivity_graph": {
+              "hash": "sha256:2651bf533c0138542062daf635adff60ce30a61c35ecd7737972038b374085c8",
+              "value": {
+                "annotations": {
+                  "idempotentHint": true,
+                  "readOnlyHint": true
+                },
+                "description": "Summarize the active schematic as a textual net connectivity graph.",
+                "inputSchema": {
+                  "properties": {},
+                  "title": "sch_get_connectivity_graphArguments",
+                  "type": "object"
+                },
+                "name": "sch_get_connectivity_graph",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "sch_get_connectivity_graphOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "sch_get_symbols": {
+              "hash": "sha256:1057ae55a4c9a88875a110c0a849b11e2c5810e8da536f5ce7866970c03b45ca",
+              "value": {
+                "annotations": {
+                  "idempotentHint": true,
+                  "readOnlyHint": true
+                },
+                "description": "List all schematic symbols, optionally from a child sheet. This KiCad MCP Pro tool supports production EDA automation workflows for MCP clients.",
+                "inputSchema": {
+                  "properties": {
+                    "sheet": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Sheet"
+                    },
+                    "sheet_file": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Sheet File"
+                    }
+                  },
+                  "title": "sch_get_symbolsArguments",
+                  "type": "object"
+                },
+                "name": "sch_get_symbols",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "sch_get_symbolsOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "sch_visual_qa": {
+              "hash": "sha256:71dd72e22dfd166352f152498badb0bb26617463925525a3393ee894018e9bda",
+              "value": {
+                "annotations": {
+                  "idempotentHint": false
+                },
+                "description": "Run headless visual/readability QA on the active schematic sheet(s).\n\nDetects readability defects ERC cannot — overlapping labels, off-sheet\nsymbols or labels, dense unreadable label fanout, and title-block gaps —\ndirectly from the schematic S-expression geometry, with no rendering\nrequired. Returns JSON with an overall PASS/WARN/FAIL status and per-sheet\nfindings carrying object refs and positions for follow-up.",
+                "inputSchema": {
+                  "properties": {},
+                  "title": "sch_visual_qaArguments",
+                  "type": "object"
+                },
+                "name": "sch_visual_qa",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "sch_visual_qaOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "validate_design": {
+              "hash": "sha256:e2066eca27b3bba299dd162342f8d867b6536333097da10312c7c3d8625d26a0",
+              "value": {
+                "annotations": {
+                  "idempotentHint": true,
+                  "readOnlyHint": true
+                },
+                "description": "Run DRC and ERC and summarize readiness. This KiCad MCP Pro tool supports production EDA automation workflows for MCP clients.",
+                "inputSchema": {
+                  "properties": {},
+                  "title": "validate_designArguments",
+                  "type": "object"
+                },
+                "name": "validate_design",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "validate_designOutput",
+                  "type": "object"
+                }
+              }
+            },
+            "validate_footprints_vs_schematic": {
+              "hash": "sha256:1ecd447ff02c5689b8e6b1db303bfcc5992cf54706a4a4cb76295951076287ac",
+              "value": {
+                "annotations": {
+                  "idempotentHint": true,
+                  "readOnlyHint": true
+                },
+                "description": "Compare PCB footprint references against the schematic symbol references. This KiCad MCP Pro tool supports production EDA automation workflows for MCP clients.",
+                "inputSchema": {
+                  "properties": {},
+                  "title": "validate_footprints_vs_schematicArguments",
+                  "type": "object"
+                },
+                "name": "validate_footprints_vs_schematic",
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "title": "Result",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "validate_footprints_vs_schematicOutput",
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

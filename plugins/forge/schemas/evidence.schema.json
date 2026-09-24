@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "forge.evidence/1",
+  "title": "Forge evidence manifest",
+  "type": "object",
+  "required": ["schema", "entries"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {"const": "forge.evidence/1"},
+    "entries": {"type": "array", "items": {"$ref": "#/$defs/entry"}}
+  },
+  "$defs": {
+    "entry": {
+      "type": "object",
+      "required": ["id", "artifact", "domain", "claim", "check_ids", "result", "level", "evidence_files", "inputs_sha256", "tool_versions", "git_sha", "model", "timestamp", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string", "pattern": "^EV-[0-9]{4,}$"},
+        "artifact": {"type": "string"},
+        "domain": {"enum": ["mech", "elec", "fw", "sw", "sys", "sim", "mfg", "compliance"]},
+        "claim": {"type": "string", "minLength": 5},
+        "check_ids": {"type": "array", "items": {"type": "string"}},
+        "result": {"enum": ["pass", "fail"]},
+        "level": {"enum": ["L0", "L1", "L2", "L3", "L4", "L5"]},
+        "evidence_files": {"type": "array", "items": {"type": "string"}},
+        "inputs_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "tool_versions": {"type": "object", "additionalProperties": {"type": "string"}},
+        "git_sha": {"type": "string"},
+        "model": {"type": "string"},
+        "timestamp": {"type": "string", "format": "date-time"},
+        "status": {"enum": ["VERIFIED", "UNVERIFIED"]},
+        "signed_by": {"type": "string"},
+        "notes": {"type": "string"}
+      },
+      "allOf": [
+        {"if": {"properties": {"level": {"enum": ["L4", "L5"]}}}, "then": {"required": ["signed_by"]}}
+      ]
+    }
+  }
+}
