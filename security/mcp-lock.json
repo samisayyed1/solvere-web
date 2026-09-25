@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-09-24T21:18:11Z",
-  "lock_hash": "sha256:31ab70b5301eaaef9967e5de11489d01ae52d41e18d2e8d19f5c2494ee8abe85",
+  "generated_at": "2026-09-25T08:58:40Z",
+  "lock_hash": "sha256:42e17b1bfaee3db625ebd119c975033e7d9e669d93f6e94ebe52ca49b64d8bd4",
   "schema": 1,
   "servers": {
     "build123d-mcp": {
@@ -11,14 +11,14 @@
         "sha256": "88ee44d23c0f9174754622777a727398542bc9ee859e10a69a0f4ee8d4e1bf0d",
         "version": "0.3.87"
       },
-      "fingerprint": "sha256:c4982c27a0331456ad7eb9e4d00d7bf0408056fa81e680f44a1af2d31638ebe9",
+      "fingerprint": "sha256:76c0393ae3057cad1a9412f767ba3a30fc253d70e84360433b626dcc7327633f",
       "id": "build123d-mcp",
       "launch": {
         "command": [
-          "/Users/samisayyed/.forge/bin/srt",
+          "${FORGE_HOME}/bin/srt",
           "--settings",
-          "/Users/samisayyed/solvere/.claude/worktrees/forge-product-engineering-55a284/security/srt/build123d-mcp.json",
-          "/Users/samisayyed/.forge/envs/build123d-mcp/bin/build123d-mcp",
+          "${REPO_ROOT}/security/srt/build123d-mcp.json",
+          "${FORGE_HOME}/envs/build123d-mcp/bin/build123d-mcp",
           "--memory-limit-mb",
           "2048",
           "--cpu-limit-s",
@@ -32,9 +32,9 @@
         ],
         "cwd": null,
         "env": [],
-        "hash": "sha256:14a1bc48cf6655c567a11e1d8575af5c98e98039a0ee7beef2ba7d0784021dda"
+        "hash": "sha256:7e67bd2e0eb92fb92da8a8e228277ecde5e100b88b662c6f90b0f4a7267264e0"
       },
-      "probed_at": 1790284689.7117891,
+      "probed_at": 1790326716.2143874,
       "protocol": {
         "capabilities": {
           "experimental": {},
@@ -1443,14 +1443,14 @@
         "sha256": "b2297186a61dfbf5fe57fce26a6b8d7fc5b0877514444a26d5b5786f50e017a0",
         "version": "3.35.0"
       },
-      "fingerprint": "sha256:2340245eaab9f780be22bb2e1516993250437c6a1ecf64d3ad601a4436942351",
+      "fingerprint": "sha256:a8d288e906c61ec3e28c0ee4a1926ed242c75b2200f1e5232fa1f6864da48c68",
       "id": "kicad-mcp-pro",
       "launch": {
         "command": [
-          "/Users/samisayyed/.forge/bin/srt",
+          "${FORGE_HOME}/bin/srt",
           "--settings",
-          "/Users/samisayyed/solvere/.claude/worktrees/forge-product-engineering-55a284/security/srt/kicad-mcp-pro.json",
-          "/Users/samisayyed/.forge/envs/kicad-mcp-pro/bin/kicad-mcp-pro",
+          "${REPO_ROOT}/security/srt/kicad-mcp-pro.json",
+          "${FORGE_HOME}/envs/kicad-mcp-pro/bin/kicad-mcp-pro",
           "--transport",
           "stdio",
           "--profile",
@@ -1461,9 +1461,9 @@
           "KICAD_MCP_OPERATING_MODE",
           "KICAD_MCP_WORKSPACE_ROOT"
         ],
-        "hash": "sha256:59a5474635df2b6374e7b0f72a5739a8f18854ffd72956b6aa3e4a50c1cbc587"
+        "hash": "sha256:855d0018c457f765807390548ae571743f6c65442b11c008996a2e77b60e797a"
       },
-      "probed_at": 1790284691.7530031,
+      "probed_at": 1790326720.9750814,
       "protocol": {
         "capabilities": {
           "experimental": {},
