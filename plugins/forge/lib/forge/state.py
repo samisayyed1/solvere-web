@@ -201,8 +201,10 @@ def resolve_base(project: Path | str, domain: str, manifest: dict[str, Any] | No
 
     The domain's last-green SHA when it is a real commit, an ancestor of
     HEAD, and vouched for by passing ``forge verify`` entries recorded on it;
-    otherwise the scaffold commit (so committing a change never hides it);
-    otherwise ``None`` (every file counts as changed).
+    otherwise the **pinned** scaffold commit (``.forge/base_sha``, N11 --
+    static, so it survives an amend or reset that rewrites current git
+    history out from under a dynamically-derived base); otherwise ``None``
+    (every file counts as changed).
     """
     info = (load(project).get("last_green") or {}).get(domain) or {}
     sha = str(info.get("sha") or "")
@@ -216,7 +218,7 @@ def resolve_base(project: Path | str, domain: str, manifest: dict[str, Any] | No
             for i in ids)
         if vouched:
             return sha
-    return scaffold_base(project)
+    return ensure_base_pinned(project) or scaffold_base(project)
 
 
 def changed_since(project: Path | str, base: str | None) -> list[str] | None:

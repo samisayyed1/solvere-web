@@ -1,0 +1,874 @@
+(kicad_sch
+  (version 20250114)
+  (generator circuit-json-to-kicad)
+  (generator_version 0.0.1)
+  (uuid 8fd41ab4-2053-488a-a9a9-e3ff444043b1)
+  (paper
+    A4
+  )
+  (lib_symbols
+    (symbol "Device:U_AMS1117-3_3"
+      (pin_numbers
+        (hide no)
+      )
+      (pin_names
+        (offset 1.27)
+      )
+      (exclude_from_sim no)
+      (in_bom yes)
+      (on_board yes)
+      (property "Reference" "U"
+        (id 0)
+        (at 2.032 0 90)
+        (effects
+          (font
+            (size 1.27 1.27)
+          )
+        )
+      )
+      (property "Value" "U"
+        (id 1)
+        (at 0 0 90)
+        (effects
+          (font
+            (size 1.27 1.27)
+          )
+        )
+      )
+      (property "Footprint" "tscircuit:AMS1117-3_3"
+        (id 2)
+        (at -1.778 0 90)
+        (effects
+          (font
+            (size 1.27 1.27)
+          )
+          (hide yes)
+        )
+      )
+      (property "Datasheet" "~"
+        (id 3)
+        (at 0 0 0)
+        (effects
+          (font
+            (size 1.27 1.27)
+          )
+          (hide yes)
+        )
+      )
+      (property "Description" "Integrated Circuit"
+        (id 4)
+        (at 0 0 0)
+        (effects
+          (font
+            (size 1.27 1.27)
+          )
+          (hide yes)
+        )
+      )
+      (property "ki_keywords" "U IC chip"
+        (id 5)
+        (at 0 0 0)
+        (effects
+          (font
+            (size 1.27 1.27)
+          )
+          (hide yes)
+        )
+      )
+      (property "ki_fp_filters" "*"
+        (id 6)
+        (at 0 0 0)
+        (effects
+          (font
+            (size 1.27 1.27)
+          )
+          (hide yes)
+        )
+      )
+      (symbol "U_AMS1117-3_3_0_1"
+        (polyline
+          (pts
+            (xy -11.25 -4.500000000000001)
+            (xy 11.25 -4.500000000000001)
+            (xy 11.25 4.500000000000001)
+            (xy -11.25 4.500000000000001)
+            (xy -11.25 -4.500000000000001)
+          )
+          (stroke
+            (width 0.254)
+            (type default)
+          )
+          (fill
+            (type background)
+          )
+        )
+      )
+      (symbol "U_AMS1117-3_3_1_1"
+        (pin passive line
+          (at -17.25 1.5 0)
+          (length 6)
+          (name "GND"
+            (effects
+              (font
+                (size 1.27 1.27)
+              )
+            )
+          )
+          (number "1"
+            (effects
+              (font
+                (size 1.27 1.27)
+              )
+            )
+          )
+        )
+        (pin passive line
+          (at -17.25 -1.5 0)
+          (length 6)
+          (name "VOUT"
+            (effects
+              (font
+                (size 1.27 1.27)
+              )
+            )
+          )
+          (number "2"
+            (effects
+              (font
+                (size 1.27 1.27)
+              )
+            )
+          )
+        )
+        (pin passive line
+          (at 17.25 0 180)
+          (length 6)
+          (name "VIN"
+            (effects
+              (font
+                (size 1.27 1.27)
+              )
+            )
+          )
+          (number "3"
+            (effects
+              (font
+                (size 1.27 1.27)
+              )
+            )
+          )
+        )
+      )
+      (embedded_fonts no)
+    )
+    (symbol "Device:capacitor_left"
+      (pin_numbers
+        (hide yes)
+      )
+      (pin_names
+        (offset 0)
+      )
+      (exclude_from_sim no)
+      (in_bom yes)
+      (on_board yes)
+      (property "Reference" "C"
+        (id 0)
+        (at 2.032 0 90)
+        (effects
+          (font
+            (size 1.27 1.27)
+          )
+        )
+      )
+      (property "Value" "C"
+        (id 1)
+        (at 0 0 90)
+        (effects
+          (font
+            (size 1.27 1.27)
+          )
+        )
+      )
+      (property "Footprint" "tscircuit:capacitor_cap0402"
+        (id 2)
+        (at -1.778 0 90)
+        (effects
+          (font
+            (size 1.27 1.27)
+          )
+          (hide yes)
+        )
+      )
+      (property "Datasheet" "~"
+        (id 3)
+        (at 0 0 0)
+        (effects
+          (font
+            (size 1.27 1.27)
+          )
+          (hide yes)
+        )
+      )
+      (property "Description" "Capacitor"
+        (id 4)
+        (at 0 0 0)
+        (effects
+          (font
+            (size 1.27 1.27)
+          )
+          (hide yes)
+        )
+      )
+      (property "ki_keywords" "C cap capacitor"
+        (id 5)
+        (at 0 0 0)
+        (effects
+          (font
+            (size 1.27 1.27)
+          )
+          (hide yes)
+        )
+      )
+      (property "ki_fp_filters" "C_*"
+        (id 6)
+        (at 0 0 0)
+        (effects
+          (font
+            (size 1.27 1.27)
+          )
+          (hide yes)
+        )
+      )
+      (symbol "capacitor_left_0_1"
+        (polyline
+          (pts
+            (xy 4.5 0)
+            (xy 0.8999999999999999 0)
+          )
+          (stroke
+            (width 0.18)
+            (type default)
+          )
+          (fill
+            (type none)
+          )
+        )
+        (polyline
+          (pts
+            (xy -0.8999999999999999 0)
+            (xy -4.5 0)
+          )
+          (stroke
+            (width 0.18)
+            (type default)
+          )
+          (fill
+            (type none)
+          )
+        )
+        (polyline
+          (pts
+            (xy 0.8999999999999999 2.4003)
+            (xy 0.8999999999999999 -2.4003)
+          )
+          (stroke
+            (width 0.18)
+            (type default)
+          )
+          (fill
+            (type none)
+          )
+        )
+        (polyline
+          (pts
+            (xy -0.8999999999999999 2.4003)
+            (xy -0.8999999999999999 -2.4003)
+          )
+          (stroke
+            (width 0.18)
+            (type default)
+          )
+          (fill
+            (type none)
+          )
+        )
+      )
+      (symbol "capacitor_left_1_1"
+        (pin passive line
+          (at -4.5 0 0)
+          (length 0.01)
+          (name "2"
+            (effects
+              (font
+                (size 1.27 1.27)
+              )
+            )
+          )
+          (number "1"
+            (effects
+              (font
+                (size 1.27 1.27)
+              )
+            )
+          )
+        )
+        (pin passive line
+          (at 4.5 0 180)
+          (length 0.01)
+          (name "1"
+            (effects
+              (font
+                (size 1.27 1.27)
+              )
+            )
+          )
+          (number "2"
+            (effects
+              (font
+                (size 1.27 1.27)
+              )
+            )
+          )
+        )
+      )
+      (embedded_fonts no)
+    )
+    (symbol "Device:capacitor_right"
+      (pin_numbers
+        (hide yes)
+      )
+      (pin_names
+        (offset 0)
+      )
+      (exclude_from_sim no)
+      (in_bom yes)
+      (on_board yes)
+      (property "Reference" "C"
+        (id 0)
+        (at 2.032 0 90)
+        (effects
+          (font
+            (size 1.27 1.27)
+          )
+        )
+      )
+      (property "Value" "C"
+        (id 1)
+        (at 0 0 90)
+        (effects
+          (font
+            (size 1.27 1.27)
+          )
+        )
+      )
+      (property "Footprint" "tscircuit:capacitor_cap0402"
+        (id 2)
+        (at -1.778 0 90)
+        (effects
+          (font
+            (size 1.27 1.27)
+          )
+          (hide yes)
+        )
+      )
+      (property "Datasheet" "~"
+        (id 3)
+        (at 0 0 0)
+        (effects
+          (font
+            (size 1.27 1.27)
+          )
+          (hide yes)
+        )
+      )
+      (property "Description" "Capacitor"
+        (id 4)
+        (at 0 0 0)
+        (effects
+          (font
+            (size 1.27 1.27)
+          )
+          (hide yes)
+        )
+      )
+      (property "ki_keywords" "C cap capacitor"
+        (id 5)
+        (at 0 0 0)
+        (effects
+          (font
+            (size 1.27 1.27)
+          )
+          (hide yes)
+        )
+      )
+      (property "ki_fp_filters" "C_*"
+        (id 6)
+        (at 0 0 0)
+        (effects
+          (font
+            (size 1.27 1.27)
+          )
+          (hide yes)
+        )
+      )
+      (symbol "capacitor_right_0_1"
+        (polyline
+          (pts
+            (xy 4.5 0)
+            (xy 0.8999999999999999 0)
+          )
+          (stroke
+            (width 0.18)
+            (type default)
+          )
+          (fill
+            (type none)
+          )
+        )
+        (polyline
+          (pts
+            (xy -0.8999999999999999 0)
+            (xy -4.5 0)
+          )
+          (stroke
+            (width 0.18)
+            (type default)
+          )
+          (fill
+            (type none)
+          )
+        )
+        (polyline
+          (pts
+            (xy 0.8999999999999999 2.4003)
+            (xy 0.8999999999999999 -2.4003)
+          )
+          (stroke
+            (width 0.18)
+            (type default)
+          )
+          (fill
+            (type none)
+          )
+        )
+        (polyline
+          (pts
+            (xy -0.8999999999999999 2.4003)
+            (xy -0.8999999999999999 -2.4003)
+          )
+          (stroke
+            (width 0.18)
+            (type default)
+          )
+          (fill
+            (type none)
+          )
+        )
+      )
+      (symbol "capacitor_right_1_1"
+        (pin passive line
+          (at -4.5 0 0)
+          (length 0.01)
+          (name "1"
+            (effects
+              (font
+                (size 1.27 1.27)
+              )
+            )
+          )
+          (number "1"
+            (effects
+              (font
+                (size 1.27 1.27)
+              )
+            )
+          )
+        )
+        (pin passive line
+          (at 4.5 0 180)
+          (length 0.01)
+          (name "2"
+            (effects
+              (font
+                (size 1.27 1.27)
+              )
+            )
+          )
+          (number "2"
+            (effects
+              (font
+                (size 1.27 1.27)
+              )
+            )
+          )
+        )
+      )
+      (embedded_fonts no)
+    )
+  )
+  (sheet_instances
+    (path "/"
+      (page "1")
+    )
+  )
+  (embedded_fonts no)
+  (symbol
+    (lib_id "Device:U_AMS1117-3_3")
+    (at 158.25 116.5875 0)
+    (unit 1)
+    (exclude_from_sim no)
+    (in_bom yes)
+    (on_board yes)
+    (dnp no)
+    (uuid 495d9590-2235-4797-8275-d58f4a619cf5)
+    (fields_autoplaced no)
+    (property "Reference" "U1"
+      (id 0)
+      (at 147 110.1375 0)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+        (justify left)
+      )
+    )
+    (property "Value" "AMS1117-3.3"
+      (id 1)
+      (at 147 123.03750000000001 0)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+        (justify left)
+      )
+    )
+    (property "Footprint" ""
+      (id 2)
+      (at 156.472 116.5875 90)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+        (hide yes)
+      )
+    )
+    (property "Datasheet" "~"
+      (id 3)
+      (at 158.25 116.5875 0)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+        (hide yes)
+      )
+    )
+    (property "Description" "Integrated Circuit"
+      (id 4)
+      (at 158.25 116.5875 0)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+        (hide yes)
+      )
+    )
+    (pin "1"
+      (uuid 212fbe66-c800-43f2-b992-4159c96392eb)
+    )
+    (pin "2"
+      (uuid 8df00575-3eef-44e7-b061-9b2173be816e)
+    )
+    (pin "3"
+      (uuid 014bb82f-89e6-441f-b96a-2a04312f43b0)
+    )
+    (instances
+      (project ""
+        (path "/8fd41ab4-2053-488a-a9a9-e3ff444043b1"
+          (reference "U1")
+          (unit 1)
+        )
+      )
+    )
+  )
+  (symbol
+    (lib_id "Device:capacitor_left")
+    (at 145.5 90.78750000000001 0)
+    (unit 1)
+    (exclude_from_sim no)
+    (in_bom yes)
+    (on_board yes)
+    (dnp no)
+    (uuid e000ad62-7ced-43f0-b561-3f64ee1e8d11)
+    (fields_autoplaced no)
+    (property "Reference" "C_IN"
+      (id 0)
+      (at 145.5 87.18750000000001 0)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+        (justify bottom)
+      )
+    )
+    (property "Value" "1uF"
+      (id 1)
+      (at 145.5 94.38750000000002 0)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+        (justify top)
+      )
+    )
+    (property "Footprint" ""
+      (id 2)
+      (at 143.722 90.78750000000001 90)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+        (hide yes)
+      )
+    )
+    (property "Datasheet" "~"
+      (id 3)
+      (at 145.5 90.78750000000001 0)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+        (hide yes)
+      )
+    )
+    (property "Description" "Capacitor"
+      (id 4)
+      (at 145.5 90.78750000000001 0)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+        (hide yes)
+      )
+    )
+    (pin "1"
+      (uuid 78aaba12-a98e-4433-ad62-b383b3934171)
+    )
+    (pin "2"
+      (uuid ee012571-bd4a-4b18-8ce9-1f736944c971)
+    )
+    (instances
+      (project ""
+        (path "/8fd41ab4-2053-488a-a9a9-e3ff444043b1"
+          (reference "C_IN")
+          (unit 1)
+        )
+      )
+    )
+  )
+  (symbol
+    (lib_id "Device:capacitor_right")
+    (at 126 115.0875 0)
+    (unit 1)
+    (exclude_from_sim no)
+    (in_bom yes)
+    (on_board yes)
+    (dnp no)
+    (uuid 5ca69012-a012-40de-af88-ac6c0f009921)
+    (fields_autoplaced no)
+    (property "Reference" "C_OUT"
+      (id 0)
+      (at 126 111.48750000000001 0)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+        (justify bottom)
+      )
+    )
+    (property "Value" "1uF"
+      (id 1)
+      (at 126 118.6875 0)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+        (justify top)
+      )
+    )
+    (property "Footprint" ""
+      (id 2)
+      (at 124.222 115.0875 90)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+        (hide yes)
+      )
+    )
+    (property "Datasheet" "~"
+      (id 3)
+      (at 126 115.0875 0)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+        (hide yes)
+      )
+    )
+    (property "Description" "Capacitor"
+      (id 4)
+      (at 126 115.0875 0)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+        (hide yes)
+      )
+    )
+    (pin "1"
+      (uuid 64ff461b-81a7-4650-b38b-095496fdf151)
+    )
+    (pin "2"
+      (uuid f45da4cb-b50d-4146-a154-17b1f62b4d21)
+    )
+    (instances
+      (project ""
+        (path "/8fd41ab4-2053-488a-a9a9-e3ff444043b1"
+          (reference "C_OUT")
+          (unit 1)
+        )
+      )
+    )
+  )
+  (junction
+    (at 138 115.0875)
+    (diameter 0)
+    (uuid e678da6e-a75e-4467-82c2-6e87ef0a2a5a)
+  )
+  (junction
+    (at 138 115.0875)
+    (diameter 0)
+    (uuid 3de66bc9-c2d5-4776-826a-5d00542db49d)
+  )
+  (wire
+    (pts
+      (xy 141 115.0875)
+      (xy 130.5 115.0875)
+    )
+    (stroke
+      (width 0.254)
+      (type default)
+    )
+    (uuid c244b850-ddde-4676-95d9-dc470334d9d0)
+  )
+  (wire
+    (pts
+      (xy 141 90.78750000000001)
+      (xy 138 90.78750000000001)
+    )
+    (stroke
+      (width 0.254)
+      (type default)
+    )
+    (uuid 7650dcc0-1b8d-4bd0-a173-45e115a41045)
+  )
+  (wire
+    (pts
+      (xy 138 90.78750000000001)
+      (xy 138 115.0875)
+    )
+    (stroke
+      (width 0.254)
+      (type default)
+    )
+    (uuid 051dd138-89c1-42d9-9f2c-dbd274446526)
+  )
+  (wire
+    (pts
+      (xy 150 90.78750000000001)
+      (xy 178.5 90.78750000000001)
+    )
+    (stroke
+      (width 0.254)
+      (type default)
+    )
+    (uuid 53a7e6bb-7b4f-46a3-af2b-5e678f083157)
+  )
+  (wire
+    (pts
+      (xy 178.5 90.78750000000001)
+      (xy 178.5 116.5875)
+    )
+    (stroke
+      (width 0.254)
+      (type default)
+    )
+    (uuid c42a2fc5-edb0-4200-bc65-362a94a6aa40)
+  )
+  (wire
+    (pts
+      (xy 178.5 116.5875)
+      (xy 175.5 116.5875)
+    )
+    (stroke
+      (width 0.254)
+      (type default)
+    )
+    (uuid 4a7d41ca-9b33-40f8-a2a9-23533a6ebdfa)
+  )
+  (wire
+    (pts
+      (xy 121.5 115.0875)
+      (xy 118.5 115.0875)
+    )
+    (stroke
+      (width 0.254)
+      (type default)
+    )
+    (uuid 538d87fd-c69a-44a5-a235-7adbbc5232dc)
+  )
+  (wire
+    (pts
+      (xy 118.5 115.0875)
+      (xy 118.5 124.0875)
+    )
+    (stroke
+      (width 0.254)
+      (type default)
+    )
+    (uuid 39bcacb2-679e-45c0-9179-4b57dbd3c660)
+  )
+  (wire
+    (pts
+      (xy 118.5 124.0875)
+      (xy 138 124.0875)
+    )
+    (stroke
+      (width 0.254)
+      (type default)
+    )
+    (uuid 1d2e0da2-26eb-4c4f-b052-12f8be37a7bf)
+  )
+  (wire
+    (pts
+      (xy 138 124.0875)
+      (xy 138 118.0875)
+    )
+    (stroke
+      (width 0.254)
+      (type default)
+    )
+    (uuid ab564362-d7fb-47c8-824f-11ae401e24bb)
+  )
+  (wire
+    (pts
+      (xy 138 118.0875)
+      (xy 141 118.0875)
+    )
+    (stroke
+      (width 0.254)
+      (type default)
+    )
+    (uuid 95e53ed5-905f-4de7-9d43-8533b953f3c4)
+  )
+)

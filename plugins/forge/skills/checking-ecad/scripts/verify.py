@@ -176,6 +176,58 @@ def _flatten_violations(report: dict[str, Any]) -> list[dict[str, Any]]:
     return out
 
 
+# A correct, fully-connected tscircuit-exported schematic still reports ERC "violations"
+# that carry zero electrical information (eval defect: "tscircuit ERC noise" -- a clean
+# LDO-with-caps circuit came back non-clean). Root cause, reproduced directly against
+# `tsci build --kicad-project --ci` output:
+#   - endpoint_off_grid: purely about whether a wire endpoint sits on KiCad's *schematic
+#     editor* snap grid. It never affects which nodes are electrically connected (KiCad's
+#     own connectivity pass uses coincident coordinates, not grid alignment), so it can
+#     never indicate a wiring defect -- it is exactly the same kind of non-electrical
+#     housekeeping note as four_way_junction/single_global_label/simulation_model_issue/
+#     footprint_filter, which kicad-cli itself already disables by default (see a run's
+#     own "ignored_checks"). Dropped unconditionally, for every board.
+#   - lib_symbol_issues, ONLY when the flagged symbol is fully embedded in the
+#     schematic's own `lib_symbols` (self-contained -- tscircuit inlines every symbol it
+#     uses but doesn't register a project sym-lib-table entry for the "Device:" namespace
+#     it invents, so ERC reports "library not configured/found" even though the symbol
+#     needs no external library at all to resolve). A `lib_symbol_issues` violation for a
+#     symbol that is NOT embedded (a genuinely missing/unresolvable reference -- the case
+#     this rule exists to catch) is real and is kept.
+_NONELECTRICAL_ERC_TYPES = frozenset({"endpoint_off_grid"})
+_LIB_SYMBOL_LIB_RE = re.compile(r"symbol library '([^']+)'")
+_LIB_SYMBOL_NAME_RE = re.compile(r"\[([^\]]+)\]")
+
+
+def _embedded_symbol_ids(sch_text: str) -> set[str]:
+    """``lib_id``s (``Library:Name``) defined inline in this schematic's own
+    ``lib_symbols`` block. Only top-level definitions are named ``"Lib:Name"`` (a colon);
+    nested per-unit sub-symbols are named ``Name_<unit>_<style>`` (no colon), so a bare
+    "contains a colon" match, with no need to track the block's own paren nesting."""
+    return set(re.findall(r'\(symbol "([^"]+:[^"]+)"', sch_text))
+
+
+def drop_nonelectrical_erc_noise(violations: list[dict[str, Any]], sch_text: str | None) -> list[dict[str, Any]]:
+    """Filters out ERC "violations" that carry no electrical meaning (see above). Applied
+    before waivers, so it never consumes a project's waiver budget, and it is a check-level
+    policy applied to every board -- never a per-project waiver, and a genuinely unresolvable
+    symbol or a real connectivity defect (e.g. a floating pin) is always kept."""
+    embedded = _embedded_symbol_ids(sch_text) if sch_text is not None else set()
+    out: list[dict[str, Any]] = []
+    for v in violations:
+        vtype = v.get("type")
+        if vtype in _NONELECTRICAL_ERC_TYPES:
+            continue
+        if vtype == "lib_symbol_issues":
+            lib_m = _LIB_SYMBOL_LIB_RE.search(v.get("description", ""))
+            names = {_LIB_SYMBOL_NAME_RE.search(item.get("description", "")).group(1)
+                     for item in v.get("items", []) if _LIB_SYMBOL_NAME_RE.search(item.get("description", ""))}
+            if lib_m and names and all(f"{lib_m.group(1)}:{n}" in embedded for n in names):
+                continue  # every flagged symbol is fully self-contained -- not a real defect
+        out.append(v)
+    return out
+
+
 def apply_waivers(violations: list[dict[str, Any]], waivers: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], dict[str, int]]:
     """Returns (unwaived violations, {rule_id: count actually waived})."""
     remaining_cap = {w["rule_id"]: w.get("max_count") for w in waivers}
@@ -205,6 +257,7 @@ def check_erc_drc(chk: Check, board_paths: dict[str, Path], project: Path, out_d
         erc_json = out_dir / f"erc.{board_paths['sch'].stem}.json"
         report = _run_erc_drc_pass(kicad_cli, ["sch", "erc"], erc_json, board_paths["sch"], kind="sch erc")
         violations = _flatten_violations(report)
+        violations = drop_nonelectrical_erc_noise(violations, board_paths["sch"].read_text(errors="replace"))
         unwaived, waived = apply_waivers(violations, waivers)
         errors = sum(1 for v in unwaived if v.get("severity") == "error")
         warnings = sum(1 for v in unwaived if v.get("severity") != "error")

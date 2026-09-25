@@ -251,3 +251,104 @@ def test_missing_annular_ring_rule_key_is_a_hard_error_not_a_silent_skip(verify_
     result = json.loads(result_files[0].read_text())
     assert result["status"] == "error"
     assert "min_annular_ring_mm" in result["error"]
+
+
+# --- S1 (review-2 addendum): kicad-cli failing to load the schematic must ERROR, never PASS ---
+
+def test_garbage_schematic_errors_not_passes(verify_mod, tmp_path):
+    """S1 seeded-wrong case: a `.kicad_sch` that kicad-cli cannot load at all (garbage
+    content, not a corrupt-but-parseable board) exits non-{0,5} with no report written --
+    before the fix, `run_kicad_cli` ignored the exit code and an absent report was silently
+    read as `{}` (0 violations), giving a PASS. Must be ERROR, and the erc.*.json report
+    file must never be written for a load that never happened."""
+    ecad_dir = tmp_path / "ecad"
+    ecad_dir.mkdir(parents=True)
+    (ecad_dir / "x.kicad_sch").write_text("this is not a kicad schematic at all, just garbage\n\x00\x01")
+    rc = verify_mod.main(["--project", str(tmp_path)])
+    assert rc == 2
+    result_files = list((tmp_path / "out/verify").glob("ecad.*.json"))
+    assert len(result_files) == 1
+    result = json.loads(result_files[0].read_text())
+    assert result["status"] == "error"
+    assert "kicad-cli" in result["error"]
+    assert not (tmp_path / "out" / "verify" / "erc.x.json").exists()
+
+
+# --- tscircuit ERC noise (eval defect): a correct tscircuit export must be ERC-clean,
+# but a genuinely floating pin must still fail. Fixtures are the real, unmodified output
+# of `TSCI_TELEMETRY_DISABLED=1 tsci build --kicad-project --ci` on the tiny LDO+caps
+# circuit in fixtures/tscircuit_ldo_*/index.circuit.tsx (source kept alongside for
+# provenance), reproduced directly against kicad-cli before this fix: 17 violations
+# (14 endpoint_off_grid, 3 lib_symbol_issues), all warnings, on the CLEAN circuit alone. ---
+
+FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"
+
+
+def _copy_fixture_sch(fixture_name: str, project: Path) -> Path:
+    ecad_dir = project / "ecad"
+    ecad_dir.mkdir(parents=True, exist_ok=True)
+    dest = ecad_dir / "ldo.kicad_sch"
+    shutil.copy(FIXTURES_DIR / fixture_name / "ldo.kicad_sch", dest)
+    return dest
+
+
+def test_tscircuit_export_of_a_correct_circuit_is_erc_clean(verify_mod, tmp_path):
+    """A tscircuit LDO-with-caps circuit with every pin connected must export ERC-clean --
+    the 17 pre-fix violations (endpoint_off_grid: schematic-editor grid alignment, no
+    electrical meaning; lib_symbol_issues: tscircuit's fully self-contained/embedded
+    symbols aren't registered in a project sym-lib-table) carry no electrical information."""
+    _copy_fixture_sch("tscircuit_ldo_clean", tmp_path)
+    rc = verify_mod.main(["--project", str(tmp_path)])
+    assert rc == 0
+    result_files = list((tmp_path / "out/verify").glob("ecad.*.json"))
+    result = json.loads(result_files[0].read_text())
+    assert result["status"] == "pass"
+    errors = next(m for m in result["measurements"] if m["name"] == "erc_errors")
+    warnings = next(m for m in result["measurements"] if m["name"] == "erc_warnings")
+    assert errors["value"] == 0
+    assert warnings["value"] == 0
+    # the raw kicad-cli report on disk still shows all 17 -- nothing was hidden, only
+    # excluded from the pass/fail count as non-electrical
+    raw = json.loads((tmp_path / "out" / "verify" / "erc.ldo.json").read_text())
+    raw_total = sum(len(s["violations"]) for s in raw["sheets"])
+    assert raw_total == 17
+
+
+def test_tscircuit_export_with_a_genuinely_floating_pin_still_fails(verify_mod, tmp_path):
+    """No blanket waiver: the same circuit with C_OUT's ground pin left unconnected
+    (a real `pin_not_connected` ERC error) must still FAIL, alongside the same
+    non-electrical noise types being dropped."""
+    _copy_fixture_sch("tscircuit_ldo_floating_pin", tmp_path)
+    rc = verify_mod.main(["--project", str(tmp_path)])
+    assert rc == 1
+    result_files = list((tmp_path / "out/verify").glob("ecad.*.json"))
+    result = json.loads(result_files[0].read_text())
+    assert result["status"] == "fail"
+    errors = next(m for m in result["measurements"] if m["name"] == "erc_errors")
+    assert errors["value"] == 1
+    assert errors["pass"] is False
+    warnings = next(m for m in result["measurements"] if m["name"] == "erc_warnings")
+    assert warnings["value"] == 0  # endpoint_off_grid / lib_symbol_issues noise still dropped
+
+
+def test_drop_nonelectrical_erc_noise_keeps_unresolvable_lib_symbol_issues(verify_mod):
+    """drop_nonelectrical_erc_noise unit test: a lib_symbol_issues violation for a symbol
+    that is NOT embedded in the schematic's own lib_symbols (a genuinely broken/missing
+    reference -- the real case this ERC rule exists to catch) must be kept, not dropped."""
+    sch_text = '(kicad_sch (lib_symbols (symbol "Device:R" (pin_names))))'  # no "Ghost:Missing" defined
+    violations = [
+        {"type": "endpoint_off_grid", "description": "off grid"},
+        {"type": "lib_symbol_issues",
+         "description": "The current configuration does not include the symbol library 'Device'",
+         "items": [{"description": "Symbol R1 [R]"}]},
+        {"type": "lib_symbol_issues",
+         "description": "Symbol 'Missing' not found in symbol library 'Ghost'",
+         "items": [{"description": "Symbol U2 [Missing]"}]},
+        {"type": "pin_not_connected", "description": "Pin not connected"},
+    ]
+    kept = verify_mod.drop_nonelectrical_erc_noise(violations, sch_text)
+    kept_types = [(v["type"], v.get("description")) for v in kept]
+    assert ("endpoint_off_grid", "off grid") not in kept_types
+    assert not any(v["type"] == "lib_symbol_issues" and "Device" in v["description"] for v in kept)
+    assert any(v["type"] == "lib_symbol_issues" and "Ghost" in v["description"] for v in kept)
+    assert any(v["type"] == "pin_not_connected" for v in kept)

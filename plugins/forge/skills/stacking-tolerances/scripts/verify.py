@@ -20,7 +20,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "lib"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from forge.checkresult import Check, CheckContractError  # noqa: E402
-from stack_math import StackFileError, evaluate, load_stack  # noqa: E402
+from stack_math import StackFileError, evaluate, load_params, load_stack, param_mismatches  # noqa: E402
 
 _SAFE = re.compile(r"[^a-z0-9_]+")
 
@@ -77,6 +77,19 @@ def _run_one(stack_path: Path, project: Path) -> int:
     target = str(stack_path.relative_to(project)) if stack_path.is_relative_to(project) else str(stack_path)
     chk = Check(check_id, target, level="L1", project=project)
     try:
+        params = load_params(project)
+        for m in param_mismatches(stack, params):
+            chk.measure(
+                f"contributor_{m.contributor_id}_matches_params", m.stack_nominal, stack.unit,
+                equals=m.params_value, tol=1e-9,
+                remediation=(
+                    f"Contributor {m.contributor_id!r} nominal {m.stack_nominal} {stack.unit} does not "
+                    f"match params/params.toml key {m.param_key!r} (value {m.params_value} {stack.unit}) "
+                    "-- SKILL.md: tolerances come from params/params.toml, not invented numbers. "
+                    "Update the contributor's nominal to match, or fix params.toml if it's the one that's stale."
+                ),
+            )
+
         result = evaluate(stack, monte_carlo_n=mc_n, monte_carlo_seed=mc_seed)
         unit = stack.unit
         req_str = f"{stack.name}: gap in [{stack.gap_min}, {stack.gap_max}] {unit}"

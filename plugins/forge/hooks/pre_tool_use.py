@@ -91,7 +91,7 @@ CLAUDE_DIR_ALLOWED = (".claude/rules/**",)
 # edit them).
 GUARDRAIL_CONFIG = (
     (".mcp.json", ".mcp.json configures the MCP servers Forge and the sandbox rely on"),
-    ("Makefile", "Makefile wires `make verify`/CI to the same checks the evidence gate enforces"),
+    ("makefile", "Makefile wires `make verify`/CI to the same checks the evidence gate enforces"),
     (".github/workflows/**", ".github/workflows/ is the CI layer ADR-001 §16 relies on"),
 )
 SHELL_ONLY_FORBIDDEN = (
@@ -319,6 +319,7 @@ def _iter_param_leaves(data, prefix=()):
             yield from _iter_param_leaves(val, prefix + (key,))
 
 
+_VALUE_FIELDS = ("value", "unit", "tol")
 _VERIFIED_LOCKED_FIELDS = ("verified_by", "evidence")
 
 
@@ -420,7 +421,11 @@ def _handle_write_tool(project: Path, cwd: Path, tool_name: str, tool_input: dic
             return _deny(f"{rel}: the 'Human sign-off:' line may only be filled in by a human "
                          "(CONTRACTS.md §7). Leave it blank.")
     if rel == "params/params.toml":
-        old_content = _read_old_content(full)
+        # N12: `rel` is already case-folded, so this branch also catches
+        # PARAMS/params.toml on a case-sensitive filesystem -- but the
+        # simulated old content must come from the REAL (canonical-case)
+        # file, not the possibly differently-cased `file_path`.
+        old_content = _read_old_content(project / "params" / "params.toml")
         new_content = _compute_new_content(tool_name, tool_input, old_content)
         violation = _verified_param_violation(old_content, new_content)
         if violation:
@@ -680,6 +685,19 @@ def _check_urls(ctx: Ctx, text: str, what: str) -> None:
                               f"allowed_domains {allow_desc}. Add the domain there or use an allowed mirror.")
 
 
+def _apply_decision(ctx: "Ctx", decision: dict | None) -> None:
+    """Route a ``_path_policy``-style decision through the Bash analysis:
+    ``ask`` is collected (the whole command becomes an ask), ``deny`` raises
+    immediately."""
+    if not decision:
+        return
+    hso = decision["hookSpecificOutput"]
+    if hso["permissionDecision"] == "ask":
+        ctx.asks.append(hso["permissionDecisionReason"])
+        return
+    raise Verdict("deny", hso["permissionDecisionReason"])
+
+
 def _write_target(ctx: Ctx, raw: str, how: str) -> None:
     if raw == "<stdin-args>":
         raise Verdict("deny", f"{how} on paths read from a pipe (xargs) cannot be checked")
@@ -699,13 +717,7 @@ def _write_target(ctx: Ctx, raw: str, how: str) -> None:
     rel = _glob_prefix(rel) if re.search(r"[*?\[]", rel) else rel
     if rel == OUTSIDE:
         return
-    decision = _path_policy(rel, ctx.agent_type, f"Bash ({how})")
-    if decision:
-        hso = decision["hookSpecificOutput"]
-        if hso["permissionDecision"] == "ask":
-            ctx.asks.append(hso["permissionDecisionReason"])
-            return
-        raise Verdict("deny", hso["permissionDecisionReason"])
+    _apply_decision(ctx, _path_policy(rel, ctx.agent_type, f"Bash ({how})"))
     for pat, why in SHELL_ONLY_FORBIDDEN:
         if glob_match(pat, rel):
             raise Verdict("deny", f"shell writes to {rel} are blocked: {why}.")
@@ -801,6 +813,66 @@ def _analyse(ctx: Ctx, src: str, depth: int = 0) -> None:
         _analyse_cmd(ctx, cmd, depth)
 
 
+def _forge_invocation(words: list[str]) -> list[str] | None:
+    """If ``words`` invokes the ``forge`` CLI -- directly, via a path, or
+    through an interpreter (``forge-python .../bin/forge ...``) -- its own
+    argv (after ``forge``); else ``None``."""
+    if not words:
+        return None
+    prog = os.path.basename(words[0])
+    if prog == "forge":
+        return words[1:]
+    if prog in INTERPRETERS:
+        for i in range(1, len(words)):
+            w = words[i]
+            if w.startswith("-"):
+                continue
+            if os.path.basename(w) == "forge":
+                return words[i + 1:]
+            break
+    return None
+
+
+def _analyse_forge(ctx: Ctx, args: list[str]) -> None:
+    """N6: ``forge params set --status verified`` (or ``--verified-by``/
+    ``--evidence``) marks a param human-verified (CONTRACTS.md §2); only a
+    human on the main thread may run it -- ask there, deny for subagents.
+    A plain value change (``--value``/``--source``, no verification flags)
+    is left alone: that is the ordinary, agent-usable demotion path."""
+    parts: list[str] = []
+    i = 0
+    while i < len(args):
+        a = args[i]
+        if a == "--project":
+            i += 2
+            continue
+        if a.startswith("--project="):
+            i += 1
+            continue
+        parts.append(a)
+        i += 1
+    if len(parts) < 2 or parts[0] != "params" or parts[1] != "set":
+        return
+    flags = parts[2:]
+    verifying = False
+    for k, f in enumerate(flags):
+        if f == "--status" and k + 1 < len(flags) and flags[k + 1] == "verified":
+            verifying = True
+        elif f == "--status=verified":
+            verifying = True
+        elif f in ("--verified-by", "--evidence") or f.startswith(("--verified-by=", "--evidence=")):
+            verifying = True
+        if verifying:
+            break
+    if not verifying:
+        return
+    reason = ("`forge params set --status verified` (or --verified-by/--evidence) marks a param "
+             "human-verified (CONTRACTS.md §2); only a human on the main thread may run it.")
+    if ctx.agent_type:
+        raise Verdict("deny", f"{reason} {ctx.agent_type} may not run it.")
+    ctx.asks.append(reason)
+
+
 def _analyse_cmd(ctx: Ctx, cmd: Cmd, depth: int) -> None:
     for op, target in cmd.redirects:
         if op in (">", ">>", ">|", "&>", "&>>", "<>"):
@@ -817,6 +889,11 @@ def _analyse_cmd(ctx: Ctx, cmd: Cmd, depth: int) -> None:
 
     if prog_l in _ALWAYS_DENY_PROGS or prog_l.startswith("mkfs"):
         raise Verdict("deny", f"blocked destructive command: {_ALWAYS_DENY_PROGS.get(prog_l, 'mkfs destroys a filesystem')}")
+
+    forge_args = _forge_invocation(words)
+    if forge_args is not None:
+        _analyse_forge(ctx, forge_args)
+        return
 
     if prog_l in ("cd", "pushd", "popd"):
         if prog_l == "popd":
@@ -870,6 +947,10 @@ def _analyse_cmd(ctx: Ctx, cmd: Cmd, depth: int) -> None:
             rel = ctx.rel(p)
             if rel is None and ctx.cwd is None:
                 raise Verdict("deny", f"`{prog}` of {p!r} after an unresolvable `cd`")
+            if rel == "forge.toml" or (rel and any(rel == pat or glob_match(pat, rel) for pat, _ in GUARDRAIL_CONFIG)):
+                # N1/N9: `rm forge.toml` etc. -- ask/deny, same as writing it.
+                _apply_decision(ctx, _path_policy(rel, ctx.agent_type, f"`{prog}`"))
+                continue
             why = (covers_protected(rel, deleting=True) if recursive
                    else (None if _within_out(rel) else protected_reason(rel or "")))
             if why:
@@ -1086,6 +1167,10 @@ def _interpreter(ctx: Ctx, prog: str, args: list[str], cmd: Cmd) -> None:
     _check_urls(ctx, code, f"inline {prog} code")
     low = fold(code)
     if _PY_WRITE_HINTS.search(code):
+        if "forge.toml" in low or "forge_toml" in low:
+            # N1: `os.remove('forge.toml')` etc. -- same ask/deny nuance as
+            # any other forge.toml write, not a blanket deny.
+            _apply_decision(ctx, _path_policy("forge.toml", ctx.agent_type, f"inline {prog} code"))
         for d in PROTECTED_DIRS + ("params/params.toml", "params.toml", "manifest.json", "state.json"):
             if fold(d) in low:
                 raise Verdict("deny", f"inline {prog} code writes near {d}; protected files may not be changed "
@@ -1093,6 +1178,23 @@ def _interpreter(ctx: Ctx, prog: str, args: list[str], cmd: Cmd) -> None:
 
 
 _GIT_REWRITE = {"filter-branch", "filter-repo", "replace", "update-ref"}
+
+
+def _git_head(cwd: Path) -> str | None:
+    try:
+        res = subprocess.run(["git", "-C", str(cwd), "rev-parse", "HEAD"], capture_output=True, text=True, timeout=5)
+        return res.stdout.strip() if res.returncode == 0 else None
+    except (OSError, subprocess.SubprocessError):
+        return None
+
+
+def _is_ancestor(cwd: Path, ancestor: str, ref: str) -> bool:
+    try:
+        res = subprocess.run(["git", "-C", str(cwd), "merge-base", "--is-ancestor", ancestor, ref],
+                             capture_output=True, text=True, timeout=5)
+        return res.returncode == 0
+    except (OSError, subprocess.SubprocessError):
+        return False
 
 
 def _analyse_git(ctx: Ctx, args: list[str]) -> None:
@@ -1137,6 +1239,28 @@ def _analyse_git_sub(ctx: Ctx, sub: str, rest: list[str]) -> None:
         return
     if sub == "reset" and "--hard" in flags:
         raise Verdict("deny", "blocked destructive command (git reset --hard discards uncommitted work)")
+    if sub == "reset" and "--soft" in flags:
+        # N11: `git reset --soft <not-a-descendant-of-base>` moves HEAD off
+        # the pinned scaffold commit without touching the working tree, so
+        # the gate's next diff silently starts from the wrong parent.
+        target = pos[0] if pos else "HEAD"
+        if target.upper() != "HEAD":
+            cwd = ctx.cwd or ctx.project
+            base = state.ensure_base_pinned(ctx.project)
+            if not base or not _is_ancestor(cwd, base, target):
+                raise Verdict("deny", f"`git reset --soft {target}` may move HEAD to a commit that is not a "
+                                      "descendant of the pinned scaffold base (.forge/base_sha); the evidence "
+                                      "gate's diff history could be lost")
+    if sub == "commit" and any(f == "--amend" or f.startswith("--amend=") for f in flags):
+        # N11: amending the scaffold commit itself rewrites its SHA, so the
+        # pinned base (and everything the gate diffed against it) vanishes.
+        cwd = ctx.cwd or ctx.project
+        base = state.ensure_base_pinned(ctx.project)
+        head = _git_head(cwd)
+        if not base or not head or base == head:
+            raise Verdict("deny", "`git commit --amend` on the pinned scaffold base commit (.forge/base_sha) "
+                                  "would rewrite it out from under the evidence gate; amend a later commit, "
+                                  "or make a new commit instead")
     if sub in _GIT_REWRITE or (sub in ("checkout", "switch") and "--orphan" in flags) \
             or (sub == "rebase" and "--root" in flags):
         raise Verdict("deny", f"`git {sub}` rewrites the history the evidence gate diffs against")
@@ -1158,6 +1282,12 @@ def _analyse_git_sub(ctx: Ctx, sub: str, rest: list[str]) -> None:
         for p in paths:
             rel = ctx.rel(p)
             if rel in (None, OUTSIDE):
+                continue
+            if rel == "forge.toml" and sub in ("checkout", "restore"):
+                # N1: restoring an old (or deleted) forge.toml from git history
+                # is the same "changes what the gate checks" concern as a
+                # direct write -- ask on the main thread, deny for subagents.
+                _apply_decision(ctx, _path_policy(rel, ctx.agent_type, f"`git {sub}`"))
                 continue
             why = covers_protected(rel, deleting=False)
             if why and not (sub == "restore" and ("--staged" in flags or "-S" in flags)
@@ -1204,8 +1334,11 @@ def _judge_bash(command: str, agent_type: str) -> str | None:
             continue
         if ASSIGN_RE.match(words[0]):
             return "environment-variable prefixes are not allowed for read-only reviewers"
-        prog = os.path.basename(words[0])
+        prog_raw = words[0]
+        prog = os.path.basename(prog_raw)
         args = words[1:]
+        if "/" in prog_raw or prog_raw.startswith("."):
+            return f"`{prog_raw}` uses an explicit path, which could shadow the real `{prog}`; not allowed"
         if prog not in JUDGE_READONLY:
             return f"`{prog}` is not on the read-only reviewer allowlist"
         if prog == "find" and any(a in ("-delete", "-exec", "-execdir", "-ok", "-okdir", "-fprint", "-fprint0",
@@ -1213,10 +1346,16 @@ def _judge_bash(command: str, agent_type: str) -> str | None:
             return "find actions that run or write are not allowed for read-only reviewers"
         if prog in ("sort", "tree") and any(a == "-o" or a.startswith(("--output", "-o")) for a in args):
             return f"`{prog} -o` writes a file"
+        if prog == "sort" and any(a.startswith("--compress-program") for a in args):
+            return "`sort --compress-program` runs a program"
+        if prog == "tree" and any(a == "-H" or a.startswith("-H") for a in args):
+            return "`tree -H` is not allowed for read-only reviewers"
+        if prog == "file" and any(a in ("-C", "--compile") for a in args):
+            return "`file -C`/`--compile` writes a compiled magic file"
         if prog in ("uniq", "xxd") and len(_split_flags(args)[1]) > 1:
             return f"`{prog}` with an output file writes a file"
-        if prog == "rg" and any(a.startswith("--pre") for a in args):
-            return "`rg --pre` runs a program"
+        if prog == "rg" and any(a.startswith("--pre") or a.startswith("--hostname-bin") for a in args):
+            return "`rg --pre`/`--hostname-bin` runs a program"
         if prog == "date" and any(a in ("-s", "--set") or a.startswith("--set") for a in args):
             return "`date --set` changes the clock"
         if prog == "git":
@@ -1225,8 +1364,15 @@ def _judge_bash(command: str, agent_type: str) -> str | None:
             a = [x for x in args if x != "--no-pager"]
             if not a or a[0] not in JUDGE_GIT:
                 return f"`git {a[0] if a else ''}` is not a read-only git command"
-            if any(x.startswith(("--output", "--ext-diff", "--textconv", "-o")) for x in a[1:]):
-                return "git options that write files or run programs are not allowed"
+            value_flags = {"-e", "-f"}
+            for idx in range(1, len(a)):
+                tok = a[idx]
+                if a[idx - 1] in value_flags:
+                    continue  # tok is that flag's value, not a flag itself
+                if tok == "-O" or tok.startswith("-O") or tok.startswith("--open-files-in-pager"):
+                    return "`git grep -O`/`--open-files-in-pager` runs a program"
+                if tok.startswith(("--output", "--ext-diff", "--textconv", "-o")):
+                    return "git options that write files or run programs are not allowed"
         if prog == "forge":
             sub = args[0] if args else ""
             sub2 = args[1] if len(args) > 1 else None
@@ -1275,14 +1421,42 @@ def _handle_webfetch(tool_input: dict, toml: dict) -> dict | None:
     return _deny(f"WebFetch to {domain} is not in forge.toml [network] allowed_domains {allow_desc}.")
 
 
-def handle(data: dict) -> tuple[int, dict | None]:
-    project = find_project_root(data.get("cwd"))
-    if project is None:
-        return 0, None  # not a Forge product repo: no-op fast (brief §3.4)
+_ABS_PATH_RE = re.compile(r"(?<![\w./])(/[^\s'\"$`;|&()<>]+)")
 
+
+def _candidate_paths(tool_name: str, tool_input: dict) -> list[str]:
+    """Target paths a hook can walk up from to find the project root even
+    when the payload ``cwd`` is outside it (N5)."""
+    if tool_name in WRITE_TOOLS:
+        p = tool_input.get("file_path") or tool_input.get("notebook_path")
+        return [p] if p else []
+    if tool_name == "Bash":
+        return _ABS_PATH_RE.findall(tool_input.get("command") or "")
+    return []
+
+
+def handle(data: dict) -> tuple[int, dict | None]:
     tool_name = data.get("tool_name") or ""
     tool_input = data.get("tool_input") or {}
     agent_type = data.get("agent_type")
+
+    project = find_project_root(data.get("cwd"), extra_paths=_candidate_paths(tool_name, tool_input))
+    if project is None:
+        # N5: judges may never write, whether or not a Forge project was
+        # found (they might be operating outside it, or cwd resolution
+        # failed) -- this is the one guard that must not depend on it.
+        if is_judge(agent_type):
+            if tool_name in WRITE_TOOLS:
+                return 0, _deny(f"{agent_type} is a read-only reviewer (CONTRACTS.md §13, maker != checker); "
+                                f"it must never use {tool_name}.")
+            if tool_name == "Bash":
+                why = _judge_bash(tool_input.get("command") or "", agent_type or "")
+                if why:
+                    return 0, _deny(f"{agent_type} is a read-only reviewer: {why}. Allowed: read-only "
+                                    "inspection (cat, grep, ls, find without actions, git log/show/diff/status, "
+                                    "forge evidence list|status, forge params get|lint, forge lint).")
+        return 0, None  # not a Forge product repo: no-op fast (brief §3.4)
+
     try:
         cwd = Path(data.get("cwd")).resolve()
     except (OSError, TypeError):
@@ -1292,8 +1466,9 @@ def handle(data: dict) -> tuple[int, dict | None]:
         toml = load_forge_toml(project)
     except HookRuntimeError as exc:
         target = str(tool_input.get("file_path") or "")
-        if tool_name in ("Write", "Edit", "MultiEdit") and rel_path(project, target, cwd) == "forge.toml" \
-                and not agent_type:
+        fixing = (tool_name in ("Write", "Edit", "MultiEdit") and rel_path(project, target, cwd) == "forge.toml") \
+            or (tool_name == "Bash" and "forge.toml" in (tool_input.get("command") or ""))
+        if fixing and not agent_type:
             return 0, _ask(f"{exc}. Confirm this fix to forge.toml.")
         return 0, _deny(f"{exc}; Forge guardrails are closed until forge.toml parses again.")
 

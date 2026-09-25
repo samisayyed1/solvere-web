@@ -146,6 +146,42 @@ def cc_version(cc: str) -> str:
         return cc
 
 
+def compile_sources_only(project: Path, out_dir: Path, cc: str) -> int:
+    """S10 (review-2 addendum): the "always compile" rung. Only the unit-test rung may
+    SKIP for lack of a `firmware/tests/test_*.c` file -- before this fix, no tests meant
+    NOTHING under `firmware/src` was ever compiled at all, so a syntax error with no test
+    yet written sat undetected (the brief says firmware/ -> compile). Compiles each
+    `firmware/src/*.c` standalone (`-c`, no link, no test binary needed) and FAILs on any
+    compiler error; never a fake pass, never a SKIP while real sources exist."""
+    chk = Check("firmware.compile", "firmware/src", project=project, level="L1")
+    try:
+        include_dir = project / "firmware" / "include"
+        sources = source_files(project)
+        if not sources:
+            raise RuntimeError("no firmware/src/*.c found to compile")
+        build_dir = out_dir / "fw_build"
+        build_dir.mkdir(parents=True, exist_ok=True)
+        chk.tool("cc", cc_version(cc))
+        errors = 0
+        details: list[str] = []
+        for src in sources:
+            obj = build_dir / f"{src.stem}.compile.o"
+            proc = _run([cc, "-std=c11", "-Wall", "-Wextra", "-I", str(include_dir), "-c", str(src), "-o", str(obj)])
+            if proc.returncode != 0:
+                errors += 1
+                details.append(f"{src.name}: {proc.stderr.strip()[:500]}")
+        chk.measure(
+            "compile_errors", errors, "1", max=0,
+            remediation=(
+                f"{errors} of {len(sources)} firmware/src/*.c file(s) failed to compile, with no "
+                f"test yet present to catch it: {'; '.join(details)}"
+            ) if errors else None,
+        )
+        return chk.finish()
+    except Exception as exc:  # noqa: BLE001 -- fail closed
+        return chk.error(f"{type(exc).__name__}: {exc}")
+
+
 def verify_module(module: str, test_file: Path, project: Path, out_dir: Path, cc: str,
                    cross_cc: str | None) -> int:
     check_id = f"firmware.{_slug(module)}"
@@ -240,10 +276,12 @@ def main(argv: list[str]) -> int:
     ns = ap.parse_args(argv)
     project = ns.project.resolve()
 
+    relevant = ns.changed is None or any(Path(c).as_posix().startswith("firmware/") for c in ns.changed)
+    sources_present = relevant and bool(source_files(project))
     modules = filter_by_changed(find_modules(project), ns.changed)
-    if not modules:
+    if not modules and not sources_present:
         suffix = " matching --changed" if ns.changed is not None else ""
-        print(f"[SKIP] no firmware/tests/test_*.c{suffix}")
+        print(f"[SKIP] no firmware/src/*.c or firmware/tests/test_*.c{suffix}")
         return 0
 
     cc = find_tool("cc") or find_tool("clang")
@@ -252,17 +290,25 @@ def main(argv: list[str]) -> int:
               "(Xcode Command Line Tools)", file=sys.stderr)
         return 2
 
-    cross_cc = os.environ.get("FORGE_CROSS_CC") or find_tool("arm-none-eabi-gcc")
-    if not cross_cc:
-        print("[SKIP] arm-none-eabi-gcc not found; target cross-compile and the real target size "
-              "budget are skipped for every module. Install: "
-              "plugins/forge/toolchain/install.sh embedded (Zephyr SDK / arm-none-eabi-gcc).")
-
     out_dir = project / "out" / "verify"
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    codes = [verify_module(module, test_file, project, out_dir, cc, cross_cc)
-             for module, test_file in sorted(modules.items())]
+    if not modules:
+        # S10: no test files, but real sources exist -- the unit-test rung SKIPs (there is
+        # nothing to run), but the compile rung is not optional and always runs.
+        suffix = " matching --changed" if ns.changed is not None else ""
+        print(f"[SKIP] no firmware/tests/test_*.c{suffix}; compiling firmware/src/ only "
+              "(the compile rung always runs; only the unit-test rung may SKIP)")
+        codes = [compile_sources_only(project, out_dir, cc)]
+    else:
+        cross_cc = os.environ.get("FORGE_CROSS_CC") or find_tool("arm-none-eabi-gcc")
+        if not cross_cc:
+            print("[SKIP] arm-none-eabi-gcc not found; target cross-compile and the real target size "
+                  "budget are skipped for every module. Install: "
+                  "plugins/forge/toolchain/install.sh embedded (Zephyr SDK / arm-none-eabi-gcc).")
+        codes = [verify_module(module, test_file, project, out_dir, cc, cross_cc)
+                 for module, test_file in sorted(modules.items())]
+
     if any(c == 2 for c in codes):
         return 2
     if any(c == 1 for c in codes):

@@ -86,7 +86,7 @@ def _run_one(spec_path: Path, project: Path) -> int:
 
     try:
         text = _load_text(spec, spec_path, project)
-        matched, silent = extract(spec, text)
+        matched, silent, unit_mismatches = extract(spec, text)
         append_params(project, doc, matched)
         write_measurement_procedures(project, doc, silent)
 
@@ -138,11 +138,27 @@ def _run_one(spec_path: Path, project: Path) -> int:
             ),
         ) if silent else None
 
-        if not matched and not silent:
+        # S13 (review-2 addendum): the unit is captured from the datasheet text itself and
+        # compared to the spec's declared unit (intake.extract's _units_agree), not just
+        # trusted from the pattern author's `unit = "..."` field. A mismatched param is
+        # never written to params.toml (see intake.append_params's matched-only input).
+        chk.measure(
+            "matched_params_unit_agrees_with_text", len(unit_mismatches), "1", max=0,
+            remediation=(
+                "Param(s) matched a number in the datasheet text whose unit disagrees with the "
+                "intake spec's declared unit -- never written to params.toml: "
+                + "; ".join(f"{u['id']}: text shows {u['text_unit']!r}, spec declares {u['declared_unit']!r}"
+                            for u in unit_mismatches)
+                + f". Fix the pattern or the unit in {spec_path.name} -- never guess which is right."
+            ) if unit_mismatches else None,
+        ) if (matched or unit_mismatches) else None
+
+        if not matched and not silent and not unit_mismatches:
             return chk.error(f"{spec_path}: [[param]] list is empty -- nothing to intake or check")
 
         return chk.finish(notes=(
-            f"{len(matched)} matched, {len(silent)} silent (measurement procedures written) from {doc!r}."
+            f"{len(matched)} matched, {len(silent)} silent (measurement procedures written), "
+            f"{len(unit_mismatches)} unit mismatch(es) from {doc!r}."
         ))
     except (IntakeError, CheckContractError) as exc:
         return chk.error(str(exc))

@@ -126,6 +126,39 @@ def test_no_test_files_is_a_clean_skip(verify_mod, tmp_path):
     assert verify_mod.main(["--project", str(tmp_path)]) == 0
 
 
+# --- S10 (review-2 addendum): the compile rung always runs; only the test rung may SKIP ---
+
+BROKEN_SYNTAX_SRC = "int add(int a, int b) {\n    return a +\n"  # unterminated, no closing brace
+
+
+def test_no_tests_but_broken_src_fails_not_skips(verify_mod, tmp_path):
+    """S10 seeded-wrong case: firmware/src/main.c has a syntax error and there are no
+    tests at all. Before the fix, `find_modules` was empty (no test_*.c) so main() printed
+    a clean [SKIP] and exited 0 without ever invoking the compiler -- the brief says
+    firmware/ -> compile, and a real compile error must never pass unseen."""
+    (tmp_path / "firmware" / "src").mkdir(parents=True)
+    (tmp_path / "firmware" / "src" / "main.c").write_text(BROKEN_SYNTAX_SRC)
+    rc = verify_mod.main(["--project", str(tmp_path)])
+    assert rc == 1
+    result = json.loads((tmp_path / "out/verify/firmware.compile.json").read_text())
+    assert result["status"] == "fail"
+    errors = next(m for m in result["measurements"] if m["name"] == "compile_errors")
+    assert errors["value"] == 1 and errors["pass"] is False
+    assert "main.c" in errors["remediation"]
+
+
+def test_no_tests_but_valid_src_compiles_clean(verify_mod, tmp_path):
+    """Pass case for the same compile-only rung: valid source, still no tests."""
+    (tmp_path / "firmware" / "src").mkdir(parents=True)
+    (tmp_path / "firmware" / "src" / "add.c").write_text("int add(int a, int b) { return a + b; }\n")
+    rc = verify_mod.main(["--project", str(tmp_path)])
+    assert rc == 0
+    result = json.loads((tmp_path / "out/verify/firmware.compile.json").read_text())
+    assert result["status"] == "pass"
+    errors = next(m for m in result["measurements"] if m["name"] == "compile_errors")
+    assert errors["value"] == 0
+
+
 def test_size_budget_enforced_when_declared(verify_mod, tmp_path):
     _scaffold(tmp_path, name="add", src=GOOD_SRC, header=HEADER, test=REAL_TEST)
     (tmp_path / "params").mkdir(parents=True, exist_ok=True)

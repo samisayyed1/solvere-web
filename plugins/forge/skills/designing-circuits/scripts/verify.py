@@ -45,6 +45,42 @@ try:
 except ImportError:  # pragma: no cover
     import tomli as tomllib  # type: ignore[no-redef]
 
+# SI-prefix unit normalisation (S9, review-2 addendum): ngspice's `.meas` results are
+# always reported in the circuit's base SI unit (volts, amps, watts, ...) -- SPICE itself
+# has no notion of a "mV" or "kOhm" result. A limits.toml `unit` was previously only a
+# label pasted onto whatever ngspice printed, so `unit = "mV", max = 40` against a real
+# 0.05 V (50 mV) ripple compared 0.0499923 (still in volts) against 40 and passed, then
+# printed it as "0.0499923 mV" -- the number was never actually converted. Every declared
+# unit must now be the base unit or the base unit with exactly one SI prefix; the ngspice
+# result is converted into that declared unit before it is ever compared or recorded.
+_SI_PREFIXES = {"p": 1e-12, "n": 1e-9, "u": 1e-6, "µ": 1e-6, "m": 1e-3,
+                "k": 1e3, "M": 1e6, "G": 1e9, "T": 1e12}
+_SPICE_BASE_UNITS = frozenset({"V", "A", "W", "s", "Hz", "F", "H", "Ohm", "Ω"})
+
+
+def si_unit_scale(unit: str) -> float:
+    """Returns the factor to multiply a value in ``unit`` by to get the base SI unit
+    (e.g. ``si_unit_scale("mV") == 1e-3``, since 1 mV = 1e-3 V). Raises ``ValueError`` for
+    anything that isn't a recognised base unit, ``"1"`` (unitless), or a base unit with
+    exactly one recognised SI prefix -- never silently treats an unknown unit as the base."""
+    if unit == "1" or unit in _SPICE_BASE_UNITS:
+        return 1.0
+    if len(unit) >= 2 and unit[0] in _SI_PREFIXES and unit[1:] in _SPICE_BASE_UNITS:
+        return _SI_PREFIXES[unit[0]]
+    raise ValueError(
+        f"unit {unit!r} is not a recognised SPICE base unit ({sorted(_SPICE_BASE_UNITS)}), "
+        f"'1' (unitless), or one of those with a single SI prefix ({sorted(_SI_PREFIXES)}) -- "
+        "ngspice's .meas results are always in the base unit, and this check must know how "
+        "to convert into what the limits file declared."
+    )
+
+
+def normalise_from_spice(value_base_si: float, declared_unit: str) -> float:
+    """``value_base_si`` (as ngspice printed it, always in the base SI unit) converted into
+    ``declared_unit`` (e.g. base-SI volts -> mV divides by 1e-3, i.e. multiplies by 1000)."""
+    return value_base_si / si_unit_scale(declared_unit)
+
+
 _CONTROL_BLOCK = re.compile(r"(?is)\.control\b(.*?)\.endc\b")
 _SHELL_CMD = re.compile(r"(?im)^\s*shell\b")
 _MEAS_RESULT = re.compile(r"^(\S+)\s*=\s*([+-]?\d*\.?\d+(?:[eE][+-]?\d+)?)\b")
@@ -180,13 +216,17 @@ def verify_one(cir: Path, project: Path, out_dir: Path, *, srt_path: str, ngspic
             if not name:
                 raise RuntimeError(f"{limits_path.name}: a [[measurement]] entry has no 'name'")
             unit = spec.get("unit", "1")
-            value = parsed.get(name)
-            if value is None:
+            raw_value = parsed.get(name)
+            if raw_value is None:
                 raise RuntimeError(
                     f"ngspice produced no '.meas' result named {name!r} for {cir.name} "
                     f"(check the .cir has a matching .meas line; log tail: "
                     f"{log_text.strip().splitlines()[-3:] if log_text else 'EMPTY LOG'})"
                 )
+            try:
+                value = normalise_from_spice(raw_value, unit)
+            except ValueError as exc:
+                raise RuntimeError(f"{limits_path.name}: measurement {name!r}: {exc}") from exc
             limit_kwargs: dict[str, Any] = {}
             for key in ("min", "max", "equals", "tol"):
                 if key in spec:

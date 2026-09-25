@@ -26,7 +26,7 @@ VERIFY_PY = SCRIPTS_DIR / "verify.py"
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
-from stack_math import StackFileError, evaluate, load_stack  # noqa: E402
+from stack_math import StackFileError, evaluate, load_params, load_stack, param_mismatches  # noqa: E402
 
 KNOWN_STACK = """
 [stack]
@@ -210,3 +210,127 @@ def test_verify_py_skips_cleanly_with_no_stacks(tmp_path):
     r = _run_verify(tmp_path)
     assert r.returncode == 0
     assert "[SKIP]" in r.stdout
+
+
+# --- S7: unit vocabulary ---
+
+def test_unit_typo_mn_is_rejected(tmp_path):
+    """S7: a typo'd unit like "mn" (meant "mm") must not be silently trusted."""
+    p = tmp_path / "bad.toml"
+    p.write_text(KNOWN_STACK.replace('unit = "mm"', 'unit = "mn"'))
+    with pytest.raises(StackFileError, match="unit"):
+        load_stack(p)
+
+
+def test_unit_inches_is_rejected(tmp_path):
+    """S7: geometry stacks are SI mm (CONTRACTS SS10); nothing here converts
+    units, so "in" must be refused rather than silently mis-checked as mm."""
+    p = tmp_path / "bad.toml"
+    p.write_text(KNOWN_STACK.replace('unit = "mm"', 'unit = "in"'))
+    with pytest.raises(StackFileError, match="unit"):
+        load_stack(p)
+
+
+def test_unit_mm_is_accepted(tmp_path):
+    p = tmp_path / "good.toml"
+    p.write_text(KNOWN_STACK)
+    stack = load_stack(p)  # must not raise
+    assert stack.unit == "mm"
+
+
+def test_verify_py_errors_not_passes_on_bad_unit(tmp_path):
+    (tmp_path / "analysis" / "stacks").mkdir(parents=True)
+    (tmp_path / "analysis" / "stacks" / "bad.toml").write_text(KNOWN_STACK.replace('unit = "mm"', 'unit = "mn"'))
+    r = _run_verify(tmp_path)
+    assert r.returncode == 2, r.stdout + r.stderr
+
+
+# --- S7: contributor `param = "a.b"` bindings checked against params.toml ---
+
+PARAM_STACK = """
+[stack]
+name = "params_bound"
+description = "one contributor bound to params.toml"
+
+[requirement]
+unit = "mm"
+gap_min = 0.0
+gap_max = 5.0
+
+[[contributor]]
+id = "A"
+param = "enclosure.wall_thickness"
+nominal = {nominal}
+tol_plus = 0.10
+tol_minus = 0.10
+direction = 1
+
+[[contributor]]
+id = "B"
+nominal = 1.00
+tol_plus = 0.05
+tol_minus = 0.05
+direction = -1
+"""
+
+PARAMS_TOML = """
+[enclosure.wall_thickness]
+value = 2.0
+unit = "mm"
+status = "assumed"
+source = "fixture"
+"""
+
+
+def _write_params_project(tmp_path, nominal: float) -> Path:
+    (tmp_path / "params").mkdir(parents=True)
+    (tmp_path / "params" / "params.toml").write_text(PARAMS_TOML)
+    (tmp_path / "analysis" / "stacks").mkdir(parents=True)
+    (tmp_path / "analysis" / "stacks" / "params_bound.toml").write_text(PARAM_STACK.format(nominal=nominal))
+    return tmp_path
+
+
+def test_param_mismatch_is_detected_by_stack_math(tmp_path):
+    project = _write_params_project(tmp_path, nominal=1.5)  # params.toml says 2.0
+    stack = load_stack(project / "analysis" / "stacks" / "params_bound.toml")
+    params = load_params(project)
+    mismatches = param_mismatches(stack, params)
+    assert len(mismatches) == 1
+    assert mismatches[0].contributor_id == "A"
+    assert mismatches[0].stack_nominal == pytest.approx(1.5)
+    assert mismatches[0].params_value == pytest.approx(2.0)
+
+
+def test_param_match_has_no_mismatches(tmp_path):
+    project = _write_params_project(tmp_path, nominal=2.0)  # matches params.toml
+    stack = load_stack(project / "analysis" / "stacks" / "params_bound.toml")
+    params = load_params(project)
+    assert param_mismatches(stack, params) == []
+
+
+def test_verify_py_fails_when_contributor_nominal_disagrees_with_params(tmp_path):
+    project = _write_params_project(tmp_path, nominal=1.5)
+    r = _run_verify(project)
+    assert r.returncode == 1, r.stdout + r.stderr
+    out = json.loads((project / "out" / "verify" / "mech.stack_params_bound.json").read_text())
+    assert out["status"] == "fail"
+    m = next(x for x in out["measurements"] if x["name"] == "contributor_A_matches_params")
+    assert not m["pass"]
+    assert "params.toml" in m["remediation"]
+
+
+def test_verify_py_passes_when_contributor_nominal_matches_params(tmp_path):
+    project = _write_params_project(tmp_path, nominal=2.0)
+    r = _run_verify(project)
+    assert r.returncode == 0, r.stdout + r.stderr
+    out = json.loads((project / "out" / "verify" / "mech.stack_params_bound.json").read_text())
+    assert out["status"] == "pass"
+
+
+def test_verify_py_errors_on_a_param_binding_that_does_not_exist(tmp_path):
+    project = _write_params_project(tmp_path, nominal=2.0)
+    spec = project / "analysis" / "stacks" / "params_bound.toml"
+    spec.write_text(spec.read_text().replace(
+        'param = "enclosure.wall_thickness"', 'param = "enclosure.nonexistent_key"'))
+    r = _run_verify(project)
+    assert r.returncode == 2, r.stdout + r.stderr

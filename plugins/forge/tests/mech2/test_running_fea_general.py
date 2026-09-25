@@ -470,6 +470,13 @@ vector_n = [0.0, 0.0, -100.0]"""
     (lambda t: t.replace('params = "materials.steel"', 'params = "materials.unobtainium"'), "not found"),
     (lambda t: t.replace("min_safety_factor = 1.5", "min_safety_factor = 1.5\nmax_reaction_imbalance_pct = 5.0"),
      "0.5"),
+    # S8: a safety-factor requirement below 1.0 (would accept a part predicted to yield)
+    (lambda t: t.replace("min_safety_factor = 1.5", "min_safety_factor = 0.5"), "hard floor"),
+    # S8: a hand-calc tolerance above the 10% ceiling, with no [waiver]
+    (lambda t: t.replace("tolerance_pct = 3.0\n[requirement]", "tolerance_pct = 50.0\n[requirement]"),
+     "ceiling"),
+    # S8: a convergence tolerance above the 5% ceiling, with no [waiver]
+    (lambda t: t.replace("convergence_tol_pct = 1.0", "convergence_tol_pct = 100.0"), "ceiling"),
 ])
 def test_malformed_general_cases_error_out(tmp_path, mutate, match):
     text = mutate(CANTILEVER.format(name="cantilever_bad", load=TIP_TRACTION, sizes="[5.0, 3.5, 2.5]",

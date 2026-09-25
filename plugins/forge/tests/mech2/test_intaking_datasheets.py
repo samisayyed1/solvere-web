@@ -157,3 +157,70 @@ def test_verify_py_skips_cleanly_with_no_specs(tmp_path):
     r = _run_verify(tmp_path)
     assert r.returncode == 0
     assert "[SKIP]" in r.stdout
+
+
+# --- S13 (review-2 addendum): the unit is captured from the datasheet text itself and
+# compared to the spec's declared unit, not just trusted from the spec ---
+
+def test_verify_py_FAILS_when_text_unit_disagrees_with_declared_unit(tmp_path):
+    """S13 seeded-wrong case: 'Length: 2.56 in' matched by a pattern that captures only
+    the number (no unit literal in the pattern), with the spec declaring unit = 'mm'.
+    Before the fix the value was written to params.toml as 2.56 mm regardless of what the
+    text actually said -- must FAIL, and the mismatched param must never be written."""
+    (tmp_path / "docs" / "datasheets").mkdir(parents=True)
+    (tmp_path / "docs" / "datasheets" / "widget.txt").write_text(
+        "Widget Datasheet\n\fLength: 2.56 in\nWeight: 12.5 g\n"
+    )
+    (tmp_path / "docs" / "datasheets" / "widget-intake.toml").write_text("""
+[datasheet]
+doc = "Widget Doc"
+text_file = "docs/datasheets/widget.txt"
+
+[[param]]
+id = "enclosure.length_mm"
+pattern = 'Length:\\s*([\\d.]+)'
+unit = "mm"
+
+[[param]]
+id = "widget.weight_g"
+pattern = 'Weight:\\s*([\\d.]+)\\s*g'
+unit = "g"
+""")
+    r = _run_verify(tmp_path)
+    assert r.returncode == 1, r.stdout + r.stderr
+    out = json.loads((tmp_path / "out" / "verify" / "mech.datasheet_widget_doc.json").read_text())
+    assert out["status"] == "fail"
+    by_name = {m["name"]: m for m in out["measurements"]}
+    unit_check = by_name["matched_params_unit_agrees_with_text"]
+    assert unit_check["pass"] is False
+    assert unit_check["value"] == 1
+    assert "length_mm" in unit_check["remediation"]
+    assert "'in'" in unit_check["remediation"] or '"in"' in unit_check["remediation"]
+    assert len(unit_check["remediation"]) >= 10
+
+    params = tomllib.loads((tmp_path / "params" / "params.toml").read_text())
+    assert "length_mm" not in params.get("enclosure", {}), "a wrong-unit match must never be written"
+    # the correctly-matched param (unit genuinely agrees) still lands in params.toml
+    assert params["widget"]["weight_g"]["value"] == 12.5
+
+
+def test_verify_py_passes_when_text_unit_agrees(tmp_path):
+    """Pass case for the same unit-agreement check: the text's unit matches the spec."""
+    (tmp_path / "docs" / "datasheets").mkdir(parents=True)
+    (tmp_path / "docs" / "datasheets" / "widget.txt").write_text(
+        "Widget Datasheet\n\fLength: 25.6 mm\n"
+    )
+    (tmp_path / "docs" / "datasheets" / "widget-intake.toml").write_text("""
+[datasheet]
+doc = "Widget Doc"
+text_file = "docs/datasheets/widget.txt"
+
+[[param]]
+id = "enclosure.length_mm"
+pattern = 'Length:\\s*([\\d.]+)'
+unit = "mm"
+""")
+    r = _run_verify(tmp_path)
+    assert r.returncode == 0, r.stdout + r.stderr
+    params = tomllib.loads((tmp_path / "params" / "params.toml").read_text())
+    assert params["enclosure"]["length_mm"]["value"] == 25.6

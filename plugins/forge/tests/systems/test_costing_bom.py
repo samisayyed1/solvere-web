@@ -80,3 +80,95 @@ def test_unpriced_line_fails(tmp_path):
 def test_no_bom_file_is_skip(tmp_path):
     assert verify.run(tmp_path, None) == 0
     assert not (tmp_path / "out").exists()
+
+
+def test_negative_price_fails(tmp_path):
+    rows = "R1,10k resistor,RC0402FR-0710KL,Yageo,2,Active,4,RC0402JR-0710KL,,-0.30,0.01,0.005\n"
+    project = _write_bom(tmp_path, rows)
+    assert verify.run(project, None) == 1
+    out = json.loads((project / "out/verify/supply.bom_rollup.json").read_text())
+    assert any(n == "R1.price_1_nonnegative" for n in _failing_names(out))
+
+
+def test_positive_price_passes_the_price_check(tmp_path):
+    rows = "R1,10k resistor,RC0402FR-0710KL,Yageo,2,Active,4,RC0402JR-0710KL,,0.30,0.01,0.005\n"
+    project = _write_bom(tmp_path, rows)
+    verify.run(project, None)
+    out = json.loads((project / "out/verify/supply.bom_rollup.json").read_text())
+    assert not any(n == "R1.price_1_nonnegative" for n in _failing_names(out))
+
+
+def test_blank_mpn_fails(tmp_path):
+    rows = "R1,10k resistor,,Yageo,2,Active,4,ALT-1,,0.02,0.01,0.005\n"
+    project = _write_bom(tmp_path, rows)
+    assert verify.run(project, None) == 1
+    out = json.loads((project / "out/verify/supply.bom_rollup.json").read_text())
+    assert any(n == "R1.mpn_present" for n in _failing_names(out))
+
+
+def test_nonblank_mpn_passes_the_mpn_check(tmp_path):
+    rows = "R1,10k resistor,RC0402FR-0710KL,Yageo,2,Active,4,ALT-1,,0.02,0.01,0.005\n"
+    project = _write_bom(tmp_path, rows)
+    verify.run(project, None)
+    out = json.loads((project / "out/verify/supply.bom_rollup.json").read_text())
+    assert not any(n == "R1.mpn_present" for n in _failing_names(out))
+
+
+def test_alternate_equal_to_own_mpn_fails(tmp_path):
+    """An alternate that is just the part's own MPN hides real single-source
+    risk instead of covering it (S17)."""
+    rows = "U2,Regulator,LM317T,TI,1,Active,8,LM317T,,0.55,0.40,0.35\n"
+    project = _write_bom(tmp_path, rows)
+    assert verify.run(project, None) == 1
+    out = json.loads((project / "out/verify/supply.bom_rollup.json").read_text())
+    names = _failing_names(out)
+    assert any(n == "U2.alternates_distinct_from_own_mpn" for n in names)
+    # A self-listed "alternate" is no alternate at all -- the line is really
+    # single-source and, with no risk_note, that flag must fire too.
+    assert any(n == "U2.single_source_acknowledged" for n in names)
+
+
+def test_genuinely_different_alternate_passes(tmp_path):
+    rows = "U2,Regulator,LM317T,TI,1,Active,8,LM317MT,,0.55,0.40,0.35\n"
+    project = _write_bom(tmp_path, rows)
+    verify.run(project, None)
+    out = json.loads((project / "out/verify/supply.bom_rollup.json").read_text())
+    assert not any(n == "U2.alternates_distinct_from_own_mpn" for n in _failing_names(out))
+
+
+def test_duplicate_ref_des_fails(tmp_path):
+    rows = (
+        "R1,10k resistor,RC0402FR-0710KL,Yageo,2,Active,4,ALT-1,,0.02,0.01,0.005\n"
+        "R1,10k resistor again,RC0402FR-0710KL,Yageo,2,Active,4,ALT-1,,0.02,0.01,0.005\n"
+    )
+    project = _write_bom(tmp_path, rows)
+    assert verify.run(project, None) == 1
+    out = json.loads((project / "out/verify/supply.bom_rollup.json").read_text())
+    assert sum(1 for n in _failing_names(out) if n == "R1.ref_des_unique") == 2
+
+
+def test_unique_ref_des_passes(tmp_path):
+    rows = (
+        "R1,10k resistor,RC0402FR-0710KL,Yageo,2,Active,4,ALT-1,,0.02,0.01,0.005\n"
+        "R2,10k resistor,RC0402FR-0710KL,Yageo,2,Active,4,ALT-1,,0.02,0.01,0.005\n"
+    )
+    project = _write_bom(tmp_path, rows)
+    verify.run(project, None)
+    out = json.loads((project / "out/verify/supply.bom_rollup.json").read_text())
+    assert not any(n.endswith(".ref_des_unique") for n in _failing_names(out))
+
+
+def test_blank_lead_time_fails(tmp_path):
+    rows = "R1,10k resistor,RC0402FR-0710KL,Yageo,2,Active,,ALT-1,,0.02,0.01,0.005\n"
+    project = _write_bom(tmp_path, rows)
+    assert verify.run(project, None) == 1
+    out = json.loads((project / "out/verify/supply.bom_rollup.json").read_text())
+    assert any(n == "R1.lead_time_present" for n in _failing_names(out))
+
+
+def test_nonblank_lead_time_passes(tmp_path):
+    rows = "R1,10k resistor,RC0402FR-0710KL,Yageo,2,Active,4,ALT-1,,0.02,0.01,0.005\n"
+    project = _write_bom(tmp_path, rows)
+    verify.run(project, None)
+    out = json.loads((project / "out/verify/supply.bom_rollup.json").read_text())
+    assert not any(n == "R1.lead_time_present" for n in _failing_names(out))

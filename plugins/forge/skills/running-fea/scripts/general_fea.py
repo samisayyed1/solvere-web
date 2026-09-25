@@ -41,6 +41,7 @@ import numpy as np
 
 import face_select
 import handcalc
+import material_bands
 import tet10
 
 
@@ -54,8 +55,19 @@ class CaseError(ValueError):
 
 # --------------------------------------------------------------------------- case schema
 
+# S8: a maker agent could otherwise set its own acceptance bounds with no
+# floor or ceiling (a safety factor requirement of 0.5, a 500% hand-calc
+# tolerance, a 100% convergence tolerance all used to pass silently). The
+# safety-factor floor is never waivable -- SF < 1 means the part is
+# predicted to yield under the stated load. The hand-calc and convergence
+# ceilings loosen a check meant to catch a bad mesh or a bad model, so they
+# may be waived, but only by a signed [waiver] naming a human and a reason.
+HARD_MIN_SAFETY_FACTOR = 1.0
+CEILING_HAND_CALC_TOL_PCT = 10.0
+CEILING_CONVERGENCE_TOL_PCT = 5.0
+
 _TOP = {"case", "geometry", "material", "bc", "load", "refine", "stress", "mesh", "hand_calc",
-        "requirement", "validity"}
+        "requirement", "validity", "waiver"}
 _SUB = {
     "case": {"name", "description"},
     "geometry": {"step", "build123d", "object"},
@@ -70,6 +82,7 @@ _SUB = {
     "fea": {"quantity", "faces", "component", "axis", "center_mm"},
     "requirement": {"min_safety_factor", "max_reaction_imbalance_pct"},
     "validity": {"max_displacement_ratio"},
+    "waiver": {"signed_by", "reason", "date"},
 }
 QUANTITIES = {"face_mean_displacement": "mm", "face_rotation": "rad", "max_displacement": "mm",
               "peak_von_mises": "MPa", "peak_principal": "MPa"}
@@ -97,6 +110,21 @@ _UNIT_MPA = {"Pa": 1e-6, "kPa": 1e-3, "MPa": 1.0, "N/mm2": 1.0, "N/mm^2": 1.0, "
 _UNIT_DENS = {"kg/m3": 1.0, "kg/m^3": 1.0, "g/cm3": 1e3, "g/cm^3": 1e3}
 
 
+def _check_e_plausibility(name: str, e_mpa: float, source_note: str) -> None:
+    """S8: catches a mistyped/unit-slipped E (see material_bands.py) for a
+    material family we recognise by name. Never invents a value -- a name
+    that matches no known family is simply not checked."""
+    band = material_bands.implausible_e(name, e_mpa)
+    if band is not None:
+        keyword, lo, hi = band
+        raise CaseError(
+            f"[material] E = {e_mpa} MPa is implausible for a material named {name!r} (matched family "
+            f"{keyword!r}, typical published range [{lo:,.0f}, {hi:,.0f}] MPa -- {source_note}). This usually "
+            "means a GPa value was entered where MPa was expected (e.g. 210 instead of 210000 for steel). "
+            "Fix the value, or rename [material].name if this genuinely isn't that family."
+        )
+
+
 def load_material(mat: dict, project: Path) -> dict:
     """E [MPa], nu, yield [MPa], density [kg/m3] + provenance, from params.toml or inline."""
     if "params" in mat:
@@ -121,14 +149,35 @@ def load_material(mat: dict, project: Path) -> dict:
                 raise CaseError(f"params {mat['params']}.{key} has no source -- no invented material properties")
             out[key] = float(leaf["value"]) * conv[unit]
             prov.append(f"{key}={leaf['value']} {unit} [{leaf.get('status', '?')}] ({leaf['source']})")
-        return {"name": mat.get("name", mat["params"]), "E": out["E"], "nu": out["nu"], "yield": out["yield"],
+        name = mat.get("name", mat["params"])
+        _check_e_plausibility(str(name), out["E"], f"params {mat['params']}.E")
+        return {"name": name, "E": out["E"], "nu": out["nu"], "yield": out["yield"],
                 "density": out["density"], "source": f"params {mat['params']}: " + "; ".join(prov)}
     _req(mat, "[material]", "E_MPa", "nu", "yield_MPa", "source")
     if not str(mat["source"]).strip():
         raise CaseError("[material].source is empty -- no invented material properties")
-    return {"name": mat.get("name", "?"), "E": float(mat["E_MPa"]), "nu": float(mat["nu"]),
+    name = mat.get("name", "?")
+    e_mpa = float(mat["E_MPa"])
+    _check_e_plausibility(str(name), e_mpa, "[material].E_MPa")
+    return {"name": name, "E": e_mpa, "nu": float(mat["nu"]),
             "yield": float(mat["yield_MPa"]), "density": float(mat.get("density_kg_m3", float("nan"))),
             "source": str(mat["source"])}
+
+
+def _check_waiver(data: dict, where: str) -> dict | None:
+    """S8: a [waiver] table lets a human accept a hand-calc/convergence
+    ceiling above the default -- but only when it actually names a human
+    and says why. Returns the waiver table, or None if there isn't one."""
+    w = data.get("waiver")
+    if w is None:
+        return None
+    _keys(w, _SUB["waiver"], "[waiver]")
+    _req(w, "[waiver]", "signed_by", "reason")
+    if not str(w["signed_by"]).strip():
+        raise CaseError(f"{where}: [waiver].signed_by must name a human -- an empty waiver waives nothing")
+    if len(str(w["reason"]).strip()) < 10:
+        raise CaseError(f"{where}: [waiver].reason must explain why the ceiling is being waived")
+    return w
 
 
 def load_case(path: Path, project: Path) -> dict:
@@ -175,6 +224,15 @@ def load_case(path: Path, project: Path) -> dict:
             raise CaseError(f"[[hand_calc]] {hc['name']}: {hc['fea']['quantity']} needs fea.faces")
         if float(hc["tolerance_pct"]) <= 0:
             raise CaseError(f"[[hand_calc]] {hc['name']}: tolerance_pct must be > 0")
+    waiver = _check_waiver(data, path.name)
+    for i, hc in enumerate(data["hand_calc"]):
+        tol = float(hc["tolerance_pct"])
+        if tol > CEILING_HAND_CALC_TOL_PCT and waiver is None:
+            raise CaseError(
+                f"[[hand_calc]] {hc['name']}: tolerance_pct = {tol} exceeds the {CEILING_HAND_CALC_TOL_PCT}% "
+                "ceiling (S8) -- a looser tolerance stops the hand calc from actually cross-checking the FEA. "
+                "Tighten it, or add a [waiver] with signed_by and reason naming a human who accepts the wider bound."
+            )
     for i, ex in enumerate(data.get("stress", {}).get("exclude", [])):
         _keys(ex, _SUB["exclude"], f"[stress].exclude #{i}")
         _req(ex, f"[stress].exclude #{i}", "faces", "distance_mm", "reason")
@@ -182,6 +240,19 @@ def load_case(path: Path, project: Path) -> dict:
             raise CaseError(f"[stress].exclude #{i}: reason must say why the excluded stress is not physical")
     mesh = data["mesh"]
     _req(mesh, "[mesh]", "sizes_mm", "convergence_tol_pct")
+    conv_tol = float(mesh["convergence_tol_pct"])
+    if conv_tol > CEILING_CONVERGENCE_TOL_PCT and waiver is None:
+        raise CaseError(
+            f"[mesh].convergence_tol_pct = {conv_tol} exceeds the {CEILING_CONVERGENCE_TOL_PCT}% ceiling (S8) "
+            "-- a looser tolerance calls an unconverged mesh converged. Tighten it, or add a [waiver] with "
+            "signed_by and reason naming a human who accepts the wider bound."
+        )
+    stress_conv_tol = mesh.get("stress_convergence_tol_pct")
+    if stress_conv_tol is not None and float(stress_conv_tol) > CEILING_CONVERGENCE_TOL_PCT and waiver is None:
+        raise CaseError(
+            f"[mesh].stress_convergence_tol_pct = {stress_conv_tol} exceeds the {CEILING_CONVERGENCE_TOL_PCT}% "
+            "ceiling (S8). Tighten it, or add a [waiver] with signed_by and reason."
+        )
     sizes = mesh["sizes_mm"]
     if not isinstance(sizes, list) or len(sizes) < 3:
         raise CaseError(f"[mesh].sizes_mm must list >= 3 refinement levels for a convergence study, got {sizes!r}")
@@ -192,6 +263,13 @@ def load_case(path: Path, project: Path) -> dict:
                             f"(got {a} -> {b}); tiny steps make any quantity look converged")
     req = data["requirement"]
     _req(req, "[requirement]", "min_safety_factor")
+    min_sf = float(req["min_safety_factor"])
+    if min_sf < HARD_MIN_SAFETY_FACTOR:
+        raise CaseError(
+            f"[requirement].min_safety_factor = {min_sf} is below the hard floor of {HARD_MIN_SAFETY_FACTOR} "
+            "(S8) -- a safety factor requirement below 1.0 accepts a part predicted to yield under the stated "
+            "load. This floor is never waivable; fix the requirement or the design."
+        )
     if float(req.get("max_reaction_imbalance_pct", MAX_REACTION_IMBALANCE_PCT)) > MAX_REACTION_IMBALANCE_PCT:
         raise CaseError(f"[requirement].max_reaction_imbalance_pct may tighten but not exceed {MAX_REACTION_IMBALANCE_PCT} %")
     data["_material"] = load_material(data["material"], project)

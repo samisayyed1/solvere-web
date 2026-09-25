@@ -54,6 +54,14 @@ class StackFileError(ValueError):
     """The stack TOML is missing a required field or is otherwise malformed."""
 
 
+# S7: geometry stacks are SI-mm only (CONTRACTS SS10); "deg" is the one
+# non-length unit a GD&T loop diagram legitimately uses (an angular stack-up,
+# e.g. a cumulative orientation tolerance). Anything else -- a typo like
+# "mn", or "in"/"cm"/other non-SI units -- is refused rather than silently
+# trusted, since nothing here converts units.
+UNIT_VOCAB = ("mm", "deg")
+
+
 @dataclass
 class Contributor:
     id: str
@@ -63,6 +71,7 @@ class Contributor:
     direction: int
     distribution: str = "normal"
     description: str = ""
+    param: str | None = None  # optional "a.b" binding into params/params.toml (S7)
 
     @property
     def sym_tol(self) -> float:
@@ -96,6 +105,13 @@ def load_stack(path: Path) -> Stack:
     if not stack_tbl or "name" not in stack_tbl:
         raise StackFileError(f"{path}: missing [stack] table or [stack].name")
     req = data.get("requirement", {})
+    unit = str(req.get("unit", "mm"))
+    if unit not in UNIT_VOCAB:
+        raise StackFileError(
+            f"{path}: [requirement].unit {unit!r} is not in the supported unit vocabulary "
+            f"{list(UNIT_VOCAB)} -- geometry stacks are SI mm (CONTRACTS.md SS10); nothing here "
+            "converts units, so a stack written in another unit would silently mis-check."
+        )
     contribs_raw = data.get("contributor")
     if not contribs_raw:
         raise StackFileError(f"{path}: no [[contributor]] entries")
@@ -116,11 +132,12 @@ def load_stack(path: Path) -> Stack:
             id=str(c["id"]), nominal=float(c["nominal"]), tol_plus=float(c["tol_plus"]),
             tol_minus=float(c["tol_minus"]), direction=int(c["direction"]), distribution=dist,
             description=str(c.get("description", "")),
+            param=str(c["param"]) if c.get("param") is not None else None,
         ))
 
     return Stack(
         name=str(stack_tbl["name"]), description=str(stack_tbl.get("description", "")),
-        unit=str(req.get("unit", "mm")), contributors=contributors,
+        unit=unit, contributors=contributors,
         gap_min=req.get("gap_min"), gap_max=req.get("gap_max"), source_path=Path(path),
     )
 
@@ -211,3 +228,50 @@ def evaluate(stack: Stack, *, monte_carlo_n: int = 0, monte_carlo_seed: int = 12
         result.mc_min, result.mc_max, result.mc_mean, result.mc_std = mc_min, mc_max, mc_mean, mc_std
         result.mc_n, result.mc_seed = monte_carlo_n, monte_carlo_seed
     return result
+
+
+@dataclass
+class ParamMismatch:
+    """A contributor's ``nominal`` disagrees with the params/params.toml key
+    it claims to bind (``param = "a.b"``)."""
+    contributor_id: str
+    param_key: str
+    stack_nominal: float
+    params_value: float
+
+
+def load_params(project: Path) -> dict[str, Any]:
+    """params/params.toml as a nested dict, or ``{}`` if the project has none."""
+    path = Path(project) / "params" / "params.toml"
+    if not path.is_file():
+        return {}
+    return tomllib.loads(path.read_text())
+
+
+def _param_value(params: dict[str, Any], dotted_key: str) -> float:
+    node: Any = params
+    for part in dotted_key.split("."):
+        if not isinstance(node, dict) or part not in node:
+            raise StackFileError(f"params key {dotted_key!r} not found in params/params.toml")
+        node = node[part]
+    if not isinstance(node, dict) or "value" not in node:
+        raise StackFileError(f"params key {dotted_key!r} is not a leaf parameter table")
+    return float(node["value"])
+
+
+def param_mismatches(stack: Stack, params: dict[str, Any], *, tol: float = 1e-9) -> list[ParamMismatch]:
+    """S7: SKILL.md says "tolerances come from params/params.toml, not
+    invented numbers" -- for every contributor that names a ``param``
+    binding, check its ``nominal`` actually equals that key's params.toml
+    value. Raises :class:`StackFileError` (fail-closed, like every other
+    malformed-spec case here) if a bound key doesn't exist or isn't a leaf
+    parameter table; returns the list of (contributor, params_value)
+    mismatches for the ones that exist but disagree."""
+    mismatches = []
+    for c in stack.contributors:
+        if c.param is None:
+            continue
+        params_value = _param_value(params, c.param)
+        if abs(c.nominal - params_value) > tol:
+            mismatches.append(ParamMismatch(c.id, c.param, c.nominal, params_value))
+    return mismatches

@@ -66,11 +66,39 @@ def _pages(text: str) -> list[str]:
     return [text]
 
 
-def extract(spec: dict, text: str) -> tuple[list[dict], list[dict]]:
-    """Returns (matched, silent) param records."""
+# S13 (review-2 addendum): "Length: 2.56 in" matched by a sloppy pattern that only
+# captures the number (`([\d.]+)`, no unit literal) with the spec's own `unit = "mm"`
+# blindly trusted -- the value was accepted as 2.56 mm although the text says inches.
+# pattern-writing.md tells an author to put the unit literal inside the pattern so it's
+# "confirmed" there, but that's only advice an agent can forget; this is an independent,
+# unconditional check: whatever unit token actually follows the matched number in the
+# datasheet text is captured and compared against the spec's declared `unit`, regardless
+# of whether the pattern's own (non-captured) text happened to include it.
+_UNIT_AFTER = re.compile(r"^[ \t]*([A-Za-zΩµμ%]+)")
+
+
+def _text_unit_after(page_text: str, match_end: int) -> str | None:
+    m = _UNIT_AFTER.match(page_text[match_end:match_end + 20])
+    return m.group(1) if m else None
+
+
+def _units_agree(declared_unit: str, text_unit: str | None) -> bool:
+    if declared_unit == "1":
+        return not text_unit  # a declared-unitless value should have no unit token following it
+    if not text_unit:
+        return False  # the text never showed the unit the spec declares -- unverified, not trusted
+    return text_unit.strip().lower() == declared_unit.strip().lower()
+
+
+def extract(spec: dict, text: str) -> tuple[list[dict], list[dict], list[dict]]:
+    """Returns (matched, silent, unit_mismatches) param records. A match whose captured
+    number is followed by a unit token that disagrees with the spec's declared `unit`
+    lands in `unit_mismatches`, never in `matched` -- a wrong-unit value is never written
+    to params.toml, the same as an invented one never would be."""
     pages = _pages(text)
     matched: list[dict] = []
     silent: list[dict] = []
+    unit_mismatches: list[dict] = []
     for p in spec.get("param", []):
         pattern = re.compile(p["pattern"])
         found = None
@@ -78,18 +106,28 @@ def extract(spec: dict, text: str) -> tuple[list[dict], list[dict]]:
             m = pattern.search(page_text)
             if m:
                 page_no = i if len(pages) > 1 else None
-                found = (page_no, m.group(1))
+                # from the end of the NUMBER capture group, not the end of the whole match --
+                # a well-written pattern's own (non-captured) trailing text often already
+                # consumes the unit literal (pattern-writing.md's own convention), which would
+                # otherwise put m.end() past the unit before this ever looks at it.
+                found = (page_no, m.group(1), _text_unit_after(page_text, m.end(1)))
                 break
         if found is None:
             silent.append(p)
             continue
-        page_no, value_str = found
+        page_no, value_str, text_unit = found
+        declared_unit = p.get("unit", "1")
+        if not _units_agree(declared_unit, text_unit):
+            unit_mismatches.append({
+                "id": p["id"], "declared_unit": declared_unit, "text_unit": text_unit, "page": page_no,
+            })
+            continue
         matched.append({
-            "id": p["id"], "value": float(value_str), "unit": p.get("unit", "1"),
+            "id": p["id"], "value": float(value_str), "unit": declared_unit,
             "tol_plus": p.get("tol_plus"), "tol_minus": p.get("tol_minus"),
             "page": page_no,
         })
-    return matched, silent
+    return matched, silent, unit_mismatches
 
 
 def _toml_escape(s: str) -> str:
@@ -192,7 +230,7 @@ def main() -> int:
         spec = tomllib.loads(spec_path.read_text())
         doc = spec["datasheet"]["doc"]
         text = _load_text(spec, spec_path, project)
-        matched, silent = extract(spec, text)
+        matched, silent, unit_mismatches = extract(spec, text)
         added = append_params(project, doc, matched)
         measurement_files = write_measurement_procedures(project, doc, silent)
     except (IntakeError, KeyError, tomllib.TOMLDecodeError) as exc:
@@ -204,6 +242,8 @@ def main() -> int:
         "matched": [{"id": m["id"], "page": m["page"]} for m in matched],
         "added_to_params": added,
         "silent": [p["id"] for p in silent],
+        "unit_mismatches": [{"id": u["id"], "declared_unit": u["declared_unit"], "text_unit": u["text_unit"]}
+                             for u in unit_mismatches],
         "measurement_procedures": [str(p.relative_to(project)) for p in measurement_files],
     }
     report_dir = project / "out" / "intake"
@@ -212,8 +252,9 @@ def main() -> int:
     report_path = report_dir / f"{slug}.json"
     report_path.write_text(json.dumps(report, indent=2) + "\n")
 
-    print(f"OK matched {len(matched)}/{len(matched) + len(silent)} params from {doc}; "
-          f"{len(added)} new params added; {len(measurement_files)} measurement procedures written.")
+    print(f"OK matched {len(matched)}/{len(matched) + len(silent) + len(unit_mismatches)} params from {doc}; "
+          f"{len(added)} new params added; {len(measurement_files)} measurement procedures written; "
+          f"{len(unit_mismatches)} unit mismatch(es) (not written).")
     print(f"OK report: {report_path}")
     return 0
 

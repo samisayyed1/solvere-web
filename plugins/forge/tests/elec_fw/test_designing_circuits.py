@@ -143,6 +143,91 @@ def test_missing_sidecar_limits_file_errors(verify_mod, project):
     assert "limits" in result["error"].lower()
 
 
+# --- S9 (review-2 addendum): SI-prefix unit normalisation of limits ---
+
+def test_si_unit_scale_converts_mv_and_rejects_garbage(verify_mod):
+    assert verify_mod.si_unit_scale("V") == 1.0
+    assert verify_mod.si_unit_scale("mV") == pytest.approx(1e-3)
+    assert verify_mod.si_unit_scale("kOhm") == pytest.approx(1e3)
+    assert verify_mod.si_unit_scale("1") == 1.0
+    with pytest.raises(ValueError):
+        verify_mod.si_unit_scale("Vrms")
+    with pytest.raises(ValueError):
+        verify_mod.si_unit_scale("dB")
+
+
+def test_seeded_mv_limit_against_a_50mv_ripple_fails_not_passes(verify_mod, project):
+    """S9 seeded-wrong case: a limit declared in mV compared against a real 0.05 V (50 mV)
+    ripple. Before the fix, the raw 0.0499923 (still volts) was compared directly to
+    max = 40 and passed (recorded as "0.0499923 mV") -- the true 49.99 mV is over the
+    40 mV limit and must FAIL."""
+    _write_divider(project, "regulator", """\
+[[measurement]]
+name = "vout_dc"
+unit = "V"
+equals = 2.5
+tol = 0.05
+requirement = "REQ-ELEC-010"
+
+[[measurement]]
+name = "ripple_pp"
+unit = "mV"
+max = 40
+requirement = "REQ-ELEC-011"
+""")
+    rc = verify_mod.main(["--project", str(project)])
+    assert rc == 1
+    result = json.loads((project / "out/verify/spice.regulator.json").read_text())
+    assert result["status"] == "fail"
+    ripple = next(m for m in result["measurements"] if m["name"] == "ripple_pp")
+    assert ripple["pass"] is False
+    assert ripple["unit"] == "mV"
+    assert ripple["value"] == pytest.approx(49.9923, abs=0.01)
+    assert ripple["limit"]["max"] == 40
+
+
+def test_mv_limit_against_a_below_spec_ripple_passes(verify_mod, project):
+    """Pass case for the same mV normalisation: a 40 mV limit against the real ~50 mV
+    ripple's decimillivolt cousin -- raise the limit comfortably above the converted
+    measurement and it must pass."""
+    _write_divider(project, "regulator", """\
+[[measurement]]
+name = "vout_dc"
+unit = "V"
+equals = 2.5
+tol = 0.05
+requirement = "REQ-ELEC-010"
+
+[[measurement]]
+name = "ripple_pp"
+unit = "mV"
+max = 100
+requirement = "REQ-ELEC-011"
+""")
+    rc = verify_mod.main(["--project", str(project)])
+    assert rc == 0
+    result = json.loads((project / "out/verify/spice.regulator.json").read_text())
+    ripple = next(m for m in result["measurements"] if m["name"] == "ripple_pp")
+    assert ripple["pass"] is True
+    assert ripple["value"] == pytest.approx(49.9923, abs=0.01)
+
+
+def test_unrecognised_unit_errors_instead_of_silently_comparing_raw(verify_mod, project):
+    _write_divider(project, "regulator", """\
+[[measurement]]
+name = "vout_dc"
+unit = "Vrms"
+equals = 2.5
+tol = 0.05
+requirement = "REQ-ELEC-010"
+""")
+    rc = verify_mod.main(["--project", str(project)])
+    assert rc == 2
+    result = json.loads((project / "out/verify/spice.regulator.json").read_text())
+    assert result["status"] == "error"
+    assert "Vrms" in result["error"]
+
+
 def test_control_block_shell_detector_is_text_scoped(verify_mod):
     assert verify_mod.refuses_shell(SHELL_CIR) is not None
     assert verify_mod.refuses_shell(DIVIDER_CIR) is None
