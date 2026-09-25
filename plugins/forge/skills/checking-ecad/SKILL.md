@@ -1,7 +1,7 @@
 ---
 name: checking-ecad
 description: Run KiCad's ERC and DRC (JSON output) and check the board's measured minima against a fab house's DFM rules. Use after a schematic or PCB layout changes under ecad/, before any fab-related step, or when asked to "check the board", "run ERC/DRC", "is this ready to fab", or "check DFM". Do NOT use this to design a circuit (see designing-circuits) or to actually order/export fab files (see releasing-designs) — this skill never fabricates anything and never sets a gate to PASS.
-allowed-tools: Read, Grep, Glob, Bash(kicad-cli *), Bash(~/.forge/bin/forge-python *)
+allowed-tools: Read, Grep, Glob, Bash(kicad-cli *), Bash(~/.forge/bin/forge-python ${CLAUDE_SKILL_DIR}/scripts/verify.py:*)
 ---
 
 # Checking ECAD
@@ -17,7 +17,7 @@ allowed-tools: Read, Grep, Glob, Bash(kicad-cli *), Bash(~/.forge/bin/forge-pyth
 ## Workflow
 
 1. Make sure the board's `ecad/<name>.kicad_sch` and `ecad/<name>.kicad_pcb` exist (from `designing-circuits`'s KiCad export).
-2. Run the check: `~/.forge/bin/forge-python scripts/verify.py --project <root>` (or let `forge verify` call it for the `elec` domain). It:
+2. Run the check: `~/.forge/bin/forge-python ${CLAUDE_SKILL_DIR}/scripts/verify.py --project <root>` (or let `forge verify` call it for the `elec` domain). It:
    - runs `kicad-cli sch erc --format json --exit-code-violations` and `kicad-cli pcb drc --format json --exit-code-violations`, writing `out/verify/erc.<name>.json` / `drc.<name>.json`;
    - counts violations by KiCad's `type` field, subtracts anything covered by a valid `ecad/waivers.toml` entry, and fails on the remainder;
    - runs `kicad-cli pcb export stats --format json` and compares the board's *measured* `min_track_width`, `min_track_clearance` and `min_drill_diameter` against the chosen fab's floor (`params/params.toml`'s `[manufacturing] pcb_fab`, default `jlcpcb`) from `references/fab_rules.toml`;

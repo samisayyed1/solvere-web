@@ -189,6 +189,9 @@ def run(project: Path, changed: list[str] | None) -> int:
 
 
 def main(argv: list[str]) -> int:
+    # CONTRACTS.md §9 check_id namespace: printed first, on every run, so PostToolUse
+    # binds fix messages to this entrypoint by check_id prefix.
+    print(f"[FORGE_CHECK_ID_PREFIX] {CHECK_ID}")
     project = Path(".")
     changed: list[str] = []
     i = 0

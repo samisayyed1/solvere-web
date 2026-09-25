@@ -1,7 +1,7 @@
 ---
 name: gardening-docs
 description: Find broken relative links and anchors, stale tool versions against the toolchain manifest, and rules with no stated enforcing mechanism across *.md, then propose small fixes. Use for the weekly routine, before a release, or when asked to "check the docs", "find broken links", or "garden the docs". Do NOT use this to write new documentation from scratch (that's a different task) -- this skill audits what already exists and proposes small, targeted fixes, it does not rewrite docs wholesale.
-allowed-tools: Read, Grep, Glob, Edit, Bash(~/.forge/bin/forge-python *)
+allowed-tools: Read, Grep, Glob, Edit, Bash(~/.forge/bin/forge-python ${CLAUDE_SKILL_DIR}/scripts/verify.py:*)
 ---
 
 # Gardening docs
@@ -14,7 +14,7 @@ allowed-tools: Read, Grep, Glob, Edit, Bash(~/.forge/bin/forge-python *)
 
 ## Workflow
 
-1. Run the check: `~/.forge/bin/forge-python scripts/verify.py --project <root>` (or `forge verify` for the `docs` domain). It reports:
+1. Run the check: `~/.forge/bin/forge-python ${CLAUDE_SKILL_DIR}/scripts/verify.py --project <root>` (or `forge verify` for the `docs` domain). It reports:
    - **broken links/anchors**: every relative Markdown link that doesn't resolve, or whose `#anchor` doesn't match a heading in the target (or the same document);
    - **stale tool versions**: any `<!-- forge-tool-version: id version -->` marker that disagrees with `plugins/forge/toolchain/manifest.json`;
    - **unenforced rule bullets**: any bullet in `.claude/rules/*.md` that names no hook/lint/check/gate/enforcement mechanism, and also isn't marked `advisory` (ADR-001 §13 point 6).

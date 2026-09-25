@@ -41,7 +41,7 @@ vs. required value with units, and how to fix it.
 ## How to run it
 
 ```
-~/.forge/bin/forge-python plugins/forge/skills/verifying-geometry/scripts/verify.py \
+~/.forge/bin/forge-python ${CLAUDE_SKILL_DIR}/scripts/verify.py \
     --project <product-repo-root> [--changed cad/enclosure_base.py ...] [--fast]
 ```
 

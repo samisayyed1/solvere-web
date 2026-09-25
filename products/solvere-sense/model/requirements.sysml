@@ -1,7 +1,7 @@
 package SolvereSenseRequirements {
     doc /* Requirement usages for the budget- and interface-bearing requirements,
          short-named with the exact IDs from requirements/requirements.md.
-         The full set of 53 requirements, with tests, is traced in
+         The full set of 66 requirements, with tests, is traced in
          requirements/trace.json. Values mirror params/params.toml. */
 
     private import ScalarValues::*;
@@ -66,6 +66,11 @@ package SolvereSenseRequirements {
     requirement <'REQ-MECH-014'> antennaGap : RadomeGap {
         attribute :>> gapStep = 2.5;
     }
+    requirement <'REQ-MECH-016'> twistOff : QualitativeRequirement;
+    requirement <'REQ-MECH-017'> grooveSizing : QualitativeRequirement;
+    requirement <'REQ-SYS-003'> twoPodInterference : QualitativeRequirement;
+    requirement <'REQ-UX-004'> lightPipeFlush : QualitativeRequirement;
+    requirement <'REQ-UX-005'> noWindowNoPinhole : QualitativeRequirement;
     requirement <'REQ-MECH-011'> strainRelief : QualitativeRequirement;
     requirement <'REQ-MECH-012'> cableExit : QualitativeRequirement;
     requirement <'REQ-PWR-001'> usbSupply : PowerCeiling {
@@ -81,7 +86,7 @@ package SolvereSenseRequirements {
     }
     requirement <'REQ-ELEC-001'> noMains : QualitativeRequirement;
     requirement <'REQ-ENV-002'> sensorTemperature : ThermalLimit {
-        attribute :>> ambientMax = 35.0;
+        attribute :>> ambientMax = 40.0;
         attribute :>> sensorTempMax = 85.0;
     }
     requirement <'REQ-EMC-005'> noExtraRadio : QualitativeRequirement;
@@ -112,5 +117,10 @@ package SolvereSenseRequirements {
     satisfy sensorTemperature by pod;
     satisfy noExtraRadio by pod;
     satisfy prototypeCost by pod;
+    satisfy twistOff by pod.shellToBase;
+    satisfy grooveSizing by pod.groove;
+    satisfy twoPodInterference by pod.sensor;
+    satisfy lightPipeFlush by pod.lightPipe;
+    satisfy noWindowNoPinhole by pod.shell;
     satisfy productionCost by pod;
 }

@@ -26,6 +26,18 @@
       "evidence": [],
       "status": "open"
     },
+    "REQ-SYS-003": {
+      "design": [
+        "model/system.sysml#Room",
+        "model/requirements.sysml#twoPodInterference",
+        "params/params.toml#pods.max_per_room"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-sys-003"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
     "REQ-MECH-001": {
       "design": [
         "model/system.sysml#BasePlate",
@@ -51,7 +63,9 @@
     "REQ-MECH-003": {
       "design": [
         "model/system.sysml#TBarClipAdapter",
-        "model/system.sysml#TBarPort"
+        "model/system.sysml#TBarPort",
+        "params/params.toml#tbar.grid_width_narrow",
+        "params/params.toml#tbar.grid_width_wide"
       ],
       "tests": [
         "tests/verification-plan.md#tp-mech-003"
@@ -189,6 +203,53 @@
       "evidence": [],
       "status": "open"
     },
+    "REQ-MECH-015": {
+      "design": [
+        "params/params.toml#mount.retention_load_factor",
+        "params/params.toml#mount.retention_hold_time"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-mech-015"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-MECH-016": {
+      "design": [
+        "model/system.sysml#ShellBaseInterface",
+        "model/requirements.sysml#twistOff"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-mech-016"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-MECH-017": {
+      "design": [
+        "model/system.sysml#GasketGroove",
+        "model/system.sysml#Gasket",
+        "model/requirements.sysml#grooveSizing",
+        "params/params.toml#gasket.static_squeeze_min",
+        "params/params.toml#gasket.corner_radius_factor"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-mech-017"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-MECH-018": {
+      "design": [
+        "model/system.sysml#Gasket",
+        "params/params.toml#gasket.ip_code"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-mech-018"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
     "REQ-PWR-001": {
       "design": [
         "model/system.sysml#UsbCPowerPort",
@@ -306,9 +367,21 @@
       "status": "open"
     },
     "REQ-SAFE-003": {
-      "design": [],
+      "design": [
+        "compliance/claims-wording.md"
+      ],
       "tests": [
         "tests/verification-plan.md#tp-safe-003"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-SAFE-004": {
+      "design": [
+        "compliance/claims-wording.md"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-safe-004"
       ],
       "evidence": [],
       "status": "open"
@@ -397,6 +470,39 @@
       "evidence": [],
       "status": "open"
     },
+    "REQ-FW-004": {
+      "design": [
+        "model/system.sysml#LightPipe",
+        "model/system.sysml#LedLightPort"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-fw-004"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-FW-005": {
+      "design": [
+        "model/system.sysml#LightPipe",
+        "model/system.sysml#LedLightPort"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-fw-005"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-FW-006": {
+      "design": [
+        "model/system.sysml#LightPipe",
+        "model/system.sysml#LedLightPort"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-fw-006"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
     "REQ-UX-001": {
       "design": [
         "model/system.sysml#Shell",
@@ -423,6 +529,39 @@
       "design": [],
       "tests": [
         "tests/verification-plan.md#tp-ux-003"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-UX-004": {
+      "design": [
+        "model/system.sysml#LightPipe",
+        "model/requirements.sysml#lightPipeFlush"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-ux-004"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-UX-005": {
+      "design": [
+        "model/system.sysml#Shell",
+        "model/requirements.sysml#noWindowNoPinhole"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-ux-005"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-UX-006": {
+      "design": [
+        "model/system.sysml#SensorKit",
+        "model/system.sysml#ShellBaseInterface"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-ux-006"
       ],
       "evidence": [],
       "status": "open"
@@ -471,6 +610,17 @@
       "design": [],
       "tests": [
         "tests/verification-plan.md#tp-mnt-005"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-MNT-006": {
+      "design": [
+        "model/system.sysml#Room",
+        "params/params.toml#pods.max_per_room"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-mnt-006"
       ],
       "evidence": [],
       "status": "open"

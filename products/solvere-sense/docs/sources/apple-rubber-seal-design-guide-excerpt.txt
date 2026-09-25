@@ -1,0 +1,569 @@
+Excerpt (stdlib text extraction) of Apple Rubber 'Seal Design Guide', https://www.applerubber.com/src/pdf/seal-design-guide.pdf,
+fetched 2026-09-25, 122 pages, PDF sha256 9060437203f9a9b032c65f8ce540e0b9367cd837984d77073d63ebf926cf0e7a. Page numbers are PDF page indices.
+Table A on p.20 is a graphic table; its column order, from its header, is: O-ring cross section | gland depth radial | gland depth axial | squeeze radial (in, %) | squeeze axial (in, %) | diametrical clearance max | groove width +-.005 (no / one / two backup rings) | groove radius | eccentricity max. Units: inches.
+
+===== PAGE 14
+14
+Seal Types and Gland Design
+4
+STATIC SEAL TYPES
+Static seals are categorized as either axial or radial, 
+depending upon the direction in which squeeze is 
+applied to the o-ring’s cross section.
+» Static Axial Seal
+A static axial seal acts similar to a gasket in that 
+it is squeezed on both the top and bottom of the 
+o-ring’s cross section. This type of seal is typically 
+employed in the face (flange) type applications, 
+depicted in Illustration 4.1.
+ When used as a face seal involving either 
+internal or external pressure, the o-ring should 
+always be seated against the low pressure side 
+of the groove (as shown in Illustration 4.1 and 
+Illustration 4.2) so the o-ring is already where it 
+needs to be as a result of the pressure.
+ Static axial seals tend to be easier to design than 
+static radial seals. Since there is no extrusion 
+gap, there are fewer design steps and you can 
+control the tolerances easier.
+static axial seal gland dimensions
+Table B lists SAE recommended dimensions 
+for static axial seal glands by ascending AS568
+o-ring numbers.
+APPLE RUBBER
+ SEAL TYPES AND GLAND DESIGN
+MAJOR CLASSIFICATIONS
+All o-ring seal applications are categorized in terms of relative motion. In situations involving little or no 
+motion relative to the seal, the o-ring application is static. In situations involving reciprocating, rotating, 
+or oscillating motion relative to the seal, the o-ring application is dynamic.
+Illustration 4.1, Internal Pressure
+Illustration 4.2, External Pressure
+A
+P
+B
+P P
+
+
+===== PAGE 15
+15
+» Static Radial Seals
+Static Radial Seals are squeezed between the 
+inner and outer surfaces of the o-ring. They 
+are typically employed in cap and plug type 
+applications, as depicted in Illustration 4.3.
+static radial seal gland dimensions
+Table C (p. 30-44) lists SAE recommended 
+dimensions for static radial seal glands by 
+ascending AS568 numbers.
+NOTE
+: 
+Recommended dimensions for static radial seal 
+glands listed in Table C are based on an application 
+pressure limit of 1500 psi. For higher pressure 
+requirements, reference Section 5, Illustration 5.1
+or contact Apple Rubber for technical assistance.
+»
+ Static Crush Seals
+In crush seal applications, the o-ring is completely 
+confined and pressure deformed (crushed) 
+within a triangular gland made by machining 
+a 45° angle on the male cover. Squeezed at an 
+angle to the o-ring’s axis, crush seals are used 
+in such simple applications as the one depicted 
+in Illustration 4.4.
+static crush seal gland dimension
+Table D lists SAE recommended dimensions 
+for static crush seal glands by ascending 
+AS568 numbers.
+»
+ Static Seals with Dovetail Glands
+O-Rings are sometimes employed in static or slow 
+moving dynamic situations calling for specially 
+machined “dovetail” glands. Because of the 
+angles involved, controlling the tolerances in 
+these glands may be difficult. The purpose of 
+these glands is to securely hold the o-ring in place 
+during machine operation and/or maintenance 
+disassembly. A typical valve seat application is 
+shown in Illustration 4.5.
+Rule of 
+Thumb
+For a static crush seal application, it is
+recommended that the o-ring volume 
+does not exceed 95% of the gland void.
+Illustration 4.4, Static Crush Seal
+Illustration 4.5, Dovetail Gland
+Illustration 4.3, Radial Seal
+45°
+Valve Movement
+
+
+===== PAGE 20
+20
+O-Ring
+Cross
+Section
+Gland
+Depth
+Squeeze
+Diametrical
+Clearance
+Max.
+Groove Width. ±.005
+Groove
+Radius
+Eccen-
+tricity
+Max.
+Radial
+Axial
+Inches
+%
+Inches
+%
+No
+Backup
+Rings
+One
+Backup
+Ring
+Two
+Backup
+Rings
+Radial
+Axial
+.020*
+.013-.014
+.013-.014
+.004-.009
+22-41
+.004-.009
+22-41
+.002
+.035
+–
+–
+–
+.0015
+.030
+.020-.022
+.020-.022
+.005-.013
+19-39
+.005-.013
+19-39
+.003
+.045
+–
+–
+–
+.0015
+.040
+.027-.030
+.027-.030
+.007-.016
+19-37
+.007-.016
+19-37
+.003
+.060
+–
+–
+.005-.008
+.002
+.050
+.035-.039
+.034-.038
+.008-.018
+17-34
+.009-.019
+19-36
+.004
+.075
+–
+–
+.005-.008
+.002
+.060
+.042-.047
+.042-.046
+.010-.021
+18-33
+.011-.021
+19-33
+.004
+.090
+–
+–
+.005-.008
+.002
+.070
+.050-.055
+.049-.054
+.012-.023
+18-32
+.013-.024
+19-33
+.004
+.105
+.150
+.208
+.005-.015
+.002
+.103
+.080-.086
+.075-.081
+.014-.026
+14-25
+.019-.031
+19-29
+.005
+.146
+.182
+.244
+.005-.020
+.003
+.139
+.110-.116
+.100-.108
+.019-.033
+14-23
+.027-.043
+20-30
+.006
+.195
+.217
+.296
+.005-.030
+.004
+.210
+.170-.176
+.155-.165
+.029-.045
+14-21
+.040-.060
+20-28
+.006
+.280
+.333
+.423
+.005-.050
+.006
+.275
+.225-.235
+.205-.215
+.034-.056
+13-20
+.054-.076
+20-27
+.007
+.350
+.435
+.574
+.005-.060
+.008
+O-Ring
+Cross
+Section
+Gland
+Depth
+Squeeze
+Diametrical
+Clearance
+Max.
+Groove Width. ±.005
+Groove
+Radius
+Eccentricity 
+Max.
+Inches
+%
+No
+Backup
+Rings
+One
+Backup
+Ring
+Two
+Backup
+Rings
+.040
+.031/.033
+.004/.012
+11-28
+.004
+.063
+–
+–
+.005-.008
+.002
+.050
+.039/.041
+.006/.014
+13-26
+.004
+.073
+–
+–
+.005-.008
+.002
+.060
+.047/.049
+.008/.016
+14-25
+.004
+.084
+–
+–
+.005-.008
+.002
+.070
+.055/.057
+.010/.018
+15-25
+.004
+.095
+.150
+.208
+.005-.015
+.002
+.103
+.087/.090
+.010/.019
+10-18
+.005
+.145
+.187
+.249
+.005-.020
+.003
+.139
+.119/.123
+.012/.024
+9-17
+.006
+.185
+.222
+.301
+.005-.030
+.004
+.210
+.183/.188
+.017/.032
+8.5-15
+.006
+.285
+.338
+.428
+.005-.050
+.006
+.275
+.234/.240
+.029/.047
+10.5-17
+.007
+.375
+.440
+.579
+.005-.060
+.008
+One general guideline to consider when designing 
+a seal is to maintain a range of % squeeze on the 
+o-ring (~10-40% for static and no more than 30% for 
+dynamic). 
+No less than 75% of the seal cross-section should 
+be contained within the groove to ensure the 
+seal doesn’t “roll” or extrude out of the groove. 
+See Section 5 for more detail on determining the 
+allowable clearance gap.
+Finally, be sure to consider the void/volume 
+relationship in worst case tolerance conditions. The 
+maximum o-ring volume should not exceed 90% of 
+the minimum gland void. The groove width may be 
+increased to provide additional void.
+APPLE RUBBER
+ SEAL TYPES AND GLAND DESIGN
+TABLE A
+O-Ring Gland Design for Dynamic Seals
+NOTE:
+Table A contains general sealing guidelines. More specific information is available throughout this guide. 
+*
+NOTE:
+It is recommended that an o-ring with tighter CS tolerance (±.002) be requested.
+O-Ring Gland Design for Static Seals
+Illustration 4.11
+Face Axial Seal s (C=0)
+A
+C/ 2
+A B Piston (Radial ) Seal
+B A D
+C 2
+B Rod (Radial) Seal
+A - Gland Dept h B - Groove Widt h C - Diametrical Clearance D - Groove Dept h
+
+
+===== PAGE 90
+90
+FACE SEAL APPLICATIONS (NON-ROUND)
+Some face seal applications may require a rectangular 
+groove configuration. In order to use a standard round 
+o-ring, the inside corner radius of the groove should 
+not be less than three times (3X) the o-ring cross-
+section diameter. 
+Use the recommended gland design for static seals 
+from Table A in Section 4. The length of the o-ring 
+centerline should be equal to the length of the 
+groove centerline. Following is an equation to assist in 
+determining the o-ring inside diameter.
+o-ring ID = (Groove CL length / 3.14) - o-ring CS
+If standard round o-ring cannot be applied to your 
+face seal application, then contact Apple Rubber for 
+assistance with designing a custom molded gasket 
+solution.
+LOW PERMEABILITY
+To some degree all elastomers are permeable 
+to gases. The rate of gas permeation through an 
+o-ring varies by material compounding; material 
+hardness; degree of squeeze; presence or absence 
+of lubrication; size of o-ring cross section; and the 
+pressure, temperature and type of gas being sealed.
+Typically, harder compounds containing more carbon 
+black feature lower diffusion rates.
+In the case of Nitriles, increasing acrylonitrile content 
+results in decreased permeability.
+Laboratory tests indicate that lubricated o-rings are 
+significantly less permeable than unlubricated rings. 
+These same tests further demonstrate that increased 
+seal squeeze results in decreased permeability in 
+unlubricated situations.
+»
+ Best Choice(s)
+In general, Butyl is best in airtight situations. FKM 
+is best for vacuum applications. 
+NOTE: 
+Fluorosilicone and Silicone provide the 
+least resistance to gas permeation.
+VACUUM SITUATIONS
+To make effective vacuum seals, o-rings must be 
+comprised of elastomeric materials featuring low 
+gas permeability, low weight loss under vacuum, and 
+good compression set characteristics.
+»
+ Best Choice(s)
+Fluorocarbon offers good to excellent resistance 
+to gas permeation and low weight loss in vacuum 
+applications.
+ As an added measure of leak prevention, 
+lubrication of o-rings with vacuum grease helps 
+to fill the microscopic pores of surrounding 
+glandular surfaces which have been machined to 
+the recommended 16 to 32 RMS finish. 
+OUTGASSING
+Most rubber compounds contain small quantities 
+of oil and other ingredients that will become 
+volatile under vacuum conditions. Evidence of this 
+“outgassing” is apparent as a thin film deposited on 
+surrounding surfaces. Optical and electrical contact 
+applications are of special concern in this situation as 
+they incorporate sensitive surfaces that must remain 
+uncontaminated. Other compounds exhibit some 
+degree of weight loss in the form of water vapor 
+which may act as a contaminant in some applications. 
+While this process is inevitable, it is accelerated at 
+elevated temperatures and in high vacuum situations.
+»
+ Best Choice(s)
+“Post curing” elastomeric compounds such as 
+Viton™, Fluorosilicone, and Silicone prior to 
+service removes many of the unwanted volatiles 
+and improves physical properties by increasing 
+the degree of crosslinking. Other compounds, 
+such as Nitrile and natural rubber, do not usually 
+benefit as much from this process as the previous 
+compounds.
+COMPRESSION SET RESISTANCE
+The final requirement for effective vacuum sealing 
+involves the specification of o-ring elastomers with 
+good compression set characteristics. Employing 
+a seal squeeze of up to 40% inhibits media flow 
+through the seal. This squeeze also forces the o-ring 
+APPLE RUBBER
+ SPECIAL ELASTOMER APPLICATIONS
+
+
+===== PAGE 113
+113
+RULES OF THUMB SUMMARY
+• A stretch greater than 5% on the o-ring I.D. is not 
+recommended because it can lead to a loss of seal 
+compression. 
+(Section 3, page 10)
+• A Groove depth is the machined depth into one 
+surface, whereas a Gland depth consists of the 
+groove depth plus diametrical clearance and is 
+used to calculate seal compression. 
+(Section 3,
+page 10)
+• To create seal squeeze, the gland depth must be 
+less than the seal cross section. 
+(Section 3,
+page 11)
+• Static applications are more tolerant of material 
+and design limitations than dynamic applications. 
+(Section 3, page 12)
+• The maximum volume of the o-ring should never 
+surpass the minimum volume of the gland. 
+(Section 3, page 12)
+• For a static crush seal application, it is 
+recommended that the o-ring volume does not 
+exceed 95% of the gland void. 
+(Section 4, page 15)
+• For reciprocating seals – passing o-rings over ports 
+is not recommended. Nibbling and premature 
+wear and seal failure will result. 
+(Section 4,
+page 17)
+• The closer the application is to room temperature, 
+the longer an o-ring can be expected to effectively 
+seal. 
+(Section 4, page 17)
+• Avoid using graphite-loaded compounds with 
+stainless steel, as they tend to pit the stainless 
+steel surface over time. 
+(Section 4, page 18)
+• Before installation, make sure to lightly coat the 
+o-ring with a lubricant that is compatible with the 
+o-ring material, as well as with system chemicals. 
+(Section 4, page 19)
+• When using only one back-up ring, be sure to 
+install it on the low pressure side of the o-ring. 
+(Section 5, page 58)
+• Static seal cross sections are generally compressed 
+from 10% to 40%, whereas Dynamic seals are 
+from 10% to only 30%. 
+(Section 5, page 60)
+• When it is said that an elastomer is good for an 
+application it is meant that some compounds 
+which include that material are acceptable, not 
+all. For instance, some compounds of EP are good 
+for brake fluid applications, but most are not 
+acceptable.
+ (Section 6, page 66)
+• Material cost does not correlate with 
+performance, it depends on the application. 
+(Section 6, page 70)
+• You must test all seals in their actual environment 
+because every application is unique. 
+(Section 6, 
+page 71)
+• Do not use a lubricant composed of the same 
+material as the o-ring because “like” will dissolve 
+“like.” For example, a silicone lubricant should not 
+be used with a silicone o-ring.
+ (Section 7, page 85)
+• Resistance of elastomers to chemical attack 
+is greatly reduced at elevated temperatures. 
+(Section 7, page 86)
+Technical Summary
+11
+

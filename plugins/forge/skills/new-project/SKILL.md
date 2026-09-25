@@ -22,7 +22,7 @@ Scaffolding a project has side effects (writes many files to disk), so this skil
    ```
    python3 "${CLAUDE_PLUGIN_ROOT}/skills/new-project/scripts/scaffold.py" <target-dir> --name "<name>"
    ```
-   Add `--git-init` only if the user asked for git to be initialised.
+   The script always leaves a git repository with one baseline commit of the scaffold (it runs `git init` if needed). The Stop hook's evidence gate diffs against that commit until the first green `forge verify`. Pass `--no-commit` only if the user explicitly refuses git.
 3. Report the script's output verbatim: files written, the `forge doctor --quick` summary, and the next-steps list.
 4. Tell the user explicitly that `.claude/settings.json` and `.mcp.json` were written with a strict default policy (deny/ask rules, sandbox baseline) and should be reviewed, not blindly trusted, before any fab/flash/release command runs in the new project.
 5. Do not start filling in `requirements/requirements.md`, `params/params.toml` or `model/system.sysml` unless the user asks -- scaffolding and requirements-gathering are separate steps (see `interviewing-stakeholders`, `writing-requirements`).

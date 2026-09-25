@@ -27,16 +27,14 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "lib"))
 
 from forge.checkresult import Check, CheckContractError  # noqa: E402
+from forge.tools import find_tool, forge_home  # noqa: E402
 
 MODEL_REL = Path("model")
 CHECK_ID = "systems.sysml_check"
 
 
 def _find_spec42() -> str | None:
-    home_bin = Path.home() / ".forge" / "bin" / "spec42"
-    if home_bin.exists():
-        return str(home_bin)
-    return shutil.which("spec42")
+    return find_tool("spec42")
 
 
 def _severity_name(sev: int) -> str:

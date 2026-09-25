@@ -44,7 +44,7 @@ or `out/verify/dfm.snap_fit.<name>.<part>.json` per check through
 ## How to run it
 
 ```
-~/.forge/bin/forge-python plugins/forge/skills/checking-dfm/scripts/verify.py \
+~/.forge/bin/forge-python ${CLAUDE_SKILL_DIR}/scripts/verify.py \
     --project <product-repo-root> [--changed cad/lid.py ...] [--fast]
 ```
 

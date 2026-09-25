@@ -29,13 +29,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "lib"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from forge.checkresult import Check, CheckContractError  # noqa: E402
+from forge.tools import find_tool, forge_home  # noqa: E402
 from render_pack import render_pack  # noqa: E402
 
 _SAFE = re.compile(r"[^a-z0-9_]+")
 # Real executable paths per platform (install.sh): the macOS cask, then the Linux tarball.
 BLENDER_REAL_PATHS = (
     Path("/Applications/Blender.app/Contents/MacOS/Blender"),
-    Path.home() / ".forge" / "opt" / "blender" / "blender",
+    forge_home() / "opt" / "blender" / "blender",
 )
 BLENDER_RENDER_PY = Path(__file__).resolve().parent / "blender_render.py"
 
@@ -51,10 +52,7 @@ def _resolve_blender() -> Path | None:
     for real in BLENDER_REAL_PATHS:
         if real.exists():
             return real
-    link = Path.home() / ".forge" / "bin" / "blender"
-    if link.exists():
-        return link.resolve()
-    found = shutil.which("blender")
+    found = find_tool("blender")  # $FORGE_HOME/bin/blender first, then PATH
     return Path(found).resolve() if found else None
 
 

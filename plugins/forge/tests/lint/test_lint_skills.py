@@ -249,3 +249,68 @@ def test_skill_dir_without_skill_md_FAILS(tmp_path):
     results = skills_lint.lint_skill_dir(d)
     assert len(results) == 1
     assert results[0].status == "fail"
+
+
+# --------------------------------------------------------------------------
+# review #1: interpreter grants must name one skill script; judge-facing
+# skills grant no interpreter at all
+# --------------------------------------------------------------------------
+
+import pytest  # noqa: E402
+
+
+@pytest.mark.parametrize("grant", [
+    "Bash(~/.forge/bin/forge-python *)",
+    "Bash(forge-python:*)",
+    "Bash(python3 *)",
+    "Bash(~/.forge/bin/forge-python ${CLAUDE_SKILL_DIR}/scripts/*)",
+    "Bash(~/.forge/bin/forge-python ${CLAUDE_SKILL_DIR}/scripts/*.py:*)",
+    "Bash(~/.forge/bin/forge-python -c *)",
+    "Bash(~/.forge/bin/forge-python /tmp/anything.py *)",
+])
+def test_broad_interpreter_grant_FAILS(tmp_path, grant):
+    write_skill(tmp_path, "checking-dfm", fields={"allowed-tools": ["Read", grant]})
+    r = _status(skills_lint.lint_skills_dir(tmp_path / "skills"), "skills.allowed_tools:checking-dfm")
+    assert r.status == "fail"
+    assert grant in r.measured
+
+
+@pytest.mark.parametrize("grant", [
+    "Bash(~/.forge/bin/forge-python ${CLAUDE_SKILL_DIR}/scripts/verify.py:*)",
+    "Bash(forge-python ${CLAUDE_SKILL_DIR}/scripts/verify.py *)",
+    "Bash(~/.forge/bin/forge-python ${CLAUDE_PLUGIN_ROOT}/skills/verifying-geometry/scripts/verify.py:*)",
+])
+def test_scoped_interpreter_grant_PASSES(tmp_path, grant):
+    write_skill(tmp_path, "checking-dfm", fields={"allowed-tools": ["Read", grant]})
+    r = _status(skills_lint.lint_skills_dir(tmp_path / "skills"), "skills.allowed_tools:checking-dfm")
+    assert r.status == "pass"
+
+
+def _judge_agent(tmp_path, skill):
+    agents = tmp_path / "agents"
+    agents.mkdir(exist_ok=True)
+    (agents / "red-team.md").write_text(f"---\nname: red-team\nskills:\n  - {skill}\n---\nbody\n")
+
+
+def test_judge_facing_skill_with_any_interpreter_FAILS(tmp_path):
+    _judge_agent(tmp_path, "reviewing-designs")
+    write_skill(tmp_path, "reviewing-designs", fields={"allowed-tools": [
+        "Read", "Bash(~/.forge/bin/forge-python ${CLAUDE_SKILL_DIR}/scripts/verify.py:*)"]})
+    r = _status(skills_lint.lint_skills_dir(tmp_path / "skills"), "skills.judge_no_interpreter:reviewing-designs")
+    assert r.status == "fail"
+
+
+def test_judge_facing_skill_without_interpreter_PASSES(tmp_path):
+    _judge_agent(tmp_path, "reviewing-designs")
+    write_skill(tmp_path, "reviewing-designs", fields={"allowed-tools": ["Read", "Bash(git log *)"]})
+    r = _status(skills_lint.lint_skills_dir(tmp_path / "skills"), "skills.judge_no_interpreter:reviewing-designs")
+    assert r.status == "pass"
+
+
+def test_real_plugin_skills_have_no_broad_interpreter_grant():
+    from pathlib import Path
+    plugin = Path(__file__).resolve().parents[2]
+    results = skills_lint.lint_skills_dir(plugin / "skills")
+    bad = [r for r in results if r.status == "fail"]
+    assert not bad, [(r.id, r.measured) for r in bad]
+    assert any(r.id == "skills.judge_no_interpreter:reviewing-designs" and r.status == "pass" for r in results)

@@ -2,7 +2,7 @@
 name: reviewing-designs
 description: Run a stage-gate review -- verification-evaluator, red-team and the relevant specialists, each in a fresh context -- and reconcile them into reviews/Gx.md with a blank human sign-off line. Use when asked to "review this for gate G<n>", "run the gate review", "is this ready for G2", or before any release. Never passes a gate itself, and never fills in a sign-off line -- only a human does that. Do not use this to build or fix a design -- that is the maker skills' job, not a reviewer's.
 context: fork
-allowed-tools: Read, Grep, Glob, Bash(git log *), Bash(git diff *), Bash(~/.forge/bin/forge-python *), Workflow
+allowed-tools: Read, Grep, Glob, Bash(git log *), Bash(git diff *), Workflow
 ---
 
 # Reviewing designs

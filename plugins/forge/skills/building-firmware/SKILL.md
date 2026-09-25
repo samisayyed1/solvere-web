@@ -1,7 +1,7 @@
 ---
 name: building-firmware
 description: Build firmware on the host with cc, run its unit tests through a tiny stdlib-only C test harness, static-analyze it with clang --analyze, check size/timing budgets from params, and cross-compile for the real target when the toolchain exists. Use when writing or editing firmware under firmware/, or when asked to "build the firmware", "add a driver/state machine", "write firmware tests", or "check the mutation coverage". Do NOT use for flashing or hardware-in-the-loop testing (see testing-on-hardware) or for the electrical design itself (see designing-circuits).
-allowed-tools: Read, Grep, Glob, Write, Edit, Bash(cc *), Bash(clang *), Bash(arm-none-eabi-gcc *), Bash(~/.forge/bin/forge-python *)
+allowed-tools: Read, Grep, Glob, Write, Edit, Bash(cc *), Bash(clang *), Bash(arm-none-eabi-gcc *), Bash(~/.forge/bin/forge-python ${CLAUDE_SKILL_DIR}/scripts/verify.py:*)
 ---
 
 # Building firmware
@@ -30,7 +30,7 @@ allowed-tools: Read, Grep, Glob, Write, Edit, Bash(cc *), Bash(clang *), Bash(ar
    [firmware.debounce]
    size_budget_bytes = 512
    ```
-4. **Run the check**: `~/.forge/bin/forge-python scripts/verify.py --project <root>` (or `forge verify` for the `fw` domain). Per module it: builds + runs tests on the host, static-analyzes with `clang --analyze`, checks the size budget (target build if the cross-compiler exists, else a clearly-labelled host proxy, or a clean SKIP), and runs the mutation check.
+4. **Run the check**: `~/.forge/bin/forge-python ${CLAUDE_SKILL_DIR}/scripts/verify.py --project <root>` (or `forge verify` for the `fw` domain). Per module it: builds + runs tests on the host, static-analyzes with `clang --analyze`, checks the size budget (target build if the cross-compiler exists, else a clearly-labelled host proxy, or a clean SKIP), and runs the mutation check.
 5. **A build or test failure's `remediation`** names the file and the failing assertion or compiler error — fix the code, not the check.
 6. **Cite the result** (`out/verify/firmware.<module>.json`) as evidence at level **L1** (host build) — target-build evidence is still L1 until it runs on real hardware (L4, via `testing-on-hardware`).
 

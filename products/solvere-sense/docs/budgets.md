@@ -10,7 +10,7 @@ Status: DRAFT, evidence level L0 (nothing measured). Every number comes from `pa
 | Kit, standby mode | 0.5 W | `sensor.power_standby` (DS p.6; A-007) |
 | Kit, activation mode | 0.8 W | `sensor.power_active` (DS p.6; A-007) |
 | Kit, with Grove relay | 1.4 W | `sensor.power_with_relay` (DS p.6) |
-| Other loads in the pod | none (no battery, no other board) | REQ-PWR-003; A-006, Q-01 |
+| Other loads in the pod | none (no battery, no other board; kit as-is, Owner round 2) | REQ-PWR-003; Q-01 closed |
 | **Pod cap** | **1.4 W** (REQ-PWR-005) | `power.pod_power_max` (A-008) |
 | Margin to supply | 5.0 W - 1.4 W = 3.6 W | computed |
 | Peak current | not sourced for the kit; must be at most 1 A (REQ-PWR-002) | measure, TP-PWR-002 |
@@ -24,13 +24,14 @@ All input power ends up as heat inside the enclosure.
 | Line | Value | Param / source |
 |---|---|---|
 | Heat to dissipate | 1.4 W | `power.pod_power_max` (A-008) |
-| Maximum room ambient | 35 °C | `env.ambient_max` (A-003, Q-09) |
+| Maximum ambient | 40 °C (ceilings run hotter than rooms in summer) | `env.ambient_max` (Owner round 2, Q-09) |
+| Ambient range checked against ratings | 0 °C to 40 °C lies inside radar module -20 °C to 85 °C (MDS p.4) and XIAO -40 °C to 85 °C (XIAO) | REQ-ENV-001 |
 | Kit maximum operating temperature | 85 °C | `sensor.kit_temp_max` (A-004; radar module MDS p.4, XIAO) |
-| Allowed rise, kit air over room | 85 °C - 35 °C = 50 K | `thermal.kit_rise_allowed` |
-| **Allowed thermal resistance, kit air to room** | **50 K / 1.4 W = 35.7 K/W** | `thermal.max_thermal_resistance` |
+| Allowed rise, kit air over ambient | 85 °C - 40 °C = 45 K | `thermal.kit_rise_allowed` |
+| **Allowed thermal resistance, kit air to ambient** | **45 K / 1.4 W = 32.1 K/W** | `thermal.max_thermal_resistance` |
 | Accessible surface temperature limit | set by a qualified human under IEC 62368-1 | REQ-SAFE-002; Q-17 |
 
-The enclosure geometry that meets 35.7 K/W is not estimated at G0 (no sourced convection data); it is checked by analysis at G1/G2 and by test (TP-ENV-002, TP-SAFE-002).
+The enclosure geometry that meets 32.1 K/W is not estimated at G0 (no sourced convection data); it is checked by analysis at G1/G2 and by test (TP-ENV-002, TP-SAFE-002).
 
 ## Mass
 
@@ -50,14 +51,18 @@ No mass is published for the kit (DS, MDS, Wiki and XIAO searched 2026-09-25), a
 | Sensor kit, DS price | 26.90 (excl. VAT, 2026-07-30) | `sensor.unit_price_ds` (DS p.1) |
 | Sensor kit, product page, 1 unit | 28.99 (2026-09-25) | `sensor.unit_price_web_qty1` (Web) |
 | Sensor kit, product page, 10+ | 28.99 (2026-09-25) | `sensor.unit_price_web_qty10` (Web) |
-| Printed parts, fixings, strain relief | not sourced | `bom/bom.csv` with dated quotes (REQ-COST-003) |
-| USB cable, adapter, raceway | not sourced; in scope only if they ship in the box | Q-13, A-009 |
+| Printed parts (base plate, shell, radome, light pipe, T-bar clip), strain relief | to be quoted | `bom/bom.csv` with dated quotes (REQ-COST-003) |
+| Fixings (screws, drywall anchors, concrete plugs) | to be quoted; in the BOM scope per Owner round 2 although not in the box (Q-19) | Q-10 closed |
+| USB-C cable, adapter, raceway | outside the US$30 scope (pod only, Owner round 2); in-box decision open; see cost note below | Q-13, A-009 |
 | **Prototype ceiling** | **50.00** | `cost.prototype_max` (Owner) |
 | Prototype room after the kit | 50.00 - 28.99 = 21.01 | computed |
-| **Production BOM ceiling** | **30.00** | `cost.production_bom_max` (Owner; A-016) |
+| **Production BOM ceiling** | **30.00**, pod only (shell, kit, fixings) at 10+ unit pricing | `cost.production_bom_max` (Owner; Owner round 2, Q-10) |
 | Production room after the kit | 30.00 - 28.99 = 1.01 | computed; R-002 |
+| **Real production BOM (reported per Owner round 2)** | **at least 28.99 + printed parts + fixings**; the printed parts and fixings are not yet quoted, so the total is not known. With the kit at US$28.99 the target holds only if everything else costs at most US$1.01 | R-002 |
 
-The production line is at risk (R-002): with the kit bought at the only published tier, US$1.01 is left for everything else. The owner's volume tier and BOM scope (Q-10) decide whether a volume quote or a custom board is needed.
+The production line is likely unreachable (R-002): with the kit bought at the only published tier (10+), US$1.01 is left for everything else. The owner chose "kit as-is" (Q-01), so the only levers are a Seeed volume quote (asked in `docs/seeed-questions-draft.md`) or a later change to the architecture.
+
+**Cost note, in-box cable (open product decision, Q-13).** A pod mounted at 2.2 m to 3.0 m needs a USB-C cable long enough to run down the wall to a socket, plus an adhesive raceway (Owner round 2). No price is sourced for a long USB-C cable, a raceway kit or a wall adapter, so each is a to-be-quoted line (A-009). They sit outside the US$30 pod-only BOM either way; if they ship in the box they add to the unit cost and packaging, and the cable must then also pass TP-PWR-004 (C-to-C start-up).
 
 ## RF / radome
 

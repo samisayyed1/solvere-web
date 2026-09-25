@@ -33,10 +33,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "lib"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from forge.checkresult import Check, CheckContractError  # noqa: E402
+from forge.tools import find_tool, forge_home  # noqa: E402
 import mesh_and_solve as m  # noqa: E402
 
 _SAFE = re.compile(r"[^a-z0-9_]+")
-DEFAULT_CCX = Path.home() / ".forge" / "bin" / "ccx"
+DEFAULT_CCX = Path(find_tool("ccx") or forge_home() / "bin" / "ccx")
 
 
 def _safe_name(name: str) -> str:

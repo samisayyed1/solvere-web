@@ -2,7 +2,7 @@
 name: releasing-designs
 description: Build a versioned release bundle (STEP/STL/drawings, Gerbers/drill/pos, BOM, firmware binaries with sha256, test reports, evidence manifest, changelog, git SHA) under release/<version>/. Use only when explicitly asked to "release", "cut a release", "build the release bundle", or "package for fab/production" -- never fires on its own. Refuses unless release/APPROVAL.toml matches HEAD and the target gate has a filled human sign-off. Do not use this to design, review or actually place a fab/vendor order -- it only assembles files a human has already approved.
 disable-model-invocation: true
-allowed-tools: Read, Grep, Glob, Bash(kicad-cli *), Bash(git rev-parse *), Bash(git describe *), Bash(~/.forge/bin/forge-python *)
+allowed-tools: Read, Grep, Glob, Bash(kicad-cli *), Bash(git rev-parse *), Bash(git describe *), Bash(~/.forge/bin/forge-python ${CLAUDE_SKILL_DIR}/scripts/release.py:*)
 ---
 
 # Releasing designs
@@ -21,7 +21,7 @@ allowed-tools: Read, Grep, Glob, Bash(kicad-cli *), Bash(git rev-parse *), Bash(
    - filled the target gate's sign-off in `reviews/<gate>.md` with `Decision: PASS`;
    - written `release/APPROVAL.toml` (`approved_by`, `date`, `git_sha` = current HEAD, `scope`, `gate`).
    If either is missing, say so and stop — do not attempt the release.
-2. Run: `~/.forge/bin/forge-python scripts/release.py --project <root> [--version <v>]`. It:
+2. Run: `~/.forge/bin/forge-python ${CLAUDE_SKILL_DIR}/scripts/release.py --project <root> [--version <v>]`. It:
    - re-validates the approval and sign-off itself (never trust that step 1's check is still true — the repo may have changed);
    - builds `release/<version>/` with whatever's ready: CAD (from `out/cad/`), ECAD fab outputs (`kicad-cli pcb export gerbers/drill/pos` per `ecad/*.kicad_pcb`), BOM (`bom/`), firmware binaries with a `SHA256SUMS` file (from `out/verify/fw_build/`), test reports and the evidence manifest, a changelog if one exists, and `GIT_SHA.txt`;
    - writes `RELEASE-MANIFEST.json` recording exactly what was included vs. skipped and why.

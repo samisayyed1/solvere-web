@@ -9,8 +9,10 @@
 # copies with sha256 in docs/sources/README.md, all fetched 2026-09-25):
 #   Owner = docs/intake/G0-owner-answers.md (2026-09-25, L0). Owner values are
 #           requirements, not datasheet values, so they carry status "assumed".
+#   Owner round 2 = docs/intake/G0-owner-answers-2.md (2026-09-25, L0 owner decision)
+#   ARSDG = Apple Rubber Seal Design Guide, docs/sources/apple-rubber-seal-design-guide.pdf
 #   DS    = Seeed MR60FDA2 kit industrial product datasheet, SKU 114993388, 8 pp., updated 2026-07-30
-#   MDS   = Seeed MR60FDA2 fall detection module technical specification, Beta V1.0, 2024-03-05, 12 pp.
+#   MDS   = Seeed MR60FDA2 module technical specification, Beta V1.0, 2024-03-05, 12 pp.
 #   Wiki  = wiki.seeedstudio.com/getting_started_with_mr60fda2_mmwave_kit/ (last updated 2024-08-19)
 #   XIAO  = wiki.seeedstudio.com/xiao_esp32c6_getting_started/ (last updated 2024-08-05)
 #   FDA1  = wiki.seeedstudio.com/Radar_MR60FDA1/ (sibling module; assumptions only)
@@ -20,8 +22,10 @@
 # G0 draft: no value here is measured or verified yet.
 # Deliberately absent until G1/G2: enclosure wall thickness (bounded by
 # mfg.fdm.min_wall; chosen at G1), radome thickness (needs er at 60 GHz from the
-# TP-SYS-002 coupon test), gasket groove geometry (Q-08), fixing sizes (Q-05),
-# T-bar grid widths (Q-07), every mass (nothing sourced; weigh the kit at G1).
+# TP-SYS-002 coupon test), O-ring cord cross-section and groove dimensions (chosen
+# at G1 from ARSDG Table A, REQ-MECH-017), fixing sizes (Forge proposes at G1),
+# every mass (nothing sourced; weigh the kit at G1), and the retention safety
+# factor (due before G2, REQ-MECH-015), minimum pod spacing (from TP-SYS-003).
 
 # --- mounting and coverage ----------------------------------------------------
 
@@ -45,7 +49,7 @@ evidence = []
 value = 3.0
 unit = "m"
 status = "assumed"
-source = "Owner: about 3 x 3 m per pod (square side). DS p.2/p.3/p.6: fall detection 3x3x3 meter range. Conflicts with sensor.sensing_radius_max at the corners (half-diagonal 2.12 m) -- A-011, Q-11, R-003"
+source = "Owner: about 3 x 3 m per pod (square side); Owner round 2 (Q-11): keep 3 x 3 m, 2 m radius fallback. DS p.2/p.3/p.6: fall range 3x3x3 meter. Conflicts with sensor.sensing_radius_max at the corners (half-diagonal 2.12 m) -- R-003"
 verified_by = ""
 evidence = []
 
@@ -53,7 +57,7 @@ evidence = []
 value = 4.0
 unit = "1"
 status = "assumed"
-source = "A-001: static pull-test load as a multiple of installed weight (REQ-MECH-004/-005). No sourced value in Forge R5 files; the qualified human named under Q-17 replaces it"
+source = "A-001 PLACEHOLDER, valid through G0 only (Owner round 2): static pull-test load as a multiple of installed weight (REQ-MECH-004/-005). No sourced value; replaced before G2 by measured weight x a sourced safety factor (REQ-MECH-015)"
 verified_by = ""
 evidence = []
 
@@ -61,7 +65,7 @@ evidence = []
 value = 60
 unit = "s"
 status = "assumed"
-source = "A-001: hold time for the static pull tests REQ-MECH-004/-005 (Q-17)"
+source = "A-001 PLACEHOLDER through G0 only: hold time for the static pull tests REQ-MECH-004/-005; replaced before G2 (REQ-MECH-015)"
 verified_by = ""
 evidence = []
 
@@ -127,7 +131,7 @@ evidence = []
 value = 3.0
 unit = "m"
 status = "datasheet"
-source = "DS p.2, p.3 and p.6: fall detection 3x3x3 meter range (DS p.3: tested in empty deployment environments)"
+source = "DS p.2, p.3 and p.6: fall range 3x3x3 meter (DS p.3: tested in empty deployment environments)"
 verified_by = ""
 evidence = []
 
@@ -135,7 +139,7 @@ evidence = []
 value = 2.0
 unit = "m"
 status = "datasheet"
-source = "Wiki 'Installation method and sensing range': maximum sensing radius 2m; MDS p.3/p.4 s4.1: fall detection radius 2 m; MDS p.10 s6.4"
+source = "Wiki 'Installation method and sensing range': maximum sensing radius 2m; MDS p.3/p.4 s4.1: fall radius 2 m; MDS p.10 s6.4"
 verified_by = ""
 evidence = []
 
@@ -363,7 +367,7 @@ evidence = []
 value = 1.4
 unit = "W"
 status = "assumed"
-source = "A-008: budget cap = sensor.power_with_relay (DS p.6); no load other than the kit (A-006, Q-01)"
+source = "A-008: budget cap = sensor.power_with_relay (DS p.6); no load other than the kit (Owner round 2, Q-01: kit as-is)"
 verified_by = ""
 evidence = []
 
@@ -373,31 +377,99 @@ evidence = []
 value = 0
 unit = "degC"
 status = "assumed"
-source = "A-003: v1 bedroom/living room; owner gave no range (Q-09)"
+source = "Owner round 2 (Q-09): 0-40 degC ambient (owner requirement). Inside MDS p.4 radar module -20..85 degC and XIAO -40..85 degC"
 verified_by = ""
 evidence = []
 
 [env.ambient_max]
-value = 35
+value = 40
 unit = "degC"
 status = "assumed"
-source = "A-003: v1 bedroom/living room; owner gave no range (Q-09)"
+source = "Owner round 2 (Q-09): 0-40 degC ambient, 'ceilings run hotter than rooms in summer' (owner requirement). Inside MDS p.4 radar module max 85 degC and XIAO max 85 degC"
 verified_by = ""
 evidence = []
 
 [thermal.kit_rise_allowed]
-value = 50
+value = 45
 unit = "K"
 status = "assumed"
-source = "Computed: sensor.kit_temp_max (85 degC, A-004) - env.ambient_max (35 degC, A-003). Inherits both assumptions"
+source = "Computed: sensor.kit_temp_max (85 degC, A-004) - env.ambient_max (40 degC, Owner round 2). Inherits A-004"
 verified_by = ""
 evidence = []
 
 [thermal.max_thermal_resistance]
-value = 35.7
+value = 32.1
 unit = "K/W"
 status = "assumed"
-source = "Computed: thermal.kit_rise_allowed 50 K / power.pod_power_max 1.4 W = 35.7 K/W, kit-air to room ambient (docs/budgets.md). Inherits A-003, A-004, A-008"
+source = "Computed: thermal.kit_rise_allowed 45 K / power.pod_power_max 1.4 W = 32.1 K/W, kit-air to room ambient (docs/budgets.md). Inherits A-004, A-008"
+verified_by = ""
+evidence = []
+
+# --- mounting options (Owner round 2) ---------------------------------------------
+
+[tbar.grid_width_narrow]
+value = 15
+unit = "mm"
+status = "assumed"
+source = "Owner round 2 (Q-07): 15 mm and 24 mm grids (owner requirement)"
+verified_by = ""
+evidence = []
+
+[tbar.grid_width_wide]
+value = 24
+unit = "mm"
+status = "assumed"
+source = "Owner round 2 (Q-07): 15 mm and 24 mm grids (owner requirement)"
+verified_by = ""
+evidence = []
+
+[pods.max_per_room]
+value = 2
+unit = "1"
+status = "assumed"
+source = "Owner round 2 (Q-12): support up to 2 pods per room (owner requirement); spacing from TP-SYS-003"
+verified_by = ""
+evidence = []
+
+# --- bathroom gasket (Owner round 2; ARSDG) ------------------------------------------
+
+[gasket.ip_code]
+value = "IPX4"
+unit = "1"
+status = "assumed"
+source = "Owner round 2 (Q-08): IPX4 (owner requirement, bathroom variant; REQ-MECH-018)"
+verified_by = ""
+evidence = []
+
+[gasket.type]
+value = "O-ring cord"
+unit = "1"
+status = "assumed"
+source = "Owner round 2 (Q-08): O-ring cord gasket (owner requirement)"
+verified_by = ""
+evidence = []
+
+[gasket.static_squeeze_min]
+value = 10
+unit = "%"
+status = "datasheet"
+source = "ARSDG p.113 (rules of thumb, citing Section 5 p.60): static seal cross sections are generally compressed from 10% to 40%. Per-size ranges in ARSDG Table A p.20 govern (REQ-MECH-017)"
+verified_by = ""
+evidence = []
+
+[gasket.static_squeeze_max]
+value = 40
+unit = "%"
+status = "datasheet"
+source = "ARSDG p.113: static seals 10% to 40% compression"
+verified_by = ""
+evidence = []
+
+[gasket.corner_radius_factor]
+value = 3
+unit = "1"
+status = "datasheet"
+source = "ARSDG p.90: in a non-round face groove the inside corner radius should not be less than 3x the O-ring cross-section"
 verified_by = ""
 evidence = []
 
@@ -407,7 +479,7 @@ evidence = []
 value = "matte warm white"
 unit = "1"
 status = "assumed"
-source = "Owner: matte warm white; exact reference open (A-015, Q-04). No metallic pigment (REQ-MECH-010)"
+source = "Owner: matte warm white; Owner round 2 (Q-04): colour matched at the demo stage. No metallic pigment (REQ-MECH-010)"
 verified_by = ""
 evidence = []
 
@@ -507,6 +579,6 @@ evidence = []
 value = 30.0
 unit = "USD"
 status = "assumed"
-source = "Owner requirement (L0, not a datasheet value): production BOM <= US$30. Volume tier and scope (cable, adapter, raceway, packaging) open, A-016, Q-10"
+source = "Owner requirement (L0): production BOM <= US$30. Owner round 2 (Q-10): pod only (shell, kit, fixings) at 10+ unit pricing. Likely unreachable: kit alone US$28.99 at 10+ (R-002)"
 verified_by = ""
 evidence = []

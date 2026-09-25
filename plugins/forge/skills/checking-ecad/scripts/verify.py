@@ -47,6 +47,7 @@ from typing import Any
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "lib"))
 
 from forge.checkresult import Check  # noqa: E402
+from forge.tools import find_tool  # noqa: E402
 
 try:
     import tomllib
@@ -356,8 +357,8 @@ def main(argv: list[str]) -> int:
         print(f"[SKIP] no ecad/*.kicad_sch or *.kicad_pcb{suffix}")
         return 0
 
-    kicad_cli = shutil.which("kicad-cli") or str(Path.home() / ".forge" / "bin" / "kicad-cli")
-    if not Path(kicad_cli).exists() and not shutil.which("kicad-cli"):
+    kicad_cli = find_tool("kicad-cli")
+    if not kicad_cli:
         print("[ERROR] kicad-cli not found; run plugins/forge/toolchain/install.sh elec "
               "(brew install --cask kicad)", file=sys.stderr)
         return 2

@@ -33,7 +33,9 @@ from _common import find_project_root, load_forge_toml, any_glob_match, truncate
 PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 TOTAL_BUDGET_S = 30.0
 SUMMARY_MAX_CHARS = 1500
-FORGE_PYTHON = Path.home() / ".forge" / "bin" / "forge-python"
+from forge.tools import forge_bin  # noqa: E402
+
+FORGE_PYTHON = forge_bin() / "forge-python"  # honours $FORGE_HOME
 
 
 def _rel_path(project: Path, file_path: str) -> str | None:

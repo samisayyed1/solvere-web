@@ -9,7 +9,7 @@ Numbers here come from the requirements and `params/params.toml`; see those for 
 - Requirement: REQ-SYS-001
 - Method: test
 - Planned by: G3/G4
-- Procedure and pass criterion: Mount pod at 2.2 m and at 3.0 m. Stage a fall with a test person or fall dummy at each corner and at the centre of a 3.0 m x 3.0 m square centred below the pod. Pass: a fall event is reported for every position at both heights. Protocol (repeats, dummy, room furnishing) to be agreed with the owner.
+- Procedure and pass criterion: Mount pod at 2.2 m and at 3.0 m. Stage a fall with a test person or fall dummy at each corner and at the centre of a 3.0 m x 3.0 m square centred below the pod, one person in the room. Pass: the fall-event output is set for every position at both heights. If a corner fails, repeat on a 2 m radius circle (Owner round 2 fallback). Protocol (repeats, dummy, room furnishing) to be agreed with the owner.
 
 ## TP-SYS-002
 
@@ -17,6 +17,14 @@ Numbers here come from the requirements and `params/params.toml`; see those for 
 - Method: test
 - Planned by: G2/G3
 - Procedure and pass criterion: A/B test: bare MR60FDA2 kit vs the kit inside the assembled pod (FDM PETG, then demo material). Same room, same test points on a grid out to 6 m. Pass: the pod reports presence at every point where the bare kit does. Before G2, run the same A/B on flat radome coupons of each candidate material at thicknesses N x c/(2 f sqrt(er)) (MDS §8), to find er and the best N; this sets `radome.thickness` (REQ-MECH-013).
+
+
+## TP-SYS-003
+
+- Requirement: REQ-SYS-003
+- Method: test
+- Planned by: G3
+- Procedure and pass criterion: Install two pods in one room at 2.2 m and 3.0 m heights, at a series of spacings. At each spacing, run the TP-SYS-001 fall points and the TP-SYS-002 presence points with the second pod on and then off. Also log false fall events over the same session with nobody falling. Pass: identical fall-event and presence outputs, on and off, at every point; the smallest spacing that passes becomes the minimum spacing in the instructions (REQ-MNT-006).
 
 ## TP-MECH-001
 
@@ -37,21 +45,21 @@ Numbers here come from the requirements and `params/params.toml`; see those for 
 - Requirement: REQ-MECH-003
 - Method: demo
 - Planned by: G3
-- Procedure and pass criterion: Clip the T-bar adapter to a drop-ceiling grid sample of each width the owner names (Q-07). Pass: pod held, tile not drilled or cut.
+- Procedure and pass criterion: Clip the T-bar adapter to a 15 mm and a 24 mm drop-ceiling grid sample. Pass: pod held, tile not drilled or cut.
 
 ## TP-MECH-004
 
 - Requirement: REQ-MECH-004
 - Method: test
 - Planned by: G3
-- Procedure and pass criterion: Weigh the installed pod (g). Apply a static downward pull of 4 x that weight to the installed pod for 60 s on drywall, concrete and T-bar samples. Pass: no detachment. Load factor and hold time per A-001 until the qualified human (Q-17) sets them.
+- Procedure and pass criterion: Weigh the installed pod (g). Apply a static downward pull of 4 x that weight to the installed pod for 60 s on drywall, concrete and T-bar samples. Pass: no detachment. Load factor and hold time per placeholder A-001 at G0; from G2 the load per REQ-MECH-015.
 
 ## TP-MECH-005
 
 - Requirement: REQ-MECH-005
 - Method: test
 - Planned by: G3
-- Procedure and pass criterion: Weigh shell plus sensor kit. Apply 4 x that weight downward on the shell for 60 s. Pass: shell stays attached.
+- Procedure and pass criterion: Weigh shell plus sensor kit. Apply 4 x that weight (placeholder A-001; REQ-MECH-015 from G2) downward on the shell for 60 s. Pass: shell stays attached.
 
 ## TP-MECH-006
 
@@ -93,7 +101,7 @@ Numbers here come from the requirements and `params/params.toml`; see those for 
 - Requirement: REQ-MECH-011
 - Method: test
 - Planned by: G3
-- Procedure and pass criterion: Pull the USB cable at the raceway exit with the load set by the qualified human (Q-17) while monitoring power at the kit. Pass: no disconnection, no movement at the connector.
+- Procedure and pass criterion: Pull the USB cable at the raceway exit with the load set under REQ-MECH-015 while monitoring power at the kit. Pass: no disconnection, no movement at the connector.
 
 ## TP-MECH-012
 
@@ -115,6 +123,35 @@ Numbers here come from the requirements and `params/params.toml`; see those for 
 - Method: inspection
 - Planned by: G2/G3
 - Procedure and pass criterion: Measure antenna face to radome inner surface in CAD and on a printed assembly. Pass: an integer multiple of 2.5 mm (MDS p.12) within the tolerance set at G2.
+
+
+## TP-MECH-015
+
+- Requirement: REQ-MECH-015
+- Method: inspection
+- Planned by: before G2 (G2 entry)
+- Procedure and pass criterion: Check `params/params.toml`: retention loads for REQ-MECH-004, -005 and -011 are computed from measured weights times a safety factor, and the safety factor param has a value and a cited source (standard clause or named qualified human). Pass: all three present and sourced.
+
+## TP-MECH-016
+
+- Requirement: REQ-MECH-016
+- Method: demo
+- Planned by: G3
+- Procedure and pass criterion: Fit and remove the pod on the base plate by hand 10 times on each ceiling type, with the USB cable connected. Pass: removal and refit by hand with no tool; cable and connector undamaged; REQ-MECH-005 still passes afterwards.
+
+## TP-MECH-017
+
+- Requirement: REQ-MECH-017
+- Method: analysis
+- Planned by: G2
+- Procedure and pass criterion: Compare the CAD groove against ARSDG Table A (PDF p.20) for the chosen cord cross-section: gland depth, groove width and squeeze range; check corner radius at least 3 x cross-section if the groove is non-round (ARSDG p.90) and gland volume above O-ring volume at worst-case tolerances (ARSDG p.113). Pass: all within the guide.
+
+## TP-MECH-018
+
+- Requirement: REQ-MECH-018
+- Method: test
+- Planned by: bathroom variant (post-v1)
+- Procedure and pass criterion: IPX4 test on an assembled bathroom-variant pod with gasket and cable fitted, by a lab using the test method a qualified human confirms. Pass: IPX4 met.
 
 ## TP-PWR-001
 
@@ -163,14 +200,14 @@ Numbers here come from the requirements and `params/params.toml`; see those for 
 - Requirement: REQ-ENV-001
 - Method: test
 - Planned by: G3
-- Procedure and pass criterion: Run the pod in a climate chamber at 0 C and at 35 C for 2 h each. Pass: presence reporting works at both.
+- Procedure and pass criterion: Run the pod in a climate chamber at 0 C and at 40 C for 2 h each. Pass: presence and fall-event outputs work at both.
 
 ## TP-ENV-002
 
 - Requirement: REQ-ENV-002
 - Method: test
 - Planned by: G1/G3
-- Procedure and pass criterion: Draft analysis in docs/budgets.md (G0). Test: pod at 35 C ambient, active mode, thermocouple at the kit, until stable. Pass: at or below the kit rated maximum, 85 C per A-004 until Seeed confirms (Q-18).
+- Procedure and pass criterion: Draft analysis in docs/budgets.md (G0). Test: pod at 40 C ambient, active mode, thermocouple at the kit, until stable. Pass: at or below the kit rated maximum, 85 C per A-004 until Seeed confirms.
 
 ## TP-SAFE-001
 
@@ -184,7 +221,7 @@ Numbers here come from the requirements and `params/params.toml`; see those for 
 - Requirement: REQ-SAFE-002
 - Method: test
 - Planned by: G3
-- Procedure and pass criterion: Measure outer surface temperatures at 35 C ambient, active mode, until stable. Pass: at or below the limit set by a qualified human.
+- Procedure and pass criterion: Measure outer surface temperatures at 40 C ambient, active mode, until stable. Pass: at or below the limit set by a qualified human.
 
 ## TP-SAFE-003
 
@@ -192,6 +229,14 @@ Numbers here come from the requirements and `params/params.toml`; see those for 
 - Method: inspection
 - Planned by: G4
 - Procedure and pass criterion: Claims review by safety-compliance-engineer of label, packaging, instructions and marketing text before release.
+
+
+## TP-SAFE-004
+
+- Requirement: REQ-SAFE-004
+- Method: inspection
+- Planned by: G3 (firmware entity names), G4 (all text)
+- Procedure and pass criterion: Search every user-facing text, including ESPHome / Home Assistant entity and device names, for the deny-list terms in `compliance/claims-wording.md`. Pass: no hit.
 
 ## TP-EMC-001
 
@@ -249,6 +294,28 @@ Numbers here come from the requirements and `params/params.toml`; see those for 
 - Planned by: G3
 - Procedure and pass criterion: Inspect the firmware build and two production units: no shared default password.
 
+
+## TP-FW-004
+
+- Requirement: REQ-FW-004
+- Method: test
+- Planned by: G3
+- Procedure and pass criterion: Run the pod through boot into normal operation with no fault for 1 h; observe the light pipe and read the LED state from the firmware. Pass: LED off throughout after setup ends.
+
+## TP-FW-005
+
+- Requirement: REQ-FW-005
+- Method: test
+- Planned by: G3
+- Procedure and pass criterion: Enter setup mode, pairing mode and each injected fault state (for example Wi-Fi loss, radar UART loss) with the LED enabled. Pass: LED lit in each state and off again when the state ends.
+
+## TP-FW-006
+
+- Requirement: REQ-FW-006
+- Method: test
+- Planned by: G3
+- Procedure and pass criterion: Disable the LED in settings; repeat TP-FW-004 and TP-FW-005. Pass: LED off in every state.
+
 ## TP-UX-001
 
 - Requirement: REQ-UX-001
@@ -269,6 +336,28 @@ Numbers here come from the requirements and `params/params.toml`; see those for 
 - Method: inspection
 - Planned by: G4
 - Procedure and pass criterion: Review the instructions text.
+
+
+## TP-UX-004
+
+- Requirement: REQ-UX-004
+- Method: inspection
+- Planned by: G3
+- Procedure and pass criterion: Inspect the assembled pod: light pipe flush with the shell surface (feel and straight-edge), same matte warm white as the shell; confirm the light-pipe part prints with no supports on its show face (TP-MFG-001) and adds no visible screw (TP-UX-002).
+
+## TP-UX-005
+
+- Requirement: REQ-UX-005
+- Method: inspection
+- Planned by: G2/G3
+- Procedure and pass criterion: Inspect CAD and the printed shell: no light-sensor window and no reset pinhole on the room-facing side.
+
+## TP-UX-006
+
+- Requirement: REQ-UX-006
+- Method: demo
+- Planned by: G3
+- Procedure and pass criterion: Twist the pod off the base plate and press the kit reset button with a finger. Pass: reached and pressed with no tool.
 
 ## TP-MNT-001
 
@@ -303,7 +392,15 @@ Numbers here come from the requirements and `params/params.toml`; see those for 
 - Requirement: REQ-MNT-005
 - Method: inspection
 - Planned by: G4
-- Procedure and pass criterion: Review the instructions text. Pass: the number of people for which fall detection is specified is stated and matches the tested configuration of TP-SYS-001.
+- Procedure and pass criterion: Review the instructions text. Pass: it states that the fall-event output is specified for one person, matching the TP-SYS-001 configuration.
+
+
+## TP-MNT-006
+
+- Requirement: REQ-MNT-006
+- Method: inspection
+- Planned by: G4
+- Procedure and pass criterion: Review the instructions text. Pass: states at most two pods per room and the minimum spacing found in TP-SYS-003.
 
 ## TP-MFG-001
 
@@ -366,7 +463,7 @@ Numbers here come from the requirements and `params/params.toml`; see those for 
 - Requirement: REQ-COST-002
 - Method: analysis
 - Planned by: G5
-- Procedure and pass criterion: costing-bom roll-up at the production volume tier (Q-10).
+- Procedure and pass criterion: costing-bom roll-up of shell parts, kit and fixings at 10+ unit pricing (Owner round 2).
 
 ## TP-COST-003
 

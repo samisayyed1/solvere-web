@@ -46,7 +46,13 @@ verified_by = ""              # human name, required when status = "verified"
 evidence = []                 # evidence entry ids, required when status = "verified"
 ```
 
-- Changing a `verified` value requires a sourced justification (`--justification "…"` via `forge params set`), and the PreToolUse hook blocks direct edits.
+- **Changing a value** (`value`, `unit` or `tol`) of an existing param goes through `forge params set <key> --value … --source "<citation>"`:
+  - The new value always needs a new `--source` citation of at least 10 characters. It must differ from the old source, which described the old value.
+  - On a `verified` param the change also needs `--justification "…"`. The param then drops to `status = "measured"`, and `verified_by` and `evidence` are cleared.
+  - Setting `--status verified`, `--verified-by` or `--evidence` in the same call is refused.
+  - Re-verification is a separate `set --status verified --verified-by <human> --evidence EV-…`, and it must cite passing, VERIFIED manifest entries.
+  - Every value change is appended to `params/CHANGELOG.md`, and `set` edits the leaf in place, so file comments survive.
+- **Enforcement:** the PreToolUse hook blocks direct edits to verified leaves, and it blocks every shell write to `params/params.toml`. The Stop hook re-checks the file against the last green commit, however it was changed. A verified value that changed must have been demoted and logged in `params/CHANGELOG.md`.
 - Units must be explicit. Unitless values use `unit = "1"`.
 
 ## 3. Check result (`schemas/check-result.schema.json`)
@@ -68,8 +74,32 @@ evidence = []                 # evidence entry ids, required when status = "veri
 
 ## 4. Evidence manifest (`evidence/manifest.json`, `schemas/evidence.schema.json`)
 
-- It is append-only, written through `lib/forge/evidence.py` (`forge evidence add …`).
-- Each entry records: `id` (EV-0001…), `artifact`, `domain` (mech|elec|fw|sw|sys|sim|mfg|compliance), `claim`, `check_ids[]`, `result` (pass|fail), `level` (L0–L5), `evidence_files[]`, `inputs_sha256`, `tool_versions{}`, `git_sha`, `model`, `timestamp`, and `status` (VERIFIED|UNVERIFIED).
+- It is append-only, written only through `lib/forge/evidence.py`. The PreToolUse hook denies every tool and shell write to `evidence/`.
+- Each entry records: `id` (EV-0001…), `artifact`, `domain` (mech|elec|fw|sw|sys|sim|mfg|compliance|docs), `claim`, `check_ids[]`, `result` (pass|fail), `level` (L0–L5), `evidence_files[]`, `inputs_sha256`, `tool_versions{}`, `git_sha`, `model`, `timestamp`, and `status` (VERIFIED|UNVERIFIED).
+- **Two kinds of entry.** Claims (`forge evidence add|from-checks`) are records for traceability and gate records. They never satisfy the Stop gate. Verify-run entries are written only by `forge verify` (`evidence.add_verify_entry`), one per (domain, entrypoint) run. They also carry:
+
+  | Field | Contents |
+  |---|---|
+  | `recorded_by` | `"forge verify"` |
+  | `entrypoint` | The skill name |
+  | `returncode` | The entrypoint's exit code |
+  | `mode` | `full` or `fast` |
+  | `scope` | The `--changed` paths, or `null` for a full run |
+  | `rung` | The ladder rung |
+  | `evidence_sha256` | `{result file: sha256}` of every `forge.check/1` file the run wrote |
+
+  - `inputs_sha256` is the digest of every project file the domain's `forge.toml` globs cover, taken at the time of the run.
+  - A verify-run entry is `pass` only if the exit code was 0 and every check it wrote passed.
+  - An exit of 2 or an `error` check makes it UNVERIFIED.
+  - An exit-0 run that wrote no check file is recorded as `[SKIP]` in `notes`.
+- **Binding rules (the Stop gate).** For each (domain, entrypoint) whose `forge.toml` paths cover a file changed since the domain's base, the newest verify-run entry (manifest order; pass or fail) must meet all of these:
+  - it is `pass` and VERIFIED;
+  - it comes from a `full` run;
+  - its timestamp is not in the future (120 s clock-skew allowance);
+  - its `scope` is null or covers every changed file;
+  - every evidence file exists, parses as `forge.check/1`, has status `pass`, a `check_id` listed in the entry, a hash equal to its `evidence_sha256`, a `started` time not in the future, and an mtime no older than the change;
+  - `inputs_sha256` equals the digest of the domain's files now.
+- **The base** is the domain's last-green SHA from `.forge/state.json`. `forge verify --all` sets it for each domain whose every entrypoint passed, and it is trusted only when passing verify entries recorded on that SHA vouch for it. Otherwise the base is the commit that added `forge.toml`, so committing a change never hides it.
 
 | Level | Meaning |
 |---|---|
@@ -116,8 +146,12 @@ evidence = []                 # evidence entry ids, required when status = "veri
 
 ## 8. Hooks
 
-- **Scripts:** Python 3 standard library only, invoked as `python3 "${CLAUDE_PLUGIN_ROOT}/hooks/<name>.py"` through the `_failclosed.py` wrapper.
-- **Failure:** any exception exits 2 with a reason.
+- **Scripts:** Python 3 standard library only, needing Python ≥ 3.11 (`tomllib`).
+  - `hooks.json` runs every hook as `python3 "${CLAUDE_PLUGIN_ROOT}/hooks/_failclosed.py" <hook_module>` (exec form, `args`).
+  - The wrapper imports the hook module inside its fail-closed `try`, so an import-time failure also exits 2, where a direct `python3 hook.py` would exit 1 and fail open. That includes a missing `tomllib` on an older Python.
+  - Hook modules still run directly for tests and debugging; `_common` exits 2 itself when `tomllib` is missing.
+- **Failure:** any exception, an unparseable `forge.toml`, a Python older than 3.11, or any exit code other than 0 or 2 all exit 2 with a reason.
+- **Self-check:** SessionStart verifies that every script and module `hooks.json` names exists and is executable, and prints `FORGE HOOK SELF-CHECK FAILED …` first if not.
 - **Timeouts:** every hook sets a timeout. PreToolUse runs in ≤ 1 s, and PostToolUse checks in ≤ 30 s.
 - **Identity:** `agent_type` values for Forge agents look like `forge:<name>`.
 - **Tests:** every hook has fixture tests in `tests/hooks/` that pipe JSON to stdin and assert the exit code and output. That includes a sabotaged input that must block.
@@ -150,6 +184,8 @@ evidence = []                 # evidence entry ids, required when status = "veri
 | elec | `checking-ecad/scripts/verify.py` (ERC/DRC/fab DFM) |
 | fw | `building-firmware/scripts/verify.py` |
 | docs | `gardening-docs/scripts/verify.py` (links) |
+| mfg | `costing-bom/scripts/verify.py` (BOM roll-up, `bom/**`); `checking-dfm` also runs for `mfg/**` |
+| compliance | `mapping-compliance/scripts/verify.py` (standards map) |
 
 **`forge.toml`** at the product-repo root maps paths to entrypoints and rungs:
 
@@ -164,14 +200,20 @@ entrypoints = ["verifying-geometry", "checking-dfm", "stacking-tolerances"]
 rung = "numeric"                 # syntax|build|validity|numeric|physics|visual
 ```
 
-- **`forge verify`** runs every matching entrypoint in ladder order and records evidence per domain. `make verify` calls `forge verify --all`.
-- **Hooks** call the same entrypoints with `--fast --changed <path>`.
+- **`forge verify`** runs every matching entrypoint in ladder order and records one bound evidence entry per (domain, entrypoint) run (§4). Paths are matched with the same glob matcher the hooks use (`forge.evidence.glob_match`: `**` spans directories, `*` stays in one segment). An unknown domain is an error, never remapped. Only `forge.check/1` files count as evidence: other JSON the run writes to `out/verify/` is ignored. `forge verify --all` records last-green for each domain whose every entrypoint passed. `make verify` calls `forge verify --all`.
+- **Hooks:**
+  - PostToolUse calls the same entrypoints with `--fast --changed <path>`.
+  - It binds fix messages by check_id prefix (below): the prefix decides attribution. A before/after mtime snapshot only drops stale results of the same prefix that this run did not rewrite.
+  - An entrypoint that fails without printing its prefix is reported as an error, because its messages cannot be attributed.
+  - The Stop hook accepts only bound verify-run entries (§4).
 
 ## 10. Runtimes and imports
 
 - **Hooks and the `forge` CLI** run on `python3` with the standard library only.
 - **Domain scripts** run on `~/.forge/bin/forge-python`, the CAD env on Python 3.12 (build123d, OCP, trimesh, pyvista, gmsh, ezdxf, skidl, jsonschema).
-- **Other tools** come from `~/.forge/bin`: kicad-cli, ngspice, ccx, freecadcmd, blender, spec42, renode, tsci and srt.
+- **Other tools** come from `$FORGE_HOME/bin` (default `~/.forge/bin`): kicad-cli, ngspice, ccx, freecadcmd, blender, spec42, renode, tsci and srt.
+  - Scripts resolve them with `forge.tools.find_tool(name)`, which checks `$FORGE_HOME/bin` first and then `PATH`. They never call `shutil.which` alone; a test enforces this.
+  - Subprocesses that look tools up themselves, such as `srt` needing `bwrap`/`socat`, get `forge.tools.tool_env()`.
 - **Imports:** scripts import the shared library with
   ```python
   sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "lib"))

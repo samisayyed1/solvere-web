@@ -44,6 +44,7 @@ from typing import Any
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "lib"))
 
 from forge.checkresult import Check  # noqa: E402
+from forge.tools import find_tool  # noqa: E402
 
 try:
     import tomllib
@@ -245,13 +246,13 @@ def main(argv: list[str]) -> int:
         print(f"[SKIP] no firmware/tests/test_*.c{suffix}")
         return 0
 
-    cc = shutil.which("cc") or shutil.which("clang")
+    cc = find_tool("cc") or find_tool("clang")
     if not cc:
         print("[ERROR] no C compiler (cc/clang) found; run plugins/forge/toolchain/install.sh core "
               "(Xcode Command Line Tools)", file=sys.stderr)
         return 2
 
-    cross_cc = os.environ.get("FORGE_CROSS_CC") or shutil.which("arm-none-eabi-gcc")
+    cross_cc = os.environ.get("FORGE_CROSS_CC") or find_tool("arm-none-eabi-gcc")
     if not cross_cc:
         print("[SKIP] arm-none-eabi-gcc not found; target cross-compile and the real target size "
               "budget are skipped for every module. Install: "

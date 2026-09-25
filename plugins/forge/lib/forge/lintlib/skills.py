@@ -12,10 +12,16 @@ it skips. It only fails on a skill that exists and breaks a rule:
    the skill should not fire");
 4. the body (everything after the closing ``---``) is < 500 lines;
 5. ``references/`` is at most one level deep;
-6. ``allowed-tools`` never grants bare ``Bash``, ``Bash(*)`` or a wildcard;
+6. ``allowed-tools`` never grants bare ``Bash``, ``Bash(*)`` or a wildcard,
+   and never grants an interpreter (``forge-python``, ``python``,
+   ``python3``) except for one named script under
+   ``${CLAUDE_SKILL_DIR}/scripts/`` or ``${CLAUDE_PLUGIN_ROOT}/skills/<s>/scripts/``
+   (review #1, M3: ``forge-python *`` runs any code);
 7. the CONTRACTS SS13 side-effect skills set ``disable-model-invocation: true``;
 8. every CONTRACTS SS9 registered ``scripts/verify.py`` that exists has an
-   ``if __name__ == "__main__"`` entrypoint.
+   ``if __name__ == "__main__"`` entrypoint;
+9. a skill that a judge agent (``verification-evaluator``, ``red-team``)
+   loads grants no interpreter at all (review #1, M2: judges are read-only).
 """
 
 from __future__ import annotations
@@ -71,14 +77,62 @@ _BASH_WILDCARD_CMD_RE = re.compile(r"^bash\(\s*\*")
 _MAIN_GUARD_RE = re.compile(r"""if\s+__name__\s*==\s*["']__main__["']""")
 
 
+_INTERPRETERS = {"forge-python", "python", "python3"}
+_SCOPED_SCRIPT_RE = re.compile(
+    r"^(\$\{CLAUDE_SKILL_DIR\}/scripts/|\$\{CLAUDE_PLUGIN_ROOT\}/skills/[a-z0-9-]+/scripts/)[A-Za-z0-9_.-]+\.py$")
+_BASH_RULE_RE = re.compile(r"^bash\((.*)\)$", re.IGNORECASE | re.DOTALL)
+JUDGE_AGENTS = ("verification-evaluator", "red-team")
+
+
+def _interpreter_grant(token: str) -> str | None:
+    """``None`` if ``token`` does not grant an interpreter; ``"scoped"`` if it
+    grants one for exactly one named skill script; ``"broad"`` otherwise."""
+    m = _BASH_RULE_RE.match(token.strip())
+    if not m:
+        return None
+    parts = m.group(1).split()
+    if not parts:
+        return None
+    prog = parts[0][:-2] if parts[0].endswith(":*") else parts[0]
+    if prog.rsplit("/", 1)[-1] not in _INTERPRETERS:
+        return None
+    if len(parts) < 2:
+        return "broad"
+    script = parts[1][:-2] if parts[1].endswith(":*") else parts[1]
+    if not _SCOPED_SCRIPT_RE.match(script):
+        return "broad"
+    extra = parts[2:]
+    if extra and extra[-1] == "*":
+        extra = extra[:-1]  # a trailing argument wildcard is fine
+    if any("*" in a for a in extra):
+        return "broad"
+    return "scoped"
+
+
 def _bad_allowed_tools(value) -> list[str]:
-    """Flag bare ``Bash``, ``Bash(*)`` and any wildcarded command."""
+    """Flag bare ``Bash``, ``Bash(*)``, any wildcarded command, and any
+    interpreter grant that is not scoped to one named skill script."""
     bad = []
     for token in as_list(value):
         low = token.lower()
-        if low in _BARE_BASH_TOKENS or _BASH_WILDCARD_CMD_RE.match(low):
+        if low in _BARE_BASH_TOKENS or _BASH_WILDCARD_CMD_RE.match(low) or _interpreter_grant(token) == "broad":
             bad.append(token)
     return bad
+
+
+def _judge_skills(plugin_root: Path) -> set[str]:
+    names: set[str] = set()
+    for agent in JUDGE_AGENTS:
+        path = plugin_root / "agents" / f"{agent}.md"
+        if not path.is_file():
+            continue
+        try:
+            fm_text, _ = split_frontmatter(path.read_text())
+            fm = parse_frontmatter(fm_text)
+        except (FrontmatterError, OSError):
+            continue
+        names.update(as_list(fm.get("skills")))
+    return names
 
 
 def lint_skill_dir(skill_dir: Path) -> list[CheckResult]:
@@ -290,14 +344,15 @@ def lint_skill_dir(skill_dir: Path) -> list[CheckResult]:
                     id=f"skills.allowed_tools:{name}",
                     status="fail",
                     rule=(
-                        "allowed-tools: must never grant bare Bash, Bash(*) or a wildcard "
+                        "allowed-tools: must never grant bare Bash, Bash(*), a wildcard, or an interpreter "
+                        "(forge-python/python) beyond one named skill script "
                         "(CONTRACTS SS12: skill grants aren't trust-gated)"
                     ),
                     measured=bad,
                     expected="no bare Bash / Bash(*) / wildcard entries",
                     fix=(
                         f"Narrow the allowed-tools entries {bad} in {skill_md} to specific commands, e.g. "
-                        "'Bash(${CLAUDE_PLUGIN_ROOT}/bin/forge-check *)'."
+                        "'Bash(~/.forge/bin/forge-python ${CLAUDE_SKILL_DIR}/scripts/verify.py:*)'."
                     ),
                 )
             )
@@ -306,7 +361,7 @@ def lint_skill_dir(skill_dir: Path) -> list[CheckResult]:
                 CheckResult(
                     id=f"skills.allowed_tools:{name}",
                     status="pass",
-                    rule="allowed-tools: has no bare Bash / Bash(*) / wildcard entries",
+                    rule="allowed-tools: has no bare Bash / Bash(*) / wildcard / broad interpreter entries",
                     measured=as_list(allowed_tools),
                     expected="none",
                 )
@@ -399,4 +454,22 @@ def lint_skills_dir(directory: Path) -> list[CheckResult]:
     results: list[CheckResult] = []
     for d in skill_dirs:
         results.extend(lint_skill_dir(d))
+    judge_skills = _judge_skills(directory.parent)
+    for d in skill_dirs:
+        if d.name not in judge_skills or not (d / "SKILL.md").is_file():
+            continue
+        try:
+            fm_text, _ = split_frontmatter((d / "SKILL.md").read_text())
+            granted = as_list(parse_frontmatter(fm_text).get("allowed-tools"))
+        except (FrontmatterError, OSError):
+            continue
+        interp = [t for t in granted if _interpreter_grant(t)]
+        results.append(CheckResult(
+            id=f"skills.judge_no_interpreter:{d.name}",
+            status="fail" if interp else "pass",
+            rule="a skill loaded by a judge agent grants no interpreter (judges are read-only, ADR-001 D6)",
+            measured=interp,
+            expected="no forge-python/python grants",
+            fix=None if not interp else f"Remove {interp} from allowed-tools in {d / 'SKILL.md'}.",
+        ))
     return results

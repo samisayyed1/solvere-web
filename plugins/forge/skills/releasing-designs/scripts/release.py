@@ -41,6 +41,7 @@ from typing import Any
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "lib"))
 
 from forge.checkresult import git_sha as _repo_git_sha  # noqa: E402
+from forge.tools import find_tool  # noqa: E402
 
 try:
     import tomllib
@@ -290,8 +291,8 @@ def build_bundle(project: Path, version: str, approval: dict[str, Any]) -> Path:
     release_dir = project / "release" / version
     release_dir.mkdir(parents=True, exist_ok=True)
 
-    kicad_cli = shutil.which("kicad-cli") or str(Path.home() / ".forge" / "bin" / "kicad-cli")
-    if not Path(kicad_cli).exists() and not shutil.which("kicad-cli"):
+    kicad_cli = find_tool("kicad-cli")
+    if not kicad_cli:
         kicad_cli = None
 
     parts = {

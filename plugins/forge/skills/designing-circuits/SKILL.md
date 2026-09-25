@@ -1,7 +1,7 @@
 ---
 name: designing-circuits
 description: Capture a circuit as code with tscircuit and export it to KiCad, then verify critical nets with ngspice run inside a sandbox. Use when creating or editing a schematic or PCB circuit (power trees, regulators, protection, analog/digital interfaces) under ecad/ or circuits/, or when asked to "design a circuit", "add a regulator", "simulate this net", or "export to KiCad". Do NOT use for ERC/DRC or fab DFM checks (see checking-ecad), firmware (see building-firmware), or mechanical CAD (see modeling-cad-parts).
-allowed-tools: Read, Grep, Glob, Write, Edit, Bash(tsci *), Bash(kicad-cli *), Bash(~/.forge/bin/forge-python *), Bash(git diff *), Bash(git status *)
+allowed-tools: Read, Grep, Glob, Write, Edit, Bash(tsci *), Bash(kicad-cli *), Bash(~/.forge/bin/forge-python ${CLAUDE_SKILL_DIR}/scripts/verify.py:*), Bash(git diff *), Bash(git status *)
 ---
 
 # Designing circuits
@@ -26,7 +26,7 @@ allowed-tools: Read, Grep, Glob, Write, Edit, Bash(tsci *), Bash(kicad-cli *), B
 4. **For any critical net** (anything with a numeric requirement: regulator output, ripple, protection threshold, dissipation, timing), write an ngspice netlist to `analysis/spice/<name>.cir` plus a sidecar `analysis/spice/<name>.limits.toml` — see `references/spice-limits-format.md` for the exact TOML shape and worked examples (regulator output at 3.3 V ± 2%, ripple, dissipation).
    - The netlist's `.control` block should end with `.meas` lines that name each result exactly as it appears in the limits file, e.g. `meas tran vout_dc avg v(out) from=2m to=5m`.
    - `.meas` is only valid inside `tran`, `dc`, `sp` or `ac` analyses — not `.op`. For a DC operating point with ripple, use a `.tran` with a small AC component superimposed and measure `avg` / `pp` over one settled period.
-5. **Run the check**: `~/.forge/bin/forge-python scripts/verify.py --project <root>` (or let `forge verify` call it). It refuses shell-bearing netlists, runs ngspice sandboxed, parses `.meas` results, and checks them against the limits file. A failing measurement's `remediation` says the rule, the measured value, the limit, and the fix — read it and fix the circuit, not the limit (unless the limit itself was wrong, in which case fix it with a sourced justification).
+5. **Run the check**: `~/.forge/bin/forge-python ${CLAUDE_SKILL_DIR}/scripts/verify.py --project <root>` (or let `forge verify` call it). It refuses shell-bearing netlists, runs ngspice sandboxed, parses `.meas` results, and checks them against the limits file. A failing measurement's `remediation` says the rule, the measured value, the limit, and the fix — read it and fix the circuit, not the limit (unless the limit itself was wrong, in which case fix it with a sourced justification).
 6. **Cite the check result** (`out/verify/spice.<name>.json`) as evidence for the claim, at level **L2** (simulated) — never call a simulated result "validated" (that needs L4 physical test evidence, CONTRACTS.md §4).
 
 ## What this skill refuses

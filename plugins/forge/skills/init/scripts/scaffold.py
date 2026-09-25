@@ -15,6 +15,9 @@ Rules (never negotiable, per CONTRACTS.md and the brief):
   template that are missing from the existing file are appended.
 - Directories are created as needed even when their files are skipped.
 - Nothing here ever deletes or truncates a file that already exists.
+- The repo is ``git init``-ed if needed, and exactly the files Forge wrote
+  or merged are committed as the Forge baseline (never the user's other
+  uncommitted work): the Stop hook's evidence gate diffs against it.
 """
 
 from __future__ import annotations
@@ -28,6 +31,8 @@ _SKILL_DIR = _SCRIPT.parent.parent            # plugins/forge/skills/init
 _PLUGIN_ROOT = _SKILL_DIR.parent.parent        # plugins/forge
 _DEFAULT_FORGE_ROOT = _PLUGIN_ROOT.parent.parent  # repo root
 _DEFAULT_TEMPLATES = _DEFAULT_FORGE_ROOT / "templates" / "project"
+sys.path.insert(0, str(_PLUGIN_ROOT / "lib"))
+from forge.gitbaseline import BaselineError, ensure_baseline  # noqa: E402
 
 _PLACEHOLDER_NAME = "{{PROJECT_NAME}}"
 _PLACEHOLDER_ROOT = "${FORGE_ROOT}"
@@ -74,6 +79,7 @@ class InitReport:
         self.written: list[Path] = []
         self.conflicts: list[Path] = []
         self.merged: dict[Path, int] = {}
+        self.baseline: str | None = None
 
     def render(self, target: Path) -> str:
         lines = [f"forge init: {target}", ""]
@@ -97,7 +103,7 @@ class InitReport:
 
 
 def init(target: Path, *, name: str | None = None, forge_root: Path = _DEFAULT_FORGE_ROOT,
-         templates_dir: Path = _DEFAULT_TEMPLATES) -> InitReport:
+         templates_dir: Path = _DEFAULT_TEMPLATES, commit: bool = True) -> InitReport:
     if not templates_dir.is_dir():
         raise InitError(f"template directory not found: {templates_dir}")
     if not (templates_dir / "CLAUDE.md").exists():
@@ -132,6 +138,15 @@ def init(target: Path, *, name: str | None = None, forge_root: Path = _DEFAULT_F
             dst.write_bytes(src.read_bytes())
         report.written.append(dst)
 
+    if commit:
+        paths = list(report.written) + list(report.merged)
+        if paths:
+            try:
+                report.baseline = ensure_baseline(target, "Add Forge (forge init)", paths=paths)
+            except BaselineError as exc:
+                raise InitError(f"Forge files were written, but the git baseline commit failed: {exc}. "
+                                "Commit the files listed above by hand; the Stop hook's evidence gate "
+                                "needs that baseline.") from exc
     return report
 
 
@@ -144,6 +159,8 @@ def main(argv: list[str] | None = None) -> int:
                          help="absolute path to the Forge repo (default: auto-detected)")
     parser.add_argument("--templates", type=Path, default=_DEFAULT_TEMPLATES,
                          help="path to templates/project (default: auto-detected)")
+    parser.add_argument("--no-commit", action="store_true",
+                        help="skip git init and the Forge baseline commit")
     ns = parser.parse_args(argv)
 
     forge_root = ns.forge_root.resolve()
@@ -151,12 +168,15 @@ def main(argv: list[str] | None = None) -> int:
     target = ns.target.resolve()
 
     try:
-        report = init(target, name=ns.name, forge_root=forge_root, templates_dir=templates_dir)
+        report = init(target, name=ns.name, forge_root=forge_root, templates_dir=templates_dir,
+                      commit=not ns.no_commit)
     except InitError as exc:
         print(f"forge init: {exc}", file=sys.stderr)
         return 1
 
     print(report.render(target))
+    if report.baseline:
+        print(f"\nCommitted the Forge files as baseline {report.baseline[:12]}.")
     if report.conflicts:
         print()
         print("Nothing was overwritten. Reconcile each conflict by hand, "

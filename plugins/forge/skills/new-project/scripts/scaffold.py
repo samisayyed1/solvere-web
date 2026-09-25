@@ -2,8 +2,13 @@
 """Scaffold a new Forge product-engineering project from templates/project/.
 
 Usage:
-    scaffold.py <target-dir> [--name "Project Name"] [--git-init]
+    scaffold.py <target-dir> [--name "Project Name"] [--no-commit]
                 [--forge-root PATH] [--templates PATH] [--skip-doctor]
+
+The new project is always a git repository with one baseline commit
+(``git init`` if needed, then commit everything scaffolded): the Stop hook's
+evidence gate diffs against that commit until the first green
+``forge verify`` (lib/forge/gitbaseline.py).
 
 Standard library only (Python 3.12+). See plugins/forge/skills/new-project/SKILL.md.
 
@@ -23,6 +28,8 @@ from pathlib import Path
 _SCRIPT = Path(__file__).resolve()
 _SKILL_DIR = _SCRIPT.parent.parent            # plugins/forge/skills/new-project
 _PLUGIN_ROOT = _SKILL_DIR.parent.parent        # plugins/forge
+sys.path.insert(0, str(_PLUGIN_ROOT / "lib"))
+from forge.gitbaseline import BaselineError, ensure_baseline  # noqa: E402
 _DEFAULT_FORGE_ROOT = _PLUGIN_ROOT.parent.parent  # repo root
 _DEFAULT_TEMPLATES = _DEFAULT_FORGE_ROOT / "templates" / "project"
 
@@ -72,7 +79,7 @@ def scaffold(
     target: Path,
     *,
     name: str | None = None,
-    git_init: bool = False,
+    git_init: bool = True,
     forge_root: Path = _DEFAULT_FORGE_ROOT,
     templates_dir: Path = _DEFAULT_TEMPLATES,
 ) -> list[Path]:
@@ -102,9 +109,11 @@ def scaffold(
 
     if git_init:
         try:
-            subprocess.run(["git", "init", "-q"], cwd=target, check=True, timeout=30)
-        except (OSError, subprocess.SubprocessError) as exc:
-            print(f"[WARN] git init failed: {exc}", file=sys.stderr)
+            ensure_baseline(target, f"Scaffold Forge project {project_name} from templates/project")
+        except BaselineError as exc:
+            raise ScaffoldError(f"files were scaffolded, but the git baseline commit failed: {exc}. "
+                                "Run `git init && git add -A && git commit -m scaffold` in the project; "
+                                "the Stop hook's evidence gate needs that baseline.") from exc
 
     return written
 
@@ -135,7 +144,11 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="new-project scaffold")
     parser.add_argument("target", type=Path, help="directory to scaffold the new project into")
     parser.add_argument("--name", default=None, help="project display name (default: target dir name)")
-    parser.add_argument("--git-init", action="store_true", help="run `git init` in the new project")
+    parser.add_argument("--git-init", action="store_true",
+                        help="accepted for compatibility; git init + a baseline commit now always happen")
+    parser.add_argument("--no-commit", action="store_true",
+                        help="skip git init and the baseline commit (tests/tooling only; Stop then treats every "
+                             "file as changed until the first commit)")
     parser.add_argument("--forge-root", type=Path, default=_DEFAULT_FORGE_ROOT,
                          help="absolute path to the Forge repo (default: auto-detected)")
     parser.add_argument("--templates", type=Path, default=_DEFAULT_TEMPLATES,
@@ -148,7 +161,7 @@ def main(argv: list[str] | None = None) -> int:
     target = ns.target.resolve()
 
     try:
-        written = scaffold(target, name=ns.name, git_init=ns.git_init,
+        written = scaffold(target, name=ns.name, git_init=not ns.no_commit,
                             forge_root=forge_root, templates_dir=templates_dir)
     except ScaffoldError as exc:
         print(f"forge new-project: {exc}", file=sys.stderr)

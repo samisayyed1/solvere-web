@@ -40,10 +40,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "lib"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from forge.checkresult import Check, CheckContractError  # noqa: E402
+from forge.tools import find_tool, forge_home  # noqa: E402
 from dxf_to_pdf import dxf_to_pdf  # noqa: E402
 
 _SAFE = re.compile(r"[^a-z0-9_]+")
-DEFAULT_FREECADCMD = Path.home() / ".forge" / "bin" / "freecadcmd"
+DEFAULT_FREECADCMD = Path(find_tool("freecadcmd") or forge_home() / "bin" / "freecadcmd")
 MAKE_DRAWING_PY = Path(__file__).resolve().parent / "make_drawing.py"
 _NUMERIC = re.compile(r"[-+]?\d+\.?\d*")
 

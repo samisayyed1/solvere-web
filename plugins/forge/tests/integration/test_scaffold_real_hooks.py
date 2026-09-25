@@ -51,8 +51,8 @@ def project(tmp_path: Path) -> Path:
     res = subprocess.run([sys.executable, str(SCAFFOLD), str(target), "--name", "Probe Product", "--skip-doctor",
                           "--forge-root", str(REPO_ROOT)], capture_output=True, text=True)
     assert res.returncode == 0, f"scaffold failed: {res.stdout}\n{res.stderr}"
-    _git(target, "init", "-q")
-    _commit(target, "scaffold")
+    # the scaffolder itself git-inits and makes the baseline commit
+    assert _git(target, "status", "--porcelain").strip() == ""
     return target
 
 

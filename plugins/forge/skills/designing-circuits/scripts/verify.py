@@ -38,6 +38,7 @@ from typing import Any
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "lib"))
 
 from forge.checkresult import Check  # noqa: E402  (path must be set up first)
+from forge.tools import find_tool, forge_home, tool_env  # noqa: E402
 
 try:
     import tomllib
@@ -102,14 +103,27 @@ def ngspice_version(ngspice_path: str) -> str:
         return "unknown"
 
 
-def _srt_settings(out_dir: Path) -> dict[str, Any]:
+def _srt_settings(out_dir: Path, read_dir: Path | None = None) -> dict[str, Any]:
+    deny_read = ["~/.ssh", "~/.aws", "~/.config/gh", "~/.netrc", "~/.npmrc",
+                 "~/.pypirc", "~/Library/Keychains", "~/.gnupg"]
+    allow_read: list[str] = []
+    if sys.platform.startswith("linux"):
+        # glibc's tmpfile() ignores TMPDIR and always uses /tmp, which srt/bwrap
+        # mounts read-only ("tmpfile(): Read-only file system"). Denying /tmp makes
+        # srt mount a private tmpfs there: ngspice gets scratch space, nothing it
+        # writes reaches the host /tmp, and only the netlist directory is
+        # re-allowed for reading (re-allowing the whole project would re-bind
+        # out/verify read-only over its write grant).
+        # (macOS tmpfile() honours TMPDIR, redirected into out/verify below.)
+        deny_read.append("/tmp")
+        if read_dir is not None:
+            allow_read.append(str(read_dir))
     return {
         "network": {"allowedDomains": [], "deniedDomains": ["*"]},
         "filesystem": {
-            "denyRead": ["~/.ssh", "~/.aws", "~/.config/gh", "~/.netrc", "~/.npmrc",
-                         "~/.pypirc", "~/Library/Keychains", "~/.gnupg"],
-            # Confined to out/verify/ ONLY -- no bare "/tmp": ngspice's own tmpfile()
-            # scratch is redirected here via TMPDIR (references/spice-limits-format.md).
+            "denyRead": deny_read,
+            "allowRead": allow_read,
+            # Confined to out/verify/ ONLY -- never the host's /tmp.
             "allowWrite": [str(out_dir)],
             "denyWrite": [],
         },
@@ -124,17 +138,22 @@ def run_ngspice_sandboxed(cir: Path, project: Path, out_dir: Path, *, srt_path: 
     settings_fd, settings_file = tempfile.mkstemp(suffix=".json")
     try:
         with os.fdopen(settings_fd, "w") as fh:
-            json.dump(_srt_settings(out_dir), fh)
+            json.dump(_srt_settings(out_dir, cir.parent), fh)
         inner = (f"TMPDIR={scratch} SPICE_ASCIIRAWFILE=1 "
                  f"{ngspice_path} -b -n -r {raw} -o {log} {cir}")
-        subprocess.run([srt_path, "--settings", settings_file, "-c", inner],
-                        capture_output=True, text=True, timeout=120, cwd=project)
+        # srt itself needs bwrap/socat (Linux) from $FORGE_HOME/bin, which is not always on PATH.
+        proc = subprocess.run([srt_path, "--settings", settings_file, "-c", inner],
+                              capture_output=True, text=True, timeout=120, cwd=project, env=tool_env())
     finally:
         try:
             os.unlink(settings_file)
         except OSError:
             pass
-    return log.read_text() if log.exists() else ""
+    if not log.exists():
+        raise RuntimeError(
+            f"the ngspice sandbox (srt) produced no log (exit {proc.returncode}): "
+            f"{(proc.stderr or proc.stdout or 'no output').strip()[:300]}")
+    return log.read_text()
 
 
 def verify_one(cir: Path, project: Path, out_dir: Path, *, srt_path: str, ngspice_path: str) -> int:
@@ -202,13 +221,13 @@ def main(argv: list[str]) -> int:
         print(f"[SKIP] no analysis/spice/*.cir files{suffix}")
         return 0
 
-    ngspice_path = shutil.which("ngspice")
+    ngspice_path = find_tool("ngspice")
     if not ngspice_path:
-        print("[ERROR] ngspice not found on PATH; run "
+        print(f"[ERROR] ngspice not found in {forge_home() / 'bin'} or on PATH; run "
               "plugins/forge/toolchain/install.sh elec (R4b: brew install ngspice)", file=sys.stderr)
         return 2
-    srt_path = shutil.which("srt") or str(Path.home() / ".forge" / "bin" / "srt")
-    if not Path(srt_path).exists() and not shutil.which("srt"):
+    srt_path = find_tool("srt")
+    if not srt_path:
         print("[ERROR] srt (sandbox-runtime) not found; run "
               "plugins/forge/toolchain/install.sh core (npm @anthropic-ai/sandbox-runtime)", file=sys.stderr)
         return 2

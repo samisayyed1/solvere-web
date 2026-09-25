@@ -47,6 +47,8 @@ ENTRYPOINTS = {
     "designing-circuits": ("skills/designing-circuits/scripts/verify.py", [], False),
     "building-firmware": ("skills/building-firmware/scripts/verify.py", [], False),
     "gardening-docs": ("skills/gardening-docs/scripts/verify.py", [], False),
+    "costing-bom": ("skills/costing-bom/scripts/verify.py", [], False),
+    "mapping-compliance": ("skills/mapping-compliance/scripts/verify.py", [], False),
 }
 
 # The exact/prefix each entrypoint is expected to declare (CONTRACTS §9).
@@ -62,6 +64,8 @@ EXPECTED_PREFIX = {
     "designing-circuits": "spice.",
     "building-firmware": "firmware.",
     "gardening-docs": "gardening.docs",
+    "costing-bom": "supply.bom_rollup",
+    "mapping-compliance": "compliance.standards_map",
 }
 
 

@@ -2,18 +2,19 @@
 
 **This is a standards map for planning, not a compliance determination.** Every line needs confirmation by a qualified human (a compliance engineer, test lab or certification body); none has been confirmed. Evidence level L0. Editions and dates come from the Forge research files `docs/research/R5e-standards-materials-radio-security.md` (R5e), `R5b-standards-safety-risk-se.md` (R5b) and `R5a-standards-drawings-ipc-accessibility.md` (R5a), all accessed 2026-09-25; their [V]/[R]/[U] tags are kept. Standards text is not reproduced.
 
-Markets are open (Q-03). Until the owner answers, this map covers US, EU, UK and Canada (A-013).
+Markets (Owner round 2, Q-03): map US, EU, UK and Canada, and **sell in none of them until a qualified human confirms** the route for that market.
 
 ## Product profile used for the mapping
 
 | Attribute | Value | Source |
 |---|---|---|
-| Function | ceiling-mounted presence and fall sensor for bedrooms and living rooms | Owner |
+| Function | ceiling-mounted home-automation presence sensor with a fall-event output, for bedrooms and living rooms; one person per covered area; up to two pods per room | Owner; Owner round 2 |
 | Power | 5 V USB-C from an external wall adapter; no battery; no mains inside | Owner; REQ-PWR-003, REQ-ELEC-001 |
-| Intentional radiators | 60 GHz FMCW radar (58-62 GHz, 12 dBm, MDS p.4); XIAO ESP32C6 2.4 GHz Wi-Fi 6, Bluetooth LE, IEEE 802.15.4 (XIAO) | IF-07 |
-| Network connection | Wi-Fi to the home network (ESPHome / Home Assistant as shipped, DS p.2); cloud use open | Q-02, A-014 |
+| Intentional radiators | 60 GHz FMCW radar (58-62 GHz, 12 dBm, MDS p.4); XIAO ESP32C6 2.4 GHz Wi-Fi 6, Bluetooth LE, IEEE 802.15.4 (XIAO). Kit as-is, no other radio (Owner round 2) | IF-07 |
+| Network connection | Wi-Fi to a local Home Assistant only (ESPHome, DS p.2); no cloud | Owner round 2 (Q-02) |
 | Personal data | presence and fall events about occupants of a home | inferred from function |
-| Claims | no medical-device or emergency-alarm claims | REQ-SAFE-003, Q-15 |
+| Claims | home-automation use; no medical, safety or alarm claims, strict; deny-list in `compliance/claims-wording.md` | REQ-SAFE-003, REQ-SAFE-004; Owner round 2 (Q-15) |
+| Environment | 0 °C to 40 °C ambient; v1 indoor dry rooms; bathroom variant IPX4 later | Owner round 2 |
 | Vendor statements | DS p.8: FCC Part 15 statement, co-location restriction (15.21), Class B digital-device limits; no FCC ID shown | DS p.8 |
 
 ## Per market
@@ -43,7 +44,7 @@ Every row: **needs a qualified human** to confirm applicability, edition and rou
 | Consumer IoT baseline | ETSI EN 303 645 V3.1.3: no universal default passwords (maps to EN 18031 and CRA Annex I) | R5e [V] | REQ-FW-003 |
 | Product safety | EN IEC 62368-1:2024: OJ citation status unsettled (only the 2014 edition appears cited under LVD) | R5b [R] | REQ-SAFE-001, -002 |
 | Substances | RoHS 2011/65/EU + 2015/863 (lead exemptions changed 1 Jul 2026); REACH Candidate List (253 entries, 4 Feb 2026) and SCIP | R5e [V]/[R]/[U] | BOM declarations at G2/G5 |
-| Privacy | GDPR may apply if data leaves the home (Q-02): not covered in R5 files | gap | research needed |
+| Privacy | data stays on the local network (Owner round 2); whether GDPR or national privacy law still applies is not covered in R5 files | gap | research needed |
 | Gaps | GPSR, WEEE, packaging rules, battery rules (not applicable: no battery): not covered in R5e | R5e "Not found" | research needed |
 
 ### United Kingdom
@@ -62,8 +63,10 @@ The Forge R5 research files do not cover UK-specific law (UKCA marking, the UK r
 
 ## Across all markets
 
-- **Medical or alarm claims** change the route entirely (R-008). REQ-SAFE-003 forbids them until the owner decides the intended use (Q-15) and a qualified human approves.
-- **Adding any radio** beyond the kit (Q-01) needs a new authorisation assessment (DS p.8 co-location statement; REQ-EMC-005).
+- **Medical, safety or alarm claims** change the route entirely (R-008). The owner chose home-automation use with strict wording (Owner round 2): REQ-SAFE-003, REQ-SAFE-004 and `compliance/claims-wording.md` apply to every user-facing text, including Home Assistant entity names.
+- **IPX4 (bathroom variant, post-v1)**: the IP-code test standard and edition are not in the Forge R5 files; research and a qualified human are needed before REQ-MECH-018 is tested.
+- **Two pods per room**: whether the DS p.8 co-location statement applies to two separate pods in one room is for a qualified human (REQ-SYS-003).
+- **Adding any radio** beyond the kit needs a new authorisation assessment (DS p.8 co-location statement; REQ-EMC-005). Owner round 2: kit as-is.
 - **Pre-scan plan**: `compliance/pre-scan-plan.md` is written at G3 by `mapping-compliance`, after markets and radios are fixed.
 
 ---

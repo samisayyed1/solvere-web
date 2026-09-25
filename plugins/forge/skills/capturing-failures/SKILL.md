@@ -1,7 +1,7 @@
 ---
 name: capturing-failures
 description: Turn a caught defect into a permanent mechanism -- root cause via five whys, a new rule/hook/check/eval, and proof that the new check fails on the original artifact. Use whenever a review, a human, or a check catches something Forge should have caught earlier -- a wrong CAD dimension, a missed ERC violation, a firmware regression, an untested requirement. Do NOT use this for routine check failures that the existing checks already catch correctly (that's just "fix the design"); use it when the *check itself* was missing or too weak.
-allowed-tools: Read, Grep, Glob, Write, Edit, Bash(~/.forge/bin/forge-python *)
+allowed-tools: Read, Grep, Glob, Write, Edit, Bash(~/.forge/bin/forge-python ${CLAUDE_SKILL_DIR}/scripts/new_failure.py:*)
 ---
 
 # Capturing failures
@@ -14,7 +14,7 @@ allowed-tools: Read, Grep, Glob, Write, Edit, Bash(~/.forge/bin/forge-python *)
 
 ## Workflow
 
-1. **Scaffold the record**: `~/.forge/bin/forge-python scripts/new_failure.py --project <root> --title "<short description>"`. It allocates the next `FAIL-NNNN` id and writes the template.
+1. **Scaffold the record**: `~/.forge/bin/forge-python ${CLAUDE_SKILL_DIR}/scripts/new_failure.py --project <root> --title "<short description>"`. It allocates the next `FAIL-NNNN` id and writes the template.
 2. **Root-cause it with five whys** — write real answers, not restatements of the symptom. Stop when the answer is something a mechanism can actually prevent (not "someone should be more careful").
 3. **Build the mechanism**: a tightened rule (with its enforcing hook/lint/check named), a new PostToolUse check, a new `scripts/verify.py` measurement, or a new eval case under `plugins/forge/evals/`. Prefer pushing it to the fastest layer that can hold it (brief §0: hook < pre-commit < CI < human review).
 4. **Prove it**: run the new/changed check against the original artifact (or a reconstruction of it) and confirm it fails with a remediation that would have caught the original mistake; then run it against the fix and confirm it passes. Record both `out/verify/*.json` paths in the failure doc.
