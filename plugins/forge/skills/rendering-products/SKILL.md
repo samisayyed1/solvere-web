@@ -9,7 +9,7 @@ allowed-tools: Read, Write, Edit, Grep, Glob, Bash(${CLAUDE_SKILL_DIR}/scripts/r
 # Rendering products
 
 **Non-negotiable rules, read first:**
-1. Every render pack lives at `analysis/render_packs/<name>.toml` and declares `[pack]` geometry (`length_mm`/`width_mm`/`height_mm`, optional `hole_diameter_mm`) plus an optional `[scale_bar]` and `[marketing]`.
+1. Every render pack lives at `analysis/render_packs/<name>.toml` and declares `[pack]` naming the **real part to render**: exactly one of `module = "cad/<file>.py"` (a build123d script exposing `build()`/`PART`) or `step = "cad/out/<file>.step"`, loaded through `forge_cad.load` (the same loader `verifying-geometry`/`checking-dfm`/`inspecting-renders` use). `render_pack.py` refuses (exit 2) a spec with neither or both, and never falls back to a parametric box built from typed-in dimensions (S12) -- the render pack shows the actual design, not a stand-in shape. Plus an optional `[scale_bar]` and `[marketing]`.
 2. "Consistent camera and lighting" is made **numeric, not eyeballed**: every view uses the same orthographic (`parallel_projection`) camera scale and the same window size, recorded in `manifest.json` and re-derived independently by `verify.py` rather than trusted from the file. A render pack whose views were framed differently fails the check.
 3. The scale bar's claim is the manifest's `scale_mm_per_pixel` (`= 2 * parallel_scale_mm / height_px`, exact for an orthographic camera), not a pixel measured off the PNG. The bar drawn on each image is for a human reader; the manifest is the evidence.
 4. The optional Blender marketing render (`[marketing].enabled = true`) is never required for the check to pass unless a spec explicitly turns it on -- and once it's on, a failure to produce it *does* fail the check (no silent skip once requested).
@@ -20,13 +20,11 @@ allowed-tools: Read, Write, Edit, Grep, Glob, Bash(${CLAUDE_SKILL_DIR}/scripts/r
 ```toml
 [pack]
 name = "bracket_pack"
-length_mm = 80.0
-width_mm = 40.0
-height_mm = 10.0
-hole_diameter_mm = 8.0    # optional
+module = "cad/bracket.py"   # or: step = "cad/out/bracket.step"
 
 [scale_bar]
 length_mm = 20.0          # must be readable and fit within the frame -- verify.py checks both
+                           # (default: 25% of the part's longer in-plane bounding-box dimension)
 
 [marketing]
 enabled = false           # true to also run the optional Blender render
@@ -51,6 +49,7 @@ Writes `out/renders/products/<name>/{front,top,right,iso}.png`, `manifest.json`,
 
 ## What this skill refuses
 
+- A spec with no `[pack].module`/`[pack].step` (or both), or one that names geometry that fails to load -- exit 2, never a fallback to placeholder/demo geometry.
 - Calling two views "consistent" because they look similar -- the check compares the numeric `parallel_scale_mm` and window size, not pixels.
 - Trusting a `manifest.json` it didn't just regenerate -- `verify.py` always re-runs `render_pack.py` rather than parsing a possibly stale file, and independently recomputes `scale_mm_per_pixel` rather than trusting the stored value.
 - Silently skipping the marketing render because Blender isn't installed, when the spec asked for one -- that is a failure with a remediation (install Blender via the optional toolchain tier, or turn `[marketing].enabled` off).

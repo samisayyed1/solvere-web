@@ -79,6 +79,13 @@ def _run_one(part: str, project: Path) -> int:
             f"{q_path} has {len(questions)} questions; must have between {MIN_QUESTIONS} and "
             f"{MAX_QUESTIONS}, written from the requirements before rendering."
         )
+    part_tbl = data.get("part")
+    if not isinstance(part_tbl, dict) or ("module" in part_tbl) == ("step" in part_tbl):
+        return chk.error(
+            f"{q_path} has no valid [part] table. It must set exactly one of module = \"cad/<file>.py\" "
+            "or step = \"cad/out/<file>.step\" naming the real geometry rendered -- this skill never "
+            "renders placeholder/demo geometry in place of the part being inspected (S11)."
+        )
 
     render_dir = project / "out" / "renders" / part
     try:
@@ -121,14 +128,22 @@ def _run_one(part: str, project: Path) -> int:
             unanswered = q_ids - answered_ids
             bad_evidence = []
             empty_answers = []
+            undocumented_no = []
             for a in answers:
                 qid = a.get("question_id", "?")
-                if a.get("answer", "").strip().lower() not in ("yes", "no"):
+                ans = a.get("answer", "").strip().lower()
+                if ans not in ("yes", "no"):
                     empty_answers.append(qid)
                     continue
                 ev = a.get("evidence_file", "").strip()
                 if not ev or not (project / ev).exists():
                     bad_evidence.append(qid)
+                # S11: a "no" answer is, by construction, a deviation from the
+                # requirement the question was written from -- it must carry its
+                # own written note, not just leave the top-level [deviations]
+                # blob to (maybe) mention it. "no" + "none found" must never pass.
+                if ans == "no" and len(a.get("deviation_note", "").strip()) < 10:
+                    undocumented_no.append(qid)
 
             chk.measure(
                 "questions_answered", len(q_ids) - len(unanswered), "1", min=len(q_ids),
@@ -151,6 +166,16 @@ def _run_one(part: str, project: Path) -> int:
                     f"Answer(s) for {bad_evidence} do not cite an evidence_file that exists under "
                     f"{project}. Every answer must point at a real render file (or a numeric_check id "
                     "for a dimensional claim -- renders are never dimensional acceptance on their own)."
+                ),
+            ) if answers else None
+            chk.measure(
+                "no_answers_have_deviation_notes", len(answers) - len(undocumented_no), "1",
+                min=len(answers) if answers else 0,
+                remediation=(
+                    f"Answer(s) for {undocumented_no} are 'no' with no (or a too-short) deviation_note. "
+                    "A 'no' answer is itself a deviation from the requirement the question was written "
+                    "from -- write what was actually found, don't leave it for the [deviations] summary "
+                    "to (maybe) mention."
                 ),
             ) if answers else None
             deviations = adata.get("deviations", {}).get("notes", None)

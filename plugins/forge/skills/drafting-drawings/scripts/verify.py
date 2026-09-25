@@ -28,10 +28,8 @@ Writes ``out/verify/mech.drawing_<name>.json`` (and, for v2,
 from __future__ import annotations
 
 import argparse
-import os
 import re
 import shutil
-import subprocess
 import sys
 import tomllib
 from pathlib import Path
@@ -41,12 +39,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from forge.checkresult import Check, CheckContractError  # noqa: E402
 from forge.tools import find_tool, forge_home  # noqa: E402
-from dxf_to_pdf import dxf_to_pdf  # noqa: E402
 
 _SAFE = re.compile(r"[^a-z0-9_]+")
 DEFAULT_FREECADCMD = Path(find_tool("freecadcmd") or forge_home() / "bin" / "freecadcmd")
-MAKE_DRAWING_PY = Path(__file__).resolve().parent / "make_drawing.py"
-_NUMERIC = re.compile(r"[-+]?\d+\.?\d*")
 
 
 def _safe_name(name: str) -> str:
@@ -83,31 +78,6 @@ def _find_spec_files(project: Path, changed: list[str]) -> list[Path]:
     return sorted(specs_dir.glob("*.toml"))
 
 
-def _extract_texts(dxf_path: Path) -> list[str]:
-    import ezdxf
-    doc = ezdxf.readfile(str(dxf_path))
-    msp = doc.modelspace()
-    out = []
-    for e in msp.query("TEXT"):
-        out.append(e.dxf.text)
-    for e in msp.query("MTEXT"):
-        out.append(e.text)
-    return out
-
-
-def _extract_dimension_values(dxf_path: Path) -> list[float]:
-    import ezdxf
-    doc = ezdxf.readfile(str(dxf_path))
-    msp = doc.modelspace()
-    values = []
-    for e in msp.query("DIMENSION"):
-        text = e.dxf.text if e.dxf.hasattr("text") else ""
-        m = _NUMERIC.search(text or "")
-        if m:
-            values.append(float(m.group()))
-    return values
-
-
 def _run_one(spec_path: Path, project: Path, freecadcmd_bin: str, recheck: bool = False) -> int:
     try:
         spec = tomllib.loads(spec_path.read_text())
@@ -118,109 +88,25 @@ def _run_one(spec_path: Path, project: Path, freecadcmd_bin: str, recheck: bool 
     if drawspec.is_v2(spec):
         return _run_v2(spec_path, spec, project, freecadcmd_bin, recheck)
 
+    # S14: the legacy single-view [part] schema (no `schema` key) is refused,
+    # not silently run through its own weaker path -- it predates [model],
+    # the tolerance >= 0 check, and the scale validation the v2 schema has,
+    # and letting it keep passing would let a spec dodge all three simply by
+    # never adding `schema = "forge.drawing/2"`.
     drawing = spec.get("drawing", {})
     name = drawing.get("name", spec_path.stem)
     check_id = f"mech.drawing_{_safe_name(name)}"
     target = str(spec_path.relative_to(project)) if spec_path.is_relative_to(project) else str(spec_path)
     chk = Check(check_id, target, level="L1", project=project)
-
-    for required in ("drawing", "part"):
-        if required not in spec:
-            return chk.error(f"{spec_path}: missing [{required}] table")
-    for f in ("title", "dwg_no", "rev", "scale", "drawn_by"):
-        if f not in drawing:
-            return chk.error(f"{spec_path}: [drawing] missing required field {f!r}")
-    dimensions = spec.get("dimension", [])
-    if not dimensions:
-        return chk.error(f"{spec_path}: no [[dimension]] entries -- a drawing with no critical dimensions cannot be checked")
-
-    if not shutil.which(freecadcmd_bin) and not Path(freecadcmd_bin).exists():
-        return chk.error(
-            f"freecadcmd binary not found at {freecadcmd_bin!r}. Install it via "
-            "plugins/forge/toolchain/install.sh or pass --freecadcmd-bin."
-        )
-
-    work_dir = project / "out" / "drawings" / _safe_name(name)
-    work_dir.mkdir(parents=True, exist_ok=True)
-    dxf_path = work_dir / "page.dxf"
-    pdf_path = work_dir / "page.pdf"
-
-    try:
-        env = dict(os.environ)
-        env["FORGE_DRAWING_SPEC"] = str(spec_path.resolve())
-        env["FORGE_DRAWING_OUT_DXF"] = str(dxf_path.resolve())
-        r = subprocess.run(
-            [freecadcmd_bin, str(MAKE_DRAWING_PY)], env=env, capture_output=True, text=True, timeout=300,
-        )
-        if r.returncode != 0 or not dxf_path.exists():
-            return chk.error(
-                f"freecadcmd drawing generation failed (exit {r.returncode}) for {spec_path.name}. "
-                f"stdout tail: {r.stdout[-800:]} stderr tail: {r.stderr[-800:]}"
-            )
-        drawing_warnings = [line for line in r.stdout.splitlines() if line.startswith("WARNING")]
-
-        dxf_to_pdf(dxf_path, pdf_path)
-
-        pdf_size = pdf_path.stat().st_size if pdf_path.exists() else 0
-        chk.measure(
-            "pdf_size_bytes", pdf_size, "bytes", min=1000,
-            remediation=(
-                f"{pdf_path} does not exist or is implausibly small ({pdf_size} bytes) -- the DXF -> PDF "
-                "conversion likely failed. Re-run dxf_to_pdf.py directly on the DXF and inspect the error."
-            ),
-        )
-
-        texts = _extract_texts(dxf_path)
-        joined = "\n".join(texts)
-        expected_fields = {
-            "title": drawing["title"], "dwg_no": drawing["dwg_no"], "rev": drawing["rev"],
-            "scale": drawing["scale"], "drawn_by": drawing["drawn_by"],
-        }
-        missing_fields = [k for k, v in expected_fields.items() if str(v) not in joined]
-        chk.measure(
-            "title_block_fields_present", len(expected_fields) - len(missing_fields), "1",
-            min=len(expected_fields),
-            remediation=(
-                f"Title block field(s) {missing_fields} not found as DXF text in {dxf_path.name}. "
-                "Check that make_drawing.py's title_fields list includes every field this spec sets, "
-                "and that the value string matches exactly (it is a substring match)."
-            ),
-        )
-
-        dim_values = _extract_dimension_values(dxf_path)
-        matched = 0
-        missing_dims = []
-        for dim in dimensions:
-            target_val = float(dim["value_mm"])
-            tol = max(0.05, abs(target_val) * 0.01)
-            if any(abs(v - target_val) <= tol for v in dim_values):
-                matched += 1
-            else:
-                missing_dims.append(dim.get("id", "?"))
-        chk.measure(
-            "dimensions_present", matched, "1", min=len(dimensions),
-            remediation=(
-                f"Dimension(s) {missing_dims} from {spec_path.name} are not present in the exported DXF "
-                f"{dxf_path.name} (found DIMENSION values {dim_values}). This usually means the projected "
-                "geometry has no edge matching that nominal value (check part vs. spec dimensions), or "
-                "make_drawing.py's edge probe missed it -- see the WARNING lines: "
-                f"{drawing_warnings if drawing_warnings else '(none logged)'}"
-            ),
-        )
-
-        chk.tool("freecad", "1.1.3")
-        import ezdxf as _ezdxf
-        chk.tool("ezdxf", _ezdxf.__version__)
-        return chk.finish(notes=(
-            f"DXF: {dxf_path.relative_to(project)}; PDF: {pdf_path.relative_to(project)}. "
-            f"make_drawing.py warnings: {drawing_warnings or 'none'}. "
-            "ADR-001 deviation #3: full-page PDF/SVG export from TechDraw needs a GUI (issue #5710); "
-            "this pipeline exports DXF headlessly and renders the PDF with ezdxf+matplotlib instead."
-        ))
-    except CheckContractError as exc:
-        return chk.error(str(exc))
-    except Exception as exc:  # noqa: BLE001 -- fail closed, never a silent pass
-        return chk.error(f"{type(exc).__name__}: {exc}")
+    return chk.error(
+        f"{spec_path.name}: this is the legacy single-view [part] drawing spec, which is refused -- "
+        "it has no [model] (a real build123d module or STEP file to measure against, CONTRACTS SS10) "
+        "and none of the v2 schema's checks (tolerance >= 0, a valid scale, GD&T, reproducibility). "
+        "Migrate it to schema = \"forge.drawing/2\": add [drawing].projection/sheet_size/general_tolerance, "
+        "[model].module (or .step), one or more [[view]] and [[sheet]] entries, and rewrite each "
+        "[[dimension]] with view/type/tol/param instead of value_mm -- see "
+        "references/spec-schema.md and examples/project/cad/drawings/*.toml for a worked v2 example."
+    )
 
 
 def _model_extents(shape, spec) -> dict[str, tuple[float, float]]:

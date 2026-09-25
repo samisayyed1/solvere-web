@@ -417,21 +417,65 @@ def _cmd_set(ns: argparse.Namespace, project: Path, params_path: Path, key_path:
     return 0
 
 
+# S18: the closed vocabulary of units a param leaf may use. A typo (e.g.
+# "mmm") or an unrecognised unit is a lint error, not a silent pass. Add
+# to this set rather than opening it up (CONTRACTS.md §2: "units must be
+# explicit").
+UNIT_VOCAB = {
+    "mm", "cm", "m", "um", "µm", "in", "mil", "deg", "rad", "sr",
+    "g", "kg", "mg", "N", "kN", "Nm", "N*m", "N·m",
+    "Pa", "kPa", "MPa", "GPa", "psi", "bar",
+    "V", "mV", "kV", "A", "mA", "uA", "µA", "W", "mW", "kW",
+    "Hz", "kHz", "MHz", "GHz",
+    "s", "ms", "us", "µs", "ns", "min", "h",
+    "C", "°C", "K", "F", "°F",
+    "ohm", "Ω", "kohm", "kΩ", "uF", "nF", "pF", "H", "mH",
+    "%", "1", "ppm",
+}
+
+# S18: CONTRACTS.md §2 -- "a page ref for datasheets". A citation of a
+# page, table or figure number, not just the word "datasheet".
+_PAGE_REF_RE = re.compile(
+    r"\b(p\.?\s*\d+|pg\.?\s*\d+|page\s+\d+|table\s+\d+|fig\.?\s*\d+|figure\s+\d+|§\s*\d+|section\s+\d+)\b",
+    re.IGNORECASE)
+
+
+def _lint_leaf(key: str, leaf: dict, schema: dict, evidence_ids: set[str] | None) -> list[str]:
+    errors = [f"{key}: {err}" for err in minischema.validate(leaf, schema)]
+    if not leaf.get("unit"):
+        errors.append(f"{key}: missing unit (every param needs one; use unit = \"1\" for unitless)")
+    elif leaf["unit"] not in UNIT_VOCAB:
+        errors.append(f"{key}: unit {leaf['unit']!r} is not in the recognised unit vocabulary "
+                      f"(forge.commands.params.UNIT_VOCAB) -- fix the unit or add it there")
+    if leaf.get("status") == "datasheet" and not _PAGE_REF_RE.search(str(leaf.get("source") or "")):
+        errors.append(f"{key}: status=\"datasheet\" needs a page/table/figure reference in `source` "
+                      "(CONTRACTS.md §2), e.g. \"... datasheet p.4 Table 2\"")
+    if evidence_ids is not None:
+        for ev in leaf.get("evidence") or []:
+            if ev not in evidence_ids:
+                errors.append(f"{key}: evidence {ev!r} does not exist in evidence/manifest.json")
+    return errors
+
+
 def _cmd_lint(ns: argparse.Namespace, params_path: Path) -> int:
     if not params_path.is_file():
         print(f"forge params lint: {params_path} not found", file=sys.stderr)
         return 1
     data = _load_params(params_path)
     schema = _params_schema()
+    project = params_path.resolve().parent.parent
+    try:
+        from .. import evidence as evidence_lib
+        evidence_ids: set[str] | None = {
+            e.get("id") for e in evidence_lib.load(project).get("entries", []) if isinstance(e, dict)}
+    except (OSError, ValueError):
+        evidence_ids = None  # can't read the manifest: skip that one check rather than fail closed here
     all_errors: list[str] = []
     count = 0
     for path, leaf in _iter_leaves(data):
         count += 1
         key = ".".join(path)
-        for err in minischema.validate(leaf, schema):
-            all_errors.append(f"{key}: {err}")
-        if not leaf.get("unit"):
-            all_errors.append(f"{key}: missing unit (every param needs one; use unit = \"1\" for unitless)")
+        all_errors.extend(_lint_leaf(key, leaf, schema, evidence_ids))
 
     if ns.json:
         print(json.dumps({"count": count, "errors": all_errors}, indent=2, ensure_ascii=False))

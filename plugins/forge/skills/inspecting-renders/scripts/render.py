@@ -6,14 +6,16 @@ already exists with 10-20 yes/no questions written *before* any render is
 produced -- the questions must come from the requirements, not be
 back-fitted to whatever the render happens to show.
 
-Renders standard views (front, top, right, iso), one section view and one
-exploded view with PyVista offscreen, then writes an answers template
-(``<part>-answers.toml``) where every answer must cite a render file and,
-where possible, a numeric check id -- a render is a second layer, never
-the only evidence (docs/brief/FORGE-BRIEF.md §0 "numbers beat pictures").
+Renders the real part named by the questions file's ``[part]`` table (a
+build123d module or a STEP file, via ``forge_cad.load`` -- never
+placeholder/demo geometry): standard views (front, top, right, iso), one
+section view and one exploded view with PyVista offscreen. Writes an
+answers template (``<part>-answers.toml``) where every answer must cite a
+render file and, where possible, a numeric check id -- a render is a second
+layer, never the only evidence (docs/brief/FORGE-BRIEF.md §0 "numbers beat
+pictures").
 
-    forge-python ${CLAUDE_SKILL_DIR}/scripts/render.py --project <root> --part <name> \\
-        [--step <path.step>] [--length-mm 80 --width-mm 40 --height-mm 10]
+    forge-python ${CLAUDE_SKILL_DIR}/scripts/render.py --project <root> --part <name>
 """
 from __future__ import annotations
 
@@ -22,12 +24,17 @@ import sys
 import tomllib
 from pathlib import Path
 
+# CONTRACTS §10: skills/<skill>/scripts/x.py -> plugins/forge/lib
+_LIB_DIR = Path(__file__).resolve().parents[3] / "lib"
+if str(_LIB_DIR) not in sys.path:
+    sys.path.insert(0, str(_LIB_DIR))
+
 MIN_QUESTIONS = 10
 MAX_QUESTIONS = 20
 
 
 class RenderRefused(RuntimeError):
-    """The precondition (a written questions file) was not met."""
+    """The precondition (a written questions file, naming real geometry) was not met."""
 
 
 def load_questions(project: Path, part: str) -> list[dict]:
@@ -54,37 +61,76 @@ def load_questions(project: Path, part: str) -> list[dict]:
     return questions
 
 
-def _build_demo_assembly(length_mm: float, width_mm: float, height_mm: float):
-    """A tiny two-part 'assembly' (plate + pin) so the exploded view has something to explode."""
-    from build123d import BuildPart, Box, Cylinder, Location
+def load_part_spec(project: Path, part: str) -> dict:
+    """S11: the questions file must name the real part to render -- a build123d
+    module or a STEP file -- so a render can never silently fall back to
+    placeholder/demo geometry that has nothing to do with the design being
+    inspected. Optional `mate_module`/`mate_step` names a second body (e.g. a
+    mating part) shown alongside it for the section/exploded views."""
+    q_path = project / "analysis" / "renders" / f"{part}-questions.toml"
+    data = tomllib.loads(q_path.read_text())
+    part_tbl = data.get("part")
+    if not isinstance(part_tbl, dict):
+        raise RenderRefused(
+            f"{q_path} has no [part] table. Add [part] module = \"cad/<file>.py\" (or step = "
+            "\"cad/out/<file>.step\") naming the real geometry to render -- this skill never renders "
+            "placeholder/demo geometry in place of the part being inspected."
+        )
+    if ("module" in part_tbl) == ("step" in part_tbl):
+        raise RenderRefused(f"{q_path}: [part] needs exactly one of module = <path.py> or step = <path.step>")
+    return part_tbl
 
-    with BuildPart() as plate:
-        Box(length_mm, width_mm, height_mm)
-    with BuildPart() as pin:
-        Cylinder(radius=min(length_mm, width_mm) * 0.08, height=height_mm * 3)
-    return plate.part, pin.part
+
+def load_geometry(project: Path, part_tbl: dict):
+    """Loads the shape(s) [part] names, via forge_cad (the same loader
+    verifying-geometry/checking-dfm use) -- never a hard-coded demo."""
+    from forge_cad import load
+
+    def _one(key_module: str, key_step: str):
+        if key_module in part_tbl:
+            return load.load_part(project / part_tbl[key_module])
+        if key_step in part_tbl:
+            return load.load_step(project / part_tbl[key_step])
+        return None
+
+    try:
+        primary = _one("module", "step")
+        mate = _one("mate_module", "mate_step")
+    except (FileNotFoundError, load.PartLoadError) as exc:
+        raise RenderRefused(f"[part] geometry failed to load: {exc}") from exc
+    return primary, mate
 
 
-def render_views(project: Path, part: str, *, length_mm: float, width_mm: float, height_mm: float) -> dict[str, Path]:
+def render_views(project: Path, part: str, part_tbl: dict) -> dict[str, Path]:
+    """Renders the part [part] names (a real build123d module or STEP file,
+    S11) -- never placeholder/demo geometry. `mate_module`/`mate_step`
+    optionally names a second body shown alongside it (e.g. a mating part),
+    used for a meaningful exploded view; without one, "exploded" still
+    renders the real part (there is nothing else to separate from it)."""
     import pyvista as pv
 
     pv.OFF_SCREEN = True
     out_dir = project / "out" / "renders" / part
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    plate_solid, pin_solid = _build_demo_assembly(length_mm, width_mm, height_mm)
+    primary_solid, mate_solid = load_geometry(project, part_tbl)
+    bbox = primary_solid.bounding_box()
+    size = bbox.size
+    length_mm, width_mm, height_mm = size.X, size.Y, size.Z
 
     import tempfile
     tmp = Path(tempfile.mkdtemp(prefix="forge-render-"))
     from build123d import export_stl
-    plate_stl = tmp / "plate.stl"
-    pin_stl = tmp / "pin.stl"
-    export_stl(plate_solid, str(plate_stl))
-    export_stl(pin_solid, str(pin_stl))
+    primary_stl = tmp / "primary.stl"
+    export_stl(primary_solid, str(primary_stl))
+    primary_mesh = pv.read(str(primary_stl))
 
-    plate_mesh = pv.read(str(plate_stl))
-    pin_mesh = pv.read(str(pin_stl))
-    pin_mesh_offset = pin_mesh.translate((0, 0, height_mm * 2), inplace=False)
+    mate_mesh = None
+    if mate_solid is not None:
+        mate_stl = tmp / "mate.stl"
+        export_stl(mate_solid, str(mate_stl))
+        mate_mesh = pv.read(str(mate_stl))
+        mate_mesh_offset = mate_mesh.translate((0, 0, max(height_mm, 1.0) * 2), inplace=False)
 
     files: dict[str, Path] = {}
 
@@ -102,19 +148,24 @@ def render_views(project: Path, part: str, *, length_mm: float, width_mm: float,
         pl.close()
         files[name] = path
 
-    combined = [plate_mesh, pin_mesh]
-    colors = ["tan", "steelblue"]
+    combined = [primary_mesh] + ([mate_mesh] if mate_mesh is not None else [])
+    colors = ["tan", "steelblue"][: len(combined)]
     _shot("front", "xz", combined, colors, scale_bar_mm=length_mm)
     _shot("top", "xy", combined, colors, scale_bar_mm=length_mm)
     _shot("right", "yz", combined, colors, scale_bar_mm=width_mm)
     _shot("iso", "iso", combined, colors, scale_bar_mm=length_mm)
 
-    # section view: clip the plate at its mid-plane and show the cut
-    clipped = plate_mesh.clip(normal="x", origin=plate_mesh.center)
-    _shot("section", "iso", [clipped, pin_mesh], colors)
+    # section view: clip the primary part at its mid-plane and show the cut
+    clipped = primary_mesh.clip(normal="x", origin=primary_mesh.center)
+    _shot("section", "iso", [clipped] + ([mate_mesh] if mate_mesh is not None else []), colors)
 
-    # exploded view: pin translated away from the plate along +z
-    _shot("exploded", "iso", [plate_mesh, pin_mesh_offset], colors)
+    # exploded view: with a mate, translate it away along +z; with only one
+    # body there is nothing to separate it from, so this still shows the
+    # real part rather than fabricating a second one to move.
+    if mate_mesh is not None:
+        _shot("exploded", "iso", [primary_mesh, mate_mesh_offset], colors)
+    else:
+        _shot("exploded", "iso", [primary_mesh], colors[:1])
 
     return files
 
@@ -138,6 +189,7 @@ def write_answers_template(project: Path, part: str, questions: list[dict], rend
             'answer = ""            # "yes" or "no" -- fill in after inspecting the renders',
             'evidence_file = ""     # e.g. "out/renders/{}/iso.png" (must exist)'.format(part),
             'numeric_check = ""     # e.g. "geometry.min_wall" (out/verify/<id>.json), or "" if purely visual',
+            'deviation_note = ""    # REQUIRED (>= 10 chars) whenever answer = "no": say what was actually found',
             "",
         ]
     lines.append("[deviations]")
@@ -151,19 +203,17 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--project", type=Path, default=Path.cwd())
     ap.add_argument("--part", required=True)
-    ap.add_argument("--length-mm", type=float, default=80.0)
-    ap.add_argument("--width-mm", type=float, default=40.0)
-    ap.add_argument("--height-mm", type=float, default=10.0)
     ns = ap.parse_args()
     project = ns.project.resolve()
 
     try:
         questions = load_questions(project, ns.part)
+        part_tbl = load_part_spec(project, ns.part)
     except RenderRefused as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2
 
-    files = render_views(project, ns.part, length_mm=ns.length_mm, width_mm=ns.width_mm, height_mm=ns.height_mm)
+    files = render_views(project, ns.part, part_tbl)
     template = write_answers_template(project, ns.part, questions, files)
     print(f"OK rendered {len(files)} views to {project / 'out' / 'renders' / ns.part}")
     print(f"OK answers template: {template}")

@@ -30,7 +30,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from forge.checkresult import Check, CheckContractError  # noqa: E402
 from forge.tools import find_tool, forge_home  # noqa: E402
-from render_pack import render_pack  # noqa: E402
+from render_pack import load_part, render_pack  # noqa: E402
 
 _SAFE = re.compile(r"[^a-z0-9_]+")
 # Real executable paths per platform (install.sh): the macOS cask, then the Linux tarball.
@@ -165,12 +165,7 @@ def _run_one(spec_path: Path, project: Path) -> int:
             else:
                 import tempfile
                 from build123d import export_stl
-                from render_pack import _build_part
-                pack_cfg = spec["pack"]
-                part = _build_part(
-                    float(pack_cfg["length_mm"]), float(pack_cfg["width_mm"]), float(pack_cfg["height_mm"]),
-                    pack_cfg.get("hole_diameter_mm"),
-                )
+                part = load_part(project, spec["pack"])
                 tmp = Path(tempfile.mkdtemp(prefix="forge-marketing-"))
                 stl_path = tmp / "part.stl"
                 export_stl(part, str(stl_path))

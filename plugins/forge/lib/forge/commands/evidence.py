@@ -52,8 +52,26 @@ def register(parser: argparse.ArgumentParser) -> None:
     list_p.add_argument("--status", default=None, choices=("VERIFIED", "UNVERIFIED"))
     list_p.add_argument("--json", action="store_true")
 
-    status_p = sub.add_parser("status", help="the latest entry per domain")
+    status_p = sub.add_parser("status", help="the latest `forge verify` entry per (domain, entrypoint), "
+                                             "rolled up per domain as the worst result (S19)")
     status_p.add_argument("--json", action="store_true")
+
+
+def _entry_rank(entry: dict) -> int:
+    """S19 roll-up ranking: lower is worse. A FAIL or an UNVERIFIED entry
+    (even a would-be pass, e.g. from a --fast/partial run) is worse than an
+    N/A ("nothing verified"), which is worse than a clean VERIFIED pass."""
+    if entry.get("result") == "fail" or entry.get("status") == "UNVERIFIED":
+        return 0
+    if entry.get("result") == "na":
+        return 1
+    return 2
+
+
+def _worst_result(entries) -> dict:
+    """The worst-ranked entry among ``entries`` (S19): FAIL/UNVERIFIED worst,
+    then N/A, then a clean pass."""
+    return min(entries, key=_entry_rank)
 
 
 def _parse_tool_versions(pairs: list[str]) -> dict[str, str]:
@@ -111,22 +129,40 @@ def run(ns: argparse.Namespace, forge_root: Path) -> int:  # noqa: ARG001
         return 0
 
     if ns.evidence_command == "status":
-        latest_by_domain: dict[str, dict] = {}
+        # S19: a per-domain "latest entry" hides a failing (or N/A) sibling
+        # entrypoint behind whichever one happened to run last -- the
+        # addendum's exact probe (verifying-geometry FAIL, then
+        # checking-dfm N/A, reported as "mech: pass"). Report the newest
+        # entry of every (domain, unit) pair, ``unit`` being the
+        # ``entrypoint`` of a `forge verify` run or, for a hand-made claim
+        # (`forge evidence add`, which has no entrypoint), its ``artifact``
+        # -- so distinct entrypoints/artifacts never shadow one another --
+        # and roll each domain up to the worst of its units.
+        latest_by_unit: dict[tuple[str, str], dict] = {}
         for entry in entries:
-            domain = entry.get("domain")
-            # >= (not >): manifest entries are append-only in chronological order, so on a
-            # same-second timestamp tie the later entry in the list is still the newer one.
-            if domain not in latest_by_domain or entry.get("timestamp", "") >= latest_by_domain[domain].get("timestamp", ""):
-                latest_by_domain[domain] = entry
+            unit = entry.get("entrypoint") or entry.get("artifact") or ""
+            key = (entry.get("domain"), unit)
+            # manifest entries are append-only in chronological order, so the
+            # later one in the list is always the newer one.
+            latest_by_unit[key] = entry
+        by_domain: dict[str, dict[str, dict]] = {}
+        for (domain, unit), entry in latest_by_unit.items():
+            by_domain.setdefault(domain, {})[unit] = entry
+        rollup = {domain: _worst_result(units.values()) for domain, units in by_domain.items()}
         if ns.json:
-            print(json.dumps(latest_by_domain, indent=2, sort_keys=True, ensure_ascii=False))
-        elif not latest_by_domain:
+            payload = {domain: dict(rollup[domain], by_unit=units) for domain, units in by_domain.items()}
+            print(json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False))
+        elif not by_domain:
             print("forge evidence status: no entries")
         else:
-            for domain in sorted(latest_by_domain):
-                entry = latest_by_domain[domain]
-                print(f"{domain}: {entry['result']} {entry['level']} {entry['status']} "
-                      f"({entry['id']}, {entry['timestamp']})")
+            for domain in sorted(by_domain):
+                worst = rollup[domain]
+                print(f"{domain}: {worst['result']} {worst['status']} "
+                      f"(worst of {len(by_domain[domain])} unit(s))")
+                for unit in sorted(by_domain[domain]):
+                    entry = by_domain[domain][unit]
+                    print(f"  {domain}/{unit}: {entry['result']} {entry['level']} {entry['status']} "
+                          f"({entry['id']}, {entry['timestamp']})")
         return 0
 
     print(f"forge evidence: unknown subcommand {ns.evidence_command!r}", file=sys.stderr)

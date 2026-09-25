@@ -12,12 +12,88 @@ Standard library only.
 
 from __future__ import annotations
 
+import hashlib
+import json
 import subprocess
+import time
 from pathlib import Path
-from typing import Iterable
+from typing import Any, Iterable
 
 FALLBACK_NAME = "Forge scaffold"
 FALLBACK_EMAIL = "forge-scaffold@localhost"
+
+#: ``.forge/scaffold.json`` (D4): what a scaffolder wrote, so `forge
+#: sync-template` can later tell an unmodified file (safe to refresh from
+#: the current template) from one the project has since edited (a conflict,
+#: never overwritten). Gitignored, like the rest of ``.forge/``.
+SCAFFOLD_MANIFEST_REL = Path(".forge/scaffold.json")
+SCAFFOLD_SCHEMA = "forge.scaffold/1"
+
+
+def scaffold_manifest_path(target: Path | str) -> Path:
+    return Path(target) / SCAFFOLD_MANIFEST_REL
+
+
+def write_scaffold_manifest(target: Path, *, templates_dir: Path, written: Iterable[Path],
+                            project_name: str, forge_root: Path) -> Path:
+    """Record, for every file a scaffolder just wrote, its template-relative
+    path and the sha256 of its scaffolded (post-substitution) content --
+    plus ``project_name``/``forge_root`` (the substitution parameters), so a
+    later ``forge sync-template`` can re-derive "what the template would
+    write today" and compare. Returns the manifest path."""
+    target = Path(target).resolve()
+    files: dict[str, str] = {}
+    for f in written:
+        p = Path(f).resolve()
+        try:
+            rel = p.relative_to(target).as_posix()
+        except ValueError:
+            continue
+        try:
+            content = p.read_bytes()
+        except OSError:
+            continue
+        files[rel] = hashlib.sha256(content).hexdigest()
+    data: dict[str, Any] = {
+        "schema": SCAFFOLD_SCHEMA,
+        "scaffolded_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "templates_dir": str(Path(templates_dir).resolve()),
+        "forge_root": str(Path(forge_root).resolve()),
+        "project_name": project_name,
+        "files": files,
+    }
+    path = scaffold_manifest_path(target)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, indent=2, sort_keys=True, ensure_ascii=False) + "\n")
+    return path
+
+
+def read_scaffold_manifest(target: Path | str) -> dict[str, Any] | None:
+    """The scaffold manifest, or ``None`` if there is none / it is unreadable
+    (an older project scaffolded before D4, or a corrupt file -- never
+    raises)."""
+    path = scaffold_manifest_path(target)
+    try:
+        data = json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return None
+    if not isinstance(data, dict) or data.get("schema") != SCAFFOLD_SCHEMA:
+        return None
+    return data
+
+
+def update_scaffold_manifest(target: Path | str, *, files: dict[str, str]) -> None:
+    """Merge new ``{rel_path: sha256}`` entries into the manifest after
+    ``forge sync-template --write`` refreshes some files, so they read back
+    as "unmodified since scaffold" (of the just-applied version) next time."""
+    data = read_scaffold_manifest(target) or {
+        "schema": SCAFFOLD_SCHEMA, "scaffolded_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "templates_dir": "", "forge_root": "", "project_name": "", "files": {},
+    }
+    data["files"] = dict(data.get("files") or {}, **files)
+    path = scaffold_manifest_path(target)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, indent=2, sort_keys=True, ensure_ascii=False) + "\n")
 
 
 class BaselineError(RuntimeError):

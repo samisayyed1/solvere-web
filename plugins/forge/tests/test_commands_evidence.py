@@ -90,6 +90,39 @@ def test_status_json_output(tmp_path, capsys, repo_root):
     assert data["mech"]["result"] == "pass"
 
 
+def test_status_rolls_up_the_worst_sibling_entrypoint(tmp_path, capsys, repo_root):
+    """S19 (addendum probe): mech/verifying-geometry FAIL, then a *later*
+    mech/checking-dfm N/A used to report "mech: pass" (the naive
+    latest-entry-per-domain logic let the N/A hide the earlier FAIL). Status
+    must report the domain as its worst unit, not its newest."""
+    evidence_lib.add_entry(tmp_path, artifact="entrypoint:verifying-geometry", domain="mech",
+                            claim="wall check failed", check_ids=["mech.wall"], result="fail",
+                            level="L1", evidence_files=[], status="VERIFIED",
+                            _run={"entrypoint": "verifying-geometry", "recorded_by": "forge verify",
+                                  "returncode": 1, "mode": "full", "scope": None, "evidence_sha256": {}})
+    evidence_lib.add_entry(tmp_path, artifact="entrypoint:checking-dfm", domain="mech",
+                            claim="nothing to check", check_ids=[], result="na",
+                            level="L0", evidence_files=[], status="VERIFIED",
+                            _run={"entrypoint": "checking-dfm", "recorded_by": "forge verify",
+                                  "returncode": 0, "mode": "full", "scope": None, "evidence_sha256": {}})
+    code, out, _err = _run(capsys, ["evidence", "--project", str(tmp_path), "status"], repo_root)
+    assert code == 0
+    assert "mech: fail" in out, out  # NOT "mech: na" or "mech: pass"
+    assert "mech/verifying-geometry: fail" in out
+    assert "mech/checking-dfm: na" in out
+
+
+def test_status_a_clean_domain_still_reports_pass(tmp_path, capsys, repo_root):
+    evidence_lib.add_entry(tmp_path, artifact="entrypoint:verifying-geometry", domain="mech",
+                            claim="wall check passed", check_ids=["mech.wall"], result="pass",
+                            level="L1", evidence_files=[], status="VERIFIED",
+                            _run={"entrypoint": "verifying-geometry", "recorded_by": "forge verify",
+                                  "returncode": 0, "mode": "full", "scope": None, "evidence_sha256": {}})
+    code, out, _err = _run(capsys, ["evidence", "--project", str(tmp_path), "status"], repo_root)
+    assert code == 0
+    assert "mech: pass" in out
+
+
 def test_add_bad_tool_version_format_is_rejected(tmp_path, capsys, repo_root):
     code, _out, err = _run(capsys, [
         "evidence", "--project", str(tmp_path), "add",

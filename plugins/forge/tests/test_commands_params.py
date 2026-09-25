@@ -33,6 +33,10 @@ def _run(capsys, argv, repo_root):
 def _make_project(tmp_path: Path) -> Path:
     (tmp_path / "params").mkdir(parents=True)
     (tmp_path / "params" / "params.toml").write_text(PARAMS_TOML)
+    from forge import evidence as evidence_lib
+    evidence_lib.add_entry(tmp_path, artifact="param:enclosure.height", domain="mech",
+                            claim="height measured 40.0 mm on rev A prototype", check_ids=[],
+                            result="pass", level="L4", evidence_files=[], signed_by="Alice Chen")
     return tmp_path
 
 
@@ -182,6 +186,73 @@ def test_lint_json_output(tmp_path, capsys, repo_root):
     data = json.loads(out)
     assert data["count"] == 2
     assert data["errors"] == []
+
+
+# ---------------------------------------------------------------------------
+# S18: params lint -- datasheet page ref, unit vocabulary, numeric value,
+# evidence ids exist
+# ---------------------------------------------------------------------------
+
+def test_lint_catches_a_datasheet_status_with_no_page_ref(tmp_path, capsys, repo_root):
+    """Seeded wrong (S18): a `datasheet` source with no page/table/figure
+    reference must fail (CONTRACTS.md §2 requires one)."""
+    project = _make_project(tmp_path)
+    (project / "params" / "params.toml").write_text(
+        '[power.vout]\nvalue = 3.3\nunit = "V"\nstatus = "datasheet"\n'
+        'source = "regulator datasheet"\n'
+    )
+    code, out, _err = _run(capsys, ["params", "--project", str(project), "lint"], repo_root)
+    assert code == 1
+    assert "power.vout" in out and "page/table/figure reference" in out
+
+
+def test_lint_accepts_a_datasheet_status_with_a_page_ref(tmp_path, capsys, repo_root):
+    project = _make_project(tmp_path)
+    (project / "params" / "params.toml").write_text(
+        '[power.vout]\nvalue = 3.3\nunit = "V"\nstatus = "datasheet"\n'
+        'source = "regulator datasheet p.4 Table 2 (Vout)"\n'
+    )
+    code, out, _err = _run(capsys, ["params", "--project", str(project), "lint"], repo_root)
+    assert code == 0, out
+
+
+def test_lint_catches_an_unrecognised_unit(tmp_path, capsys, repo_root):
+    """Seeded wrong (S18): unit "mmm" (a typo for "mm") is not in the
+    recognised vocabulary."""
+    project = _make_project(tmp_path)
+    (project / "params" / "params.toml").write_text(
+        '[enclosure.wall_thickness]\nvalue = 2.0\nunit = "mmm"\nstatus = "assumed"\n'
+        'source = "R5d FDM min wall 0.8-1.2mm; chosen 2.0 for stiffness"\n'
+    )
+    code, out, _err = _run(capsys, ["params", "--project", str(project), "lint"], repo_root)
+    assert code == 1
+    assert "enclosure.wall_thickness" in out and "unit vocabulary" in out
+
+
+def test_lint_catches_a_string_value(tmp_path, capsys, repo_root):
+    """Seeded wrong (S18): value "2.0mm" (a string with the unit baked in)
+    instead of a numeric value + a separate unit."""
+    project = _make_project(tmp_path)
+    (project / "params" / "params.toml").write_text(
+        '[enclosure.wall_thickness]\nvalue = "2.0mm"\nunit = "mm"\nstatus = "assumed"\n'
+        'source = "R5d FDM min wall 0.8-1.2mm; chosen 2.0 for stiffness"\n'
+    )
+    code, out, _err = _run(capsys, ["params", "--project", str(project), "lint"], repo_root)
+    assert code == 1
+    assert "enclosure.wall_thickness" in out
+
+
+def test_lint_catches_an_evidence_id_that_does_not_exist(tmp_path, capsys, repo_root):
+    """Seeded wrong (S18): a verified param citing evidence EV-9999, which
+    is not in evidence/manifest.json."""
+    project = _make_project(tmp_path)
+    (project / "params" / "params.toml").write_text(
+        '[enclosure.height]\nvalue = 40.0\nunit = "mm"\nstatus = "verified"\n'
+        'source = "measured on rev A prototype"\nverified_by = "Alice Chen"\nevidence = ["EV-9999"]\n'
+    )
+    code, out, _err = _run(capsys, ["params", "--project", str(project), "lint"], repo_root)
+    assert code == 1
+    assert "enclosure.height" in out and "EV-9999" in out and "does not exist" in out
 
 
 # ---------------------------------------------------------------------------

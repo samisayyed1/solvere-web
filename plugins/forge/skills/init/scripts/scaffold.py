@@ -32,7 +32,7 @@ _PLUGIN_ROOT = _SKILL_DIR.parent.parent        # plugins/forge
 _DEFAULT_FORGE_ROOT = _PLUGIN_ROOT.parent.parent  # repo root
 _DEFAULT_TEMPLATES = _DEFAULT_FORGE_ROOT / "templates" / "project"
 sys.path.insert(0, str(_PLUGIN_ROOT / "lib"))
-from forge.gitbaseline import BaselineError, ensure_baseline  # noqa: E402
+from forge.gitbaseline import BaselineError, ensure_baseline, write_scaffold_manifest  # noqa: E402
 from forge.template_files import list_template_files  # noqa: E402
 
 _PLACEHOLDER_NAME = "{{PROJECT_NAME}}"
@@ -138,6 +138,13 @@ def init(target: Path, *, name: str | None = None, forge_root: Path = _DEFAULT_F
         else:
             dst.write_bytes(src.read_bytes())
         report.written.append(dst)
+
+    # D4: only the files this run actually wrote fresh (not merged ones, and
+    # never a file that was left alone as a conflict) are "unmodified since
+    # scaffold" candidates for `forge sync-template`.
+    if report.written:
+        write_scaffold_manifest(target, templates_dir=templates_dir, written=report.written,
+                                project_name=project_name, forge_root=forge_root)
 
     if commit:
         paths = list(report.written) + list(report.merged)

@@ -29,7 +29,7 @@ _SCRIPT = Path(__file__).resolve()
 _SKILL_DIR = _SCRIPT.parent.parent            # plugins/forge/skills/new-project
 _PLUGIN_ROOT = _SKILL_DIR.parent.parent        # plugins/forge
 sys.path.insert(0, str(_PLUGIN_ROOT / "lib"))
-from forge.gitbaseline import BaselineError, ensure_baseline  # noqa: E402
+from forge.gitbaseline import BaselineError, ensure_baseline, write_scaffold_manifest  # noqa: E402
 from forge.template_files import list_template_files  # noqa: E402
 _DEFAULT_FORGE_ROOT = _PLUGIN_ROOT.parent.parent  # repo root
 _DEFAULT_TEMPLATES = _DEFAULT_FORGE_ROOT / "templates" / "project"
@@ -107,6 +107,12 @@ def scaffold(
 
     project_name = name or target.name
     written = _copy_and_substitute(templates_dir, target, name=project_name, forge_root=forge_root)
+
+    # D4: pin what was written and its content hash, so `forge sync-template`
+    # can later tell an unmodified file (safe to refresh) from an edited one
+    # (a conflict). Gitignored (.forge/), like base_sha and state.json.
+    write_scaffold_manifest(target, templates_dir=templates_dir, written=written,
+                            project_name=project_name, forge_root=forge_root)
 
     if git_init:
         try:

@@ -5,7 +5,8 @@ views plus a numerically verifiable scale bar (not a pixel-guessed one).
 
     forge-python ${CLAUDE_SKILL_DIR}/scripts/render_pack.py --project <root> --spec analysis/render_packs/<name>.toml
 
-Reads a render-pack spec TOML (geometry + scale bar length), renders
+Reads a render-pack spec TOML ([pack] names the real geometry to render --
+a build123d module or a STEP file, S12 -- plus a scale bar length), renders
 front/top/right/iso at a shared orthographic scale and window size, and
 writes ``out/renders/products/<name>/manifest.json`` recording each view's
 ``parallel_scale_mm`` and derived ``scale_mm_per_pixel`` -- the claim
@@ -21,6 +22,11 @@ import sys
 import tomllib
 from pathlib import Path
 
+# CONTRACTS §10: skills/<skill>/scripts/x.py -> plugins/forge/lib
+_LIB_DIR = Path(__file__).resolve().parents[3] / "lib"
+if str(_LIB_DIR) not in sys.path:
+    sys.path.insert(0, str(_LIB_DIR))
+
 WINDOW_SIZE = (800, 600)
 VIEWS = [
     ("front", "xz"),
@@ -30,15 +36,25 @@ VIEWS = [
 ]
 
 
-def _build_part(length_mm: float, width_mm: float, height_mm: float, hole_diameter_mm: float | None):
-    from build123d import BuildPart, Box, Cylinder, Location
+class RenderPackError(RuntimeError):
+    """The spec, or the geometry it names, could not be rendered."""
 
-    with BuildPart() as bp:
-        Box(length_mm, width_mm, height_mm)
-        if hole_diameter_mm:
-            with Location((0, 0, 0)):
-                Cylinder(radius=hole_diameter_mm / 2, height=height_mm * 3, mode=__import__("build123d").Mode.SUBTRACT)
-    return bp.part
+
+def load_part(project: Path, pack_cfg: dict):
+    """S12: [pack] must name the real part being rendered -- a build123d
+    module or a STEP file, via forge_cad.load (the same loader
+    verifying-geometry/checking-dfm/inspecting-renders use) -- never a
+    parametric box built from length_mm/width_mm/height_mm typed by hand."""
+    from forge_cad import load
+
+    if ("module" in pack_cfg) == ("step" in pack_cfg):
+        raise RenderPackError("[pack] needs exactly one of module = <path.py> or step = <path.step>")
+    try:
+        if "module" in pack_cfg:
+            return load.load_part(project / pack_cfg["module"])
+        return load.load_step(project / pack_cfg["step"])
+    except (FileNotFoundError, load.PartLoadError) as exc:
+        raise RenderPackError(f"[pack] geometry failed to load: {exc}") from exc
 
 
 def render_pack(project: Path, spec_path: Path) -> Path:
@@ -49,13 +65,12 @@ def render_pack(project: Path, spec_path: Path) -> Path:
     spec = tomllib.loads(spec_path.read_text())
     pack = spec["pack"]
     name = pack["name"]
-    length_mm = float(pack["length_mm"])
-    width_mm = float(pack["width_mm"])
-    height_mm = float(pack["height_mm"])
-    hole_mm = pack.get("hole_diameter_mm")
+
+    part = load_part(project, pack)
+    bbox = part.bounding_box().size
+    length_mm, width_mm, height_mm = bbox.X, bbox.Y, bbox.Z
     scale_bar_mm = float(spec.get("scale_bar", {}).get("length_mm", max(length_mm, width_mm) * 0.25))
 
-    part = _build_part(length_mm, width_mm, height_mm, hole_mm)
     tmp = Path(tempfile.mkdtemp(prefix="forge-render-pack-"))
     stl_path = tmp / "part.stl"
     export_stl(part, str(stl_path))
@@ -110,7 +125,11 @@ def main() -> int:
     ns = ap.parse_args()
     project = ns.project.resolve()
     spec_path = ns.spec if ns.spec.is_absolute() else project / ns.spec
-    manifest = render_pack(project, spec_path)
+    try:
+        manifest = render_pack(project, spec_path)
+    except RenderPackError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
     print(f"OK {manifest}")
     return 0
 

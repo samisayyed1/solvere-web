@@ -34,7 +34,6 @@ Standard library only -- this module runs under the plain ``forge`` CLI
 from __future__ import annotations
 
 import argparse
-import inspect
 import json
 import os
 import subprocess

@@ -6,7 +6,7 @@
   "required": ["value", "unit", "status", "source"],
   "additionalProperties": false,
   "properties": {
-    "value": {"type": ["number", "string", "boolean"]},
+    "value": {"type": ["number", "boolean"], "$comment": "S18: a value is a number (or boolean flag); a unit belongs in `unit`, never embedded in `value` as a string"},
     "unit": {"type": "string", "minLength": 1},
     "tol": {"type": "object", "properties": {"minus": {"type": "number", "minimum": 0}, "plus": {"type": "number", "minimum": 0}}, "required": ["minus", "plus"], "additionalProperties": false},
     "status": {"enum": ["assumed", "datasheet", "measured", "verified"]},

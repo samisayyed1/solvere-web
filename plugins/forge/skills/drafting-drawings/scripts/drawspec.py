@@ -217,6 +217,12 @@ def parse_tol(raw: Any, where: str) -> dict[str, Any]:
             raise SpecError(f"{where}: tol.style must be 'plusminus' or 'limits'")
     else:
         raise SpecError(f"{where}: every critical dimension needs an explicit tol (number for +/-, or {{plus, minus[, style]}})")
+    # S14: plus/minus are magnitudes (the sign convention -- upper = nominal+plus,
+    # lower = nominal-minus -- is applied in format_dim_text/the checker, not here),
+    # so a negative value is never valid on its own, even when plus+minus still
+    # nets positive (e.g. plus=0.20, minus=-0.10 used to slip through here).
+    if plus < 0 or minus < 0:
+        raise SpecError(f"{where}: tol.plus and tol.minus must each be >= 0 (magnitudes; got +{plus}/-{minus})")
     if plus + minus <= 0:
         raise SpecError(f"{where}: tolerance zone plus + minus must be > 0 (got +{plus}/-{minus})")
     return {"plus": plus, "minus": minus, "style": style}

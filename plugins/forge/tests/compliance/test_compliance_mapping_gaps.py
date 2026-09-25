@@ -10,6 +10,11 @@ To prove these tests fail on the original skill, point them at a copy of it:
 
 (the old copy needs ``lib/`` three levels up, as in the plugin). The capture
 records in docs/failures/ quote that run.
+
+Forge must stay product-agnostic (test_product_agnostic.py) -- this file never names a
+real product. The optional real-product regression test below is opted into by pointing
+``FORGE_REAL_PRODUCT_DIR`` at any product's root (a sibling repo scaffolded by
+/forge:new-project, or one nested in this checkout); it SKIPs otherwise.
 """
 from __future__ import annotations
 
@@ -27,7 +32,8 @@ PLUGIN_ROOT = Path(__file__).resolve().parents[2]
 REPO_ROOT = PLUGIN_ROOT.parents[1]
 SCRIPT = Path(os.environ.get("FORGE_COMPLIANCE_VERIFY")
               or PLUGIN_ROOT / "skills" / "mapping-compliance" / "scripts" / "verify.py")
-REAL_PRODUCT = REPO_ROOT / "products" / "solvere-sense"
+REAL_PRODUCT_ENV = "FORGE_REAL_PRODUCT_DIR"
+REAL_PRODUCT = Path(os.environ[REAL_PRODUCT_ENV]) if os.environ.get(REAL_PRODUCT_ENV) else None
 RESULT = "out/verify/compliance.standards_map.json"
 
 
@@ -315,12 +321,15 @@ def test_consistent_profile_passes(tmp_path):
     assert "a qualified human confirms whether it applies" in text
 
 
-@pytest.mark.skipif(not (REAL_PRODUCT / "compliance" / "product-profile.toml").is_file(),
-                    reason="products/solvere-sense not in this checkout")
-def test_solvere_sense_regression(tmp_path):
-    """The real profile, copied to tmp: as written it now FAILS (it used to pass with 11 rows and no
-    UK/RED/radio-spectrum/IEC 62368-1 rows); with its radios declared and its power source in the
-    vocabulary, the missing rows appear."""
+@pytest.mark.skipif(not REAL_PRODUCT or not (REAL_PRODUCT / "compliance" / "product-profile.toml").is_file(),
+                    reason=f"set ${REAL_PRODUCT_ENV} to a real product's root to run this regression test")
+def test_real_product_regression(tmp_path):
+    """A real product's profile, copied to tmp: as written it now FAILS (it used to pass with 11 rows
+    and no UK/RED/radio-spectrum/IEC 62368-1 rows); with its radios declared and its power source in
+    the vocabulary, the missing rows appear. This test is opted into per-machine via
+    ``FORGE_REAL_PRODUCT_DIR`` (see the module docstring) -- Forge's own test source never names a
+    real product, and the literal profile text below is this particular product's own, read from its
+    files at runtime, not hard-coded here."""
     for d in ("compliance", "requirements", "params"):
         shutil.copytree(REAL_PRODUCT / d, tmp_path / "orig" / d)
     orig = tmp_path / "orig"
