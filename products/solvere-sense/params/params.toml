@@ -4,30 +4,386 @@
 # status: assumed | datasheet | measured | verified
 # Changing a `status = "verified"` value needs `forge params set --justification "..."`;
 # the PreToolUse hook blocks direct edits to verified params.
+#
+# Source short names (full citations in requirements/requirements.md):
+#   Owner = docs/intake/G0-owner-answers.md (2026-09-25, L0)
+#   DS    = Seeed MR60FDA2 industrial product datasheet, SKU 114993388, 8 pp.,
+#           https://files.seeedstudio.com/Bazaar/product_pdf/114993388.pdf (read 2026-09-25) [V]
+#   Wiki  = https://wiki.seeedstudio.com/getting_started_with_mr60fda2_mmwave_kit/
+#           (source commit 880cf8b, 2026-05-15; read 2026-09-25) [V]
+#   A-xxx = ASSUMPTIONS.md row
+#
+# G0 draft: no value here is measured or verified yet.
+
+# --- mounting and coverage (Owner) -----------------------------------------
+
+[mount.height_min]
+value = 2.2
+unit = "m"
+status = "datasheet"
+source = "Owner (2.2-3.0 m per the MR60FDA2 spec); Wiki 'Installation method and sensing range': top-mounted hanging height 2.2-3.0m"
+verified_by = ""
+evidence = []
+
+[mount.height_max]
+value = 3.0
+unit = "m"
+status = "datasheet"
+source = "Owner; Wiki 'Installation method and sensing range': top-mounted hanging height 2.2-3.0m"
+verified_by = ""
+evidence = []
+
+[mount.coverage_side]
+value = 3.0
+unit = "m"
+status = "assumed"
+source = "Owner: about 3 x 3 m per pod (square side). DS p.6: fall detection in a 3x3x3 m range. Conflicts with Wiki max sensing radius 2 m at the corners -- Q-03, R-003"
+verified_by = ""
+evidence = []
+
+[mount.retention_load_factor]
+value = 4.0
+unit = "1"
+status = "assumed"
+source = "A-003: static pull-test load as a multiple of installed weight (REQ-MECH-004/-005). No sourced value in Forge R5 files; a qualified human replaces it"
+verified_by = ""
+evidence = []
+
+[mount.retention_hold_time]
+value = 60
+unit = "s"
+status = "assumed"
+source = "A-003: hold time for the static pull tests REQ-MECH-004/-005"
+verified_by = ""
+evidence = []
+
+# --- sensor: Seeed MR60FDA2 kit with XIAO ESP32C6 ----------------------------
+
+[sensor.sku]
+value = "114993388"
+unit = "1"
+status = "datasheet"
+source = "DS p.1 SKU; kit = 60GHz mmWave sensor module + Seeed Studio XIAO ESP32C6 pre-flashed with ESPHome (DS p.7 part list)"
+verified_by = ""
+evidence = []
+
+[sensor.frequency_nominal]
+value = 60.0
+unit = "GHz"
+status = "assumed"
+source = "A-015: product name '60GHz'; DS gives no band. Sibling MR60FDA1 wiki gives 58-63.5 GHz [R]"
+verified_by = ""
+evidence = []
+
+[sensor.wavelength_free_space]
+value = 4.997
+unit = "mm"
+status = "assumed"
+source = "Computed c/f = 299792458 m/s / 60.0 GHz; inherits A-015 (nominal frequency). For radome sizing only"
+verified_by = ""
+evidence = []
+
+[sensor.fall_range_side]
+value = 3.0
+unit = "m"
+status = "datasheet"
+source = "DS p.6 Detection Range: fall detection 3x3x3 meter range"
+verified_by = ""
+evidence = []
+
+[sensor.sensing_radius_max]
+value = 2.0
+unit = "m"
+status = "datasheet"
+source = "Wiki 'Installation method and sensing range': maximum sensing radius 2m"
+verified_by = ""
+evidence = []
+
+[sensor.presence_range_max]
+value = 6.0
+unit = "m"
+status = "datasheet"
+source = "DS p.6: human static presence detection up to 6 meters (DS p.3: tested in empty deployment environments)"
+verified_by = ""
+evidence = []
+
+[sensor.fov_horizontal]
+value = 120
+unit = "deg"
+status = "datasheet"
+source = "DS p.6: horizontal FoV 120 deg. Wiki intro says '100 x 40 deg detection angle' -- conflict, R-013; larger value used for keep-out"
+verified_by = ""
+evidence = []
+
+[sensor.fov_vertical]
+value = 100
+unit = "deg"
+status = "datasheet"
+source = "DS p.6: vertical FoV 100 deg (see sensor.fov_horizontal conflict note)"
+verified_by = ""
+evidence = []
+
+[sensor.level_tolerance]
+value = 5
+unit = "deg"
+status = "assumed"
+source = "A-004: sibling MR60FDA1 wiki 'horizontal deviation angle <= 5 deg' [R]; not stated for MR60FDA2"
+verified_by = ""
+evidence = []
+
+[sensor.install_height_param_default]
+value = 2.2
+unit = "m"
+status = "datasheet"
+source = "Wiki API notes, setInstallationHeight: initial setting 2.2 m, valid range typically 1-5 m"
+verified_by = ""
+evidence = []
+
+[sensor.fall_threshold_default]
+value = 0.6
+unit = "m"
+status = "datasheet"
+source = "Wiki API notes, setFallThreshold: default fall threshold 0.6 m"
+verified_by = ""
+evidence = []
+
+[sensor.supply_voltage]
+value = 5.0
+unit = "V"
+status = "datasheet"
+source = "DS p.6 Power Supply 5V/1A"
+verified_by = ""
+evidence = []
+
+[sensor.power_standby]
+value = 0.5
+unit = "W"
+status = "datasheet"
+source = "DS p.6 Power consumption: 0.5w standby mode (A-010: taken as whole-kit figure)"
+verified_by = ""
+evidence = []
+
+[sensor.power_active]
+value = 0.8
+unit = "W"
+status = "datasheet"
+source = "DS p.6 Power consumption: 0.8w activation mode (A-010)"
+verified_by = ""
+evidence = []
+
+[sensor.power_with_relay]
+value = 1.4
+unit = "W"
+status = "datasheet"
+source = "DS p.6 Power consumption: 1.4w with Grove relay; used as the pod power ceiling (REQ-PWR-005)"
+verified_by = ""
+evidence = []
+
+[sensor.operating_temp_max]
+value = 60
+unit = "degC"
+status = "assumed"
+source = "A-006: not published for MR60FDA2; sibling MR60FDA1 wiki gives -20 to 60 degC [R]"
+verified_by = ""
+evidence = []
+
+[sensor.board_length]
+value = 47
+unit = "mm"
+tol = { minus = 1.0, plus = 1.0 }
+status = "assumed"
+source = "A-008: estimated from the ruler in Seeed image wiki/mmwave-for-xiao/mr60/6-mmWave-size.jpg (image commented out of the Wiki); board incl. radar module overhang, excl. USB-C plug. Caliper-measure before CAD"
+verified_by = ""
+evidence = []
+
+[sensor.board_width]
+value = 29
+unit = "mm"
+tol = { minus = 1.0, plus = 1.0 }
+status = "assumed"
+source = "A-008: estimated from the same ruler image. Stack height with the XIAO fitted is unknown"
+verified_by = ""
+evidence = []
+
+[sensor.unit_price_qty1]
+value = 26.90
+unit = "USD"
+status = "datasheet"
+source = "DS p.1 price $26.90 excl. VAT, updated 2026-07-30; Seeed product page p-5946 shows the same on 2026-09-25"
+verified_by = ""
+evidence = []
+
+[sensor.unit_price_qty10]
+value = 26.50
+unit = "USD"
+status = "datasheet"
+source = "Seeed product page https://www.seeedstudio.com/MR60FDA2-60GHz-mmWave-Sensor-Fall-Detection-Module-p-5946.html, 10+ units, read 2026-09-25"
+verified_by = ""
+evidence = []
+
+# --- power (Owner) ------------------------------------------------------------
+
+[power.usb_voltage]
+value = 5.0
+unit = "V"
+status = "datasheet"
+source = "Owner: USB-C 5 V / 1 A; DS p.6 5V/1A"
+verified_by = ""
+evidence = []
+
+[power.usb_current_max]
+value = 1.0
+unit = "A"
+status = "datasheet"
+source = "Owner: USB-C 5 V / 1 A; DS p.6 5V/1A"
+verified_by = ""
+evidence = []
+
+[power.pod_power_max]
+value = 1.4
+unit = "W"
+status = "assumed"
+source = "Budget cap = sensor.power_with_relay (REQ-PWR-005); no load other than the kit (A-009)"
+verified_by = ""
+evidence = []
+
+# --- environment and thermal ---------------------------------------------------
+
+[env.ambient_min]
+value = 0
+unit = "degC"
+status = "assumed"
+source = "A-005: v1 bedroom/living room; owner gave no range (Q-13)"
+verified_by = ""
+evidence = []
+
+[env.ambient_max]
+value = 35
+unit = "degC"
+status = "assumed"
+source = "A-005: v1 bedroom/living room; owner gave no range (Q-13)"
+verified_by = ""
+evidence = []
+
+[thermal.h_natural_convection]
+value = 5.0
+unit = "W/(m2*K)"
+status = "assumed"
+source = "A-007: conservative low natural-convection coefficient for the G0 draft; radiation ignored. Replace with G3 thermal test"
+verified_by = ""
+evidence = []
+
+# --- enclosure --------------------------------------------------------------
 
 [enclosure.wall_thickness]
 value = 2.0
 unit = "mm"
 tol = { minus = 0.1, plus = 0.1 }
 status = "assumed"
-source = "R5d FDM min wall 0.8-1.2 mm; chosen 2.0 mm for stiffness margin on the lid lip"
+source = "A-002: R5d FDM min wall 0.8-1.2 mm (2-3x a 0.4 mm nozzle); 2.0 mm chosen for stiffness margin. Below the 2.5-3.8 mm 'ideal' MJF wall (R5d, Protolabs UK) but above the 0.5 mm MJF minimum"
 verified_by = ""
 evidence = []
 
-[enclosure.lid_snap_fit_strain]
-value = 4.0
-unit = "%"
-tol = { minus = 0.0, plus = 0.5 }
+[enclosure.colour]
+value = "matte warm white"
+unit = "1"
 status = "assumed"
-source = "R5d snap-fit permissible strain table; conservative starting value pending material selection"
+source = "Owner: matte warm white; exact reference open (Q-06). No metallic pigment (REQ-MECH-010)"
 verified_by = ""
 evidence = []
 
-[power.regulator_output_voltage]
-value = 3.3
-unit = "V"
-tol = { minus = 0.05, plus = 0.05 }
+# radome thickness: deliberately not set. It depends on the radome material's
+# permittivity at 60 GHz, which is unsourced (A-015). Set it from the coupon
+# transmission test in tests/verification-plan.md TP-SYS-002.
+
+# --- manufacturing (R5d; process per Owner) ------------------------------------
+
+[mfg.fdm.nozzle_diameter]
+value = 0.4
+unit = "mm"
+status = "assumed"
+source = "Owner requirement (L0, not a datasheet value): standard 0.4 mm-nozzle FDM printer"
+verified_by = ""
+evidence = []
+
+[mfg.fdm.max_overhang]
+value = 45
+unit = "deg"
 status = "datasheet"
-source = "example regulator datasheet p.4 Table 2 (Vout); replace with the selected part's page reference"
+source = "R5d FDM 'Max overhang without support 45 deg' (Protolabs Network design-rules PDF; PN FDM guide) [V]"
+verified_by = ""
+evidence = []
+
+[mfg.fdm.max_bridge_show_face]
+value = 5
+unit = "mm"
+status = "datasheet"
+source = "R5d FDM 'Bridge with no sag or support marks < 5 mm' (PN FDM guide) [V]"
+verified_by = ""
+evidence = []
+
+[mfg.fdm.max_bridge_hidden]
+value = 10
+unit = "mm"
+status = "datasheet"
+source = "R5d FDM 'Horizontal bridge 10 mm' (PN PDF) [V]"
+verified_by = ""
+evidence = []
+
+[mfg.fdm.min_wall]
+value = 1.2
+unit = "mm"
+status = "datasheet"
+source = "R5d FDM: min wall 2-3x nozzle = 0.8-1.2 mm (PN) [V]; unsupported walls >= 1.2 mm (Xometry) [R]"
+verified_by = ""
+evidence = []
+
+[mfg.fdm.min_hole]
+value = 2.0
+unit = "mm"
+status = "datasheet"
+source = "R5d FDM 'Minimum hole 2 mm' (PN PDF) [V]; Xometry gives 1 mm -- the larger is used"
+verified_by = ""
+evidence = []
+
+[mfg.fdm.clearance_connecting]
+value = 0.5
+unit = "mm"
+status = "datasheet"
+source = "R5d FDM 'Clearance, moving/connecting parts 0.5 mm' (PN PDF; PN snap-fit article) [V]"
+verified_by = ""
+evidence = []
+
+[mfg.sla.clearance_connecting]
+value = 0.2
+unit = "mm"
+status = "datasheet"
+source = "R5d SLA 'connections 0.2 mm' (PN SLA guide) [V]; Formlabs Form 4 minimum 0.4 mm -- check against the chosen service's printer"
+verified_by = ""
+evidence = []
+
+[mfg.mjf.clearance_connecting]
+value = 0.6
+unit = "mm"
+status = "datasheet"
+source = "R5d MJF 'Clearance 0.6 mm if assembled after printing' (PN MJF guide) [V]"
+verified_by = ""
+evidence = []
+
+# --- cost (Owner) ----------------------------------------------------------
+
+[cost.prototype_max]
+value = 50.0
+unit = "USD"
+status = "assumed"
+source = "Owner requirement (L0, not a datasheet value): prototype <= US$50/unit"
+verified_by = ""
+evidence = []
+
+[cost.production_bom_max]
+value = 30.0
+unit = "USD"
+status = "assumed"
+source = "Owner requirement (L0, not a datasheet value): production BOM <= US$30. Volume tier and scope (cable, adapter, packaging) open, Q-15"
 verified_by = ""
 evidence = []

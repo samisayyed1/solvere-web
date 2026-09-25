@@ -65,6 +65,12 @@
 4. **Evals (Phase 6):** smoke tier, then the full suite (25+ cases × 3 runs × 2 arms, agent and judge pinned to `claude-opus-5-5`, with a cost ceiling), then `evals/BASELINE.md`.
 5. **Phases 7–8:** capturing-failures and weekly routine (ASK before enabling), acceptance, README, final ASK.
 
+## Solvere Sense G0: work in progress (agent stopped mid-run to move to cloud)
+
+- **Last status:** requirements, params and the SysML model were drafted, the model passes spec42, and the checker catches seeded faults.
+- **Not done:** `docs/interfaces.md`, `docs/budgets.md`, the ASSUMPTIONS/RISKS updates, the compliance map, `forge verify --all` evidence, and `reviews/G0.md`.
+- **To resume:** re-run the G0 brief (systems-engineer role, product folder only, never invent numbers, cite the MR60FDA2 datasheet), then review the WIP files and complete them.
+
 ## Known failing or open items
 
 - The FEA formula citations are unverified (item 1c).

@@ -1,15 +1,488 @@
 {
   "schema": "forge.trace/1",
   "requirements": {
-    "REQ-MECH-001": {
-      "design": [],
-      "tests": [],
+    "REQ-SYS-001": {
+      "design": [
+        "model/system.sysml#SensorKit",
+        "params/params.toml#sensor"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-sys-001"
+      ],
       "evidence": [],
       "status": "open"
     },
-    "REQ-SYS-001": {
+    "REQ-SYS-002": {
+      "design": [
+        "model/system.sysml#Radome",
+        "params/params.toml#radome"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-sys-002"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-MECH-001": {
+      "design": [
+        "model/system.sysml#BasePlate",
+        "model/system.sysml#CeilingFixPort"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-mech-001"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-MECH-002": {
+      "design": [
+        "model/system.sysml#BasePlate"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-mech-002"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-MECH-003": {
+      "design": [
+        "model/system.sysml#TBarClipAdapter"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-mech-003"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-MECH-004": {
+      "design": [
+        "model/system.sysml#BasePlate",
+        "params/params.toml#mount.retention_load_factor"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-mech-004"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-MECH-005": {
+      "design": [
+        "model/system.sysml#ShellBaseInterface",
+        "params/params.toml#mount.retention_load_factor"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-mech-005"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-MECH-006": {
+      "design": [
+        "model/system.sysml#ShellBaseInterface"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-mech-006"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-MECH-007": {
+      "design": [
+        "model/system.sysml#GasketGroove"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-mech-007"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-MECH-008": {
+      "design": [
+        "model/system.sysml#GasketGroove",
+        "model/system.sysml#Gasket"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-mech-008"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-MECH-009": {
+      "design": [
+        "model/system.sysml#SensorKit",
+        "params/params.toml#sensor.level_tolerance"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-mech-009"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-MECH-010": {
+      "design": [
+        "model/system.sysml#Radome",
+        "params/params.toml#sensor.fov_horizontal"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-mech-010"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-MECH-011": {
+      "design": [
+        "model/system.sysml#CableStrainRelief"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-mech-011"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-MECH-012": {
+      "design": [
+        "model/system.sysml#CableExitPort"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-mech-012"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-PWR-001": {
+      "design": [
+        "model/system.sysml#UsbCPowerPort",
+        "params/params.toml#power"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-pwr-001"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-PWR-002": {
+      "design": [
+        "model/system.sysml#UsbCPowerPort"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-pwr-002"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-PWR-003": {
+      "design": [
+        "params/params.toml#power"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-pwr-003"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-PWR-004": {
+      "design": [
+        "model/system.sysml#UsbCPowerPort"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-pwr-004"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-PWR-005": {
+      "design": [
+        "params/params.toml#sensor.power_active"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-pwr-005"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-ELEC-001": {
+      "design": [
+        "model/system.sysml#SolvereSensePod"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-elec-001"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-ENV-001": {
+      "design": [
+        "params/params.toml#env"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-env-001"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-ENV-002": {
+      "design": [
+        "params/params.toml#thermal"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-env-002"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-SAFE-001": {
+      "design": [
+        "params/params.toml#enclosure"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-safe-001"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-SAFE-002": {
+      "design": [
+        "params/params.toml#thermal"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-safe-002"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-SAFE-003": {
       "design": [],
-      "tests": [],
+      "tests": [
+        "tests/verification-plan.md#tp-safe-003"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-EMC-001": {
+      "design": [],
+      "tests": [
+        "tests/verification-plan.md#tp-emc-001"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-EMC-002": {
+      "design": [],
+      "tests": [
+        "tests/verification-plan.md#tp-emc-002"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-EMC-003": {
+      "design": [],
+      "tests": [
+        "tests/verification-plan.md#tp-emc-003"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-EMC-004": {
+      "design": [],
+      "tests": [
+        "tests/verification-plan.md#tp-emc-004"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-EMC-005": {
+      "design": [
+        "model/system.sysml#SensorKit"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-emc-005"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-FW-001": {
+      "design": [
+        "model/system.sysml#SensorKit"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-fw-001"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-FW-002": {
+      "design": [],
+      "tests": [
+        "tests/verification-plan.md#tp-fw-002"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-FW-003": {
+      "design": [],
+      "tests": [
+        "tests/verification-plan.md#tp-fw-003"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-UX-001": {
+      "design": [
+        "model/system.sysml#Shell"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-ux-001"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-UX-002": {
+      "design": [
+        "model/system.sysml#Shell"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-ux-002"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-UX-003": {
+      "design": [],
+      "tests": [
+        "tests/verification-plan.md#tp-ux-003"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-MNT-001": {
+      "design": [
+        "params/params.toml#mount"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-mnt-001"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-MNT-002": {
+      "design": [],
+      "tests": [
+        "tests/verification-plan.md#tp-mnt-002"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-MNT-003": {
+      "design": [],
+      "tests": [
+        "tests/verification-plan.md#tp-mnt-003"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-MNT-004": {
+      "design": [],
+      "tests": [
+        "tests/verification-plan.md#tp-mnt-004"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-MFG-001": {
+      "design": [
+        "params/params.toml#mfg.fdm"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-mfg-001"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-MFG-002": {
+      "design": [
+        "params/params.toml#mfg.fdm.max_overhang"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-mfg-002"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-MFG-003": {
+      "design": [
+        "params/params.toml#mfg.fdm.max_bridge_show_face"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-mfg-003"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-MFG-004": {
+      "design": [
+        "params/params.toml#mfg.fdm.min_wall"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-mfg-004"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-MFG-005": {
+      "design": [
+        "params/params.toml#mfg"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-mfg-005"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-MFG-006": {
+      "design": [
+        "params/params.toml#mfg.fdm"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-mfg-006"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-MFG-007": {
+      "design": [
+        "params/params.toml#mfg"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-mfg-007"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-COST-001": {
+      "design": [
+        "params/params.toml#cost"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-cost-001"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-COST-002": {
+      "design": [
+        "params/params.toml#cost"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-cost-002"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-COST-003": {
+      "design": [],
+      "tests": [
+        "tests/verification-plan.md#tp-cost-003"
+      ],
       "evidence": [],
       "status": "open"
     }
