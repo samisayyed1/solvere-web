@@ -1,0 +1,7 @@
+[firmware.debounce]
+debounce_ms = 20
+long_press_ms = 1000
+size_budget_bytes = 1024
+unit = "ms"
+status = "assumed"
+source = "HMI spec v1: 20 ms debounce, 1 s long press"

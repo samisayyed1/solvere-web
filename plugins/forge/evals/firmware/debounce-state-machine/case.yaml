@@ -1,0 +1,52 @@
+schema_version: "1.1"
+name: firmware-debounce-state-machine
+description: Debounced input with a state machine and unit tests, built and tested on the host with cc/gcc. Graded on Forge's building-firmware result (build, tests, static analysis, FORGE_MUTANT mutation kill), plus the mutant sitting on the timing logic and the API staying fixed.
+tags: [firmware, smoke]
+context:
+  scaffold_script: scaffold.sh
+graders:
+  - name: fw-check-pass
+    type: regex
+    target: { source: file, path: out/verify/firmware.debounce.json }
+    pattern: '"check_id"\s*:\s*"firmware\.debounce"[\s\S]*"status"\s*:\s*"pass"'
+    weight: 2
+  - name: tests-ran
+    type: regex
+    target: { source: file, path: out/verify/firmware.debounce.json }
+    pattern: '"name"\s*:\s*"tests_run"\s*,\s*"value"\s*:\s*([5-9]|\d{2,})\b'
+  - name: tests-passed
+    type: regex
+    target: { source: file, path: out/verify/firmware.debounce.json }
+    pattern: '"name"\s*:\s*"test_failures"\s*,\s*"value"\s*:\s*0\b'
+  - name: mutant-killed
+    type: regex
+    target: { source: file, path: out/verify/firmware.debounce.json }
+    pattern: '"name"\s*:\s*"mutation_kills"\s*,\s*"value"\s*:\s*1\b'
+    weight: 2
+  - name: mutant-on-timing-logic
+    type: regex
+    target: { source: file, path: firmware/src/debounce.c }
+    pattern: '#\s*if(def\s+|\s+defined\s*\(\s*)FORGE_MUTANT[\s\S]{0,400}(DEBOUNCE_MS|LONG_PRESS_MS)'
+  - name: mutant-not-left-on
+    type: regex
+    target: { source: file, path: firmware/src/debounce.c }
+    flags: m
+    pattern: '^\s*#\s*define\s+FORGE_MUTANT'
+    match: not_contains
+  - name: api-unchanged
+    type: regex
+    target: { source: file, path: firmware/include/debounce.h }
+    pattern: 'btn_event_t debounce_update\(debounce_t \*d, int raw_level, uint32_t now_ms\);'
+  - name: tests-cover-glitch-and-long-press
+    type: regex
+    target: { source: file, path: firmware/tests/test_debounce.c }
+    flags: i
+    pattern: '(?=[\s\S]*(glitch|bounce|chatter|noise))(?=[\s\S]*LONG_PRESS)'
+  - name: firmware-checker-ran
+    type: tool_used
+    tool: Bash
+    input_match: 'building-firmware/scripts/verify\.py|forge(\s|\\")+verify'
+  - name: skill-fired
+    type: tool_used
+    tool: Skill
+    input_match: '"skill"\s*:\s*"(?:forge:)?building-firmware"'

@@ -1,0 +1,83 @@
+# Product profile for mapping-compliance (plugins/forge/skills/mapping-compliance).
+# The product's facts only; the skill matches them against its sourced
+# references/standards.toml and generates standards-map.md, test-plan.md and
+# pre-scan-plan.md. NOT a compliance determination; a qualified human signs.
+#
+# Sources (short names as in docs/sources/README.md):
+#   Owner   = docs/intake/G0-owner-answers.md (2026-09-25)
+#   Owner2  = docs/intake/G0-owner-answers-2.md (2026-09-25, round 2)
+#   DS      = MR60FDA2 kit datasheet (docs/sources/MR60FDA2-datasheet-114993388.pdf)
+#   MDS     = MR60FDA2 module technical specification (docs/sources/MR60FDA2-module-datasheet.pdf)
+#   XIAO    = XIAO ESP32C6 wiki (docs/sources/wiki-xiao-esp32c6.txt)
+#
+# Fields the skill reads: category, power_source, target_markets (required),
+# has_radio, has_pcb, has_plastic_enclosure, has_web_or_app_ui,
+# connects_to_internet, contract_manufactured, has_safety_function,
+# is_toy_or_childcare, allows_blank_password, has_parental_control.
+# The [facts] table is descriptive detail for humans; the skill ignores it.
+
+# Owner: ceiling presence sensor for bedrooms/living rooms; Owner2 (Q-15):
+# home-automation use, no medical or safety claims.
+category = "consumer_iot"
+
+# Owner: USB-C 5 V / 1 A from a standard USB wall adapter, no battery; the
+# hardwired (mains) variant is out of scope for v1. DS p.6: 5V/1A. No mains
+# conductor inside the pod (REQ-ELEC-001). A list, because the skill's "in"
+# operator only matches list fields (standards.toml header).
+power_source = ["usb_c_5v_external_adapter"]
+
+# Owner2 (Q-03): map US, EU, UK and Canada; sell in none until a qualified
+# human confirms. ISO 3166-1 alpha-2 codes, as standards.toml uses ("US",
+# "EU", "CA"); standards.toml has no "UK" rows (gap, see compliance-map.md).
+target_markets = ["US", "EU", "UK", "CA"]
+
+# 60 GHz FMCW radar (MDS p.3-4) and the XIAO ESP32C6 radio (XIAO: 2.4 GHz
+# Wi-Fi 6, Bluetooth LE, IEEE 802.15.4). Owner2 (Q-01): kit as-is, no other radio.
+has_radio = true
+
+# The kit's radar-module board and XIAO board (DS p.7). Forge designs no PCB
+# for v1; the kit is bought assembled.
+has_pcb = true
+
+# Owner: printed shell, base plate, radome (FDM PETG, SLA resin or MJF nylon).
+has_plastic_enclosure = true
+
+# No own app or web UI in v1: the user interface is Home Assistant (DS p.2,
+# Owner2 Q-02). Set true if the ESPHome web server or any app is enabled.
+has_web_or_app_ui = false
+
+# Owner2 (Q-02): Wi-Fi to a local Home Assistant, no cloud. Set true
+# conservatively: the pod joins a home Wi-Fi network that normally has
+# internet access, and R5e's triggers (RED cyber, CRA) are about radio
+# equipment that is internet-connected, directly or via other equipment. A
+# qualified human decides whether local-only use changes this (Q-17).
+connects_to_internet = true
+
+# No production route chosen at G0; Forge does no PCB assembly (kit bought
+# assembled). Demo parts come from a print service (Owner).
+contract_manufactured = false
+
+# Owner2 (Q-15): no safety function is claimed; the fall-event output is not
+# a safety function (REQ-SAFE-003, REQ-SAFE-004).
+has_safety_function = false
+
+is_toy_or_childcare = false
+
+# REQ-FW-002: no mode that allows use without a user-set or unique credential.
+allows_blank_password = false
+
+has_parental_control = false
+
+[facts]
+radios = [
+  "60 GHz FMCW radar, 58-62 GHz, 12 dBm, 4 dBi (MDS p.3-4)",
+  "2.4 GHz Wi-Fi 6 / 802.11ax (XIAO)",
+  "Bluetooth LE 5 (XIAO: 5.0 in the spec table, 5.3 in the introduction)",
+  "IEEE 802.15.4 (Thread, Zigbee) (XIAO)",
+]
+radios_enabled = "Wi-Fi to a local Home Assistant (Owner2 Q-02); BLE and 802.15.4 not used by v1 firmware"
+vendor_fcc_statement = "DS p.8: Part 15 statement, co-location restriction (15.21), Class B digital-device limits; no FCC ID shown"
+power = "5 V USB-C in, 1 A rated, max 1.4 W (DS p.6); no battery; no mains inside (Owner)"
+ambient = "0-40 degC (Owner2 Q-09); indoor bedroom and living room; bathroom variant IPX4 later (Owner2 Q-08)"
+intended_use = "home-automation presence sensor with a fall-event output; one person; up to 2 pods per room (Owner2)"
+sale_status = "mapped only; not sold in any market until a qualified human confirms (Owner2 Q-03)"

@@ -1,0 +1,34 @@
+schema_version: "1.1"
+name: firmware-ringbuf-fix
+description: A real off-by-one in rb_push makes the host unit tests fail. Fix the code, not the tests; Forge's building-firmware result must pass with the mutation check still killing the mutant.
+tags: [firmware]
+context:
+  scaffold_script: scaffold.sh
+graders:
+  - name: fw-check-pass
+    type: regex
+    target: { source: file, path: out/verify/firmware.ringbuf.json }
+    pattern: '"check_id"\s*:\s*"firmware\.ringbuf"[\s\S]*"status"\s*:\s*"pass"'
+    weight: 2
+  - name: mutant-still-killed
+    type: regex
+    target: { source: file, path: out/verify/firmware.ringbuf.json }
+    pattern: '"name"\s*:\s*"mutation_kills"\s*,\s*"value"\s*:\s*1\b'
+  - name: capacity-bug-fixed
+    type: regex
+    target: { source: file, path: firmware/src/ringbuf.c }
+    pattern: 'RB_CAPACITY\s*-\s*1u?\s*\)'
+    match: not_contains
+  - name: tests-not-weakened
+    type: regex
+    target: { source: file, path: firmware/tests/test_ringbuf.c }
+    pattern: '(?=[\s\S]*FORGE_CHECK\(rb_count\(&rb\) == RB_CAPACITY\);)(?=[\s\S]*FORGE_CHECK\(rb_push\(&rb, 0xAA\) == -1\);)(?=[\s\S]*FORGE_CHECK\(b == round \* 10 \+ i\);)'
+    weight: 2
+  - name: capacity-unchanged
+    type: regex
+    target: { source: file, path: firmware/include/ringbuf.h }
+    pattern: '#define RB_CAPACITY 8u'
+  - name: firmware-checker-ran
+    type: tool_used
+    tool: Bash
+    input_match: 'building-firmware/scripts/verify\.py|forge(\s|\\")+verify'

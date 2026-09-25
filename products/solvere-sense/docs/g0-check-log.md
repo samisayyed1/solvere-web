@@ -143,3 +143,43 @@ $ plugins/forge/bin/forge params --project $SP/seedP lint
 forge params lint: 67 param(s), 1 error(s)
 exit 1
 ```
+
+## 6. Compliance map via mapping-compliance (2026-09-25)
+
+Profile: `compliance/product-profile.toml`. Generator and check, run as SKILL.md says (`forge-python ${CLAUDE_SKILL_DIR}/scripts/verify.py --project <root>`), from `plugins/forge/`:
+
+```
+$ ~/.forge/bin/forge-python skills/mapping-compliance/scripts/verify.py --project /home/user/solvere-web/products/solvere-sense
+[FORGE_CHECK_ID_PREFIX] compliance.standards_map
+[PASS] compliance.standards_map (compliance/product-profile.toml)
+exit 0
+# wrote compliance/standards-map.md (11 standards: ul94-flammability, ipc-2221c, eu-rohs, reach-scip,
+# fcc-part15, ised-rss, eu-red-cyber, cispr32-35-emc, etsi-en303645, eu-cra, nist-ir8259),
+# compliance/test-plan.md, compliance/pre-scan-plan.md
+```
+
+Seeded wrong profiles (copies in `$SP/<name>/compliance/product-profile.toml`; `V` = the command above with `--project $SP/<name>`):
+
+```
+# cMissing: target_markets line deleted
+$ V --project $SP/cMissing
+[FAIL] compliance.standards_map -- profile.required_fields: missing required field(s) ['target_markets'].
+exit 1
+
+# cBlank: allows_blank_password = true, no mitigation note
+$ V --project $SP/cBlank
+[FAIL] compliance.standards_map -- tripwire.no_blank_password_unmitigated: EN 18031-1 clause 6.2.5.1/6.2.5.2 gives NO presumption of conformity ...
+exit 1
+
+# cTypo: target_markets "EU" -> "EUU"            (requested seed)
+$ V --project $SP/cTypo
+[PASS] compliance.standards_map
+exit 0        # silently maps 6 standards instead of 11: the check CANNOT fail on this
+
+# cNoRadio: has_radio = false while REQ-EMC-002/-004 list radios   (requested seed)
+$ V --project $SP/cNoRadio
+[PASS] compliance.standards_map
+exit 0        # 10 standards instead of 11 (ised-rss dropped): the check CANNOT fail on this
+```
+
+Finding: the skill's verify.py checks only the three required fields and the EN 18031 tripwires. It does not validate market codes, and it does not cross-check the profile against the requirements. The fix belongs in `plugins/forge/skills/mapping-compliance` (outside this product repo); until then a human reviews the profile against REQ-EMC-001..005 at each gate.

@@ -1,73 +1,48 @@
-# Compliance map (G0 draft)
+# Compliance map: addendum to the generated files (G0)
 
-**This is a standards map for planning, not a compliance determination.** Every line needs confirmation by a qualified human (a compliance engineer, test lab or certification body); none has been confirmed. Evidence level L0. Editions and dates come from the Forge research files `docs/research/R5e-standards-materials-radio-security.md` (R5e), `R5b-standards-safety-risk-se.md` (R5b) and `R5a-standards-drawings-ipc-accessibility.md` (R5a), all accessed 2026-09-25; their [V]/[R]/[U] tags are kept. Standards text is not reproduced.
+**This is not a compliance determination.** Nothing here or in the generated files says the pod complies with anything; a qualified human (compliance engineer, accredited lab or certification body) reviews, scopes and signs every line (Q-17). Evidence level L0.
 
-Markets (Owner round 2, Q-03): map US, EU, UK and Canada, and **sell in none of them until a qualified human confirms** the route for that market.
+## Primary artefacts (generated; do not edit by hand)
 
-## Product profile used for the mapping
+The Forge way is profile in, map out:
 
-| Attribute | Value | Source |
+| File | What it is | How it is made |
 |---|---|---|
-| Function | ceiling-mounted home-automation presence sensor with a fall-event output, for bedrooms and living rooms; one person per covered area; up to two pods per room | Owner; Owner round 2 |
-| Power | 5 V USB-C from an external wall adapter; no battery; no mains inside | Owner; REQ-PWR-003, REQ-ELEC-001 |
-| Intentional radiators | 60 GHz FMCW radar (58-62 GHz, 12 dBm, MDS p.4); XIAO ESP32C6 2.4 GHz Wi-Fi 6, Bluetooth LE, IEEE 802.15.4 (XIAO). Kit as-is, no other radio (Owner round 2) | IF-07 |
-| Network connection | Wi-Fi to a local Home Assistant only (ESPHome, DS p.2); no cloud | Owner round 2 (Q-02) |
-| Personal data | presence and fall events about occupants of a home | inferred from function |
-| Claims | home-automation use; no medical, safety or alarm claims, strict; deny-list in `compliance/claims-wording.md` | REQ-SAFE-003, REQ-SAFE-004; Owner round 2 (Q-15) |
-| Environment | 0 °C to 40 °C ambient; v1 indoor dry rooms; bathroom variant IPX4 later | Owner round 2 |
-| Vendor statements | DS p.8: FCC Part 15 statement, co-location restriction (15.21), Class B digital-device limits; no FCC ID shown | DS p.8 |
+| `compliance/product-profile.toml` | the product's facts, each cited to the owner answers, DS, MDS or XIAO | written by systems-engineer |
+| `compliance/standards-map.md` | candidate standards, edition, trigger and source (11 matched at G0) | `~/.forge/bin/forge-python plugins/forge/skills/mapping-compliance/scripts/verify.py --project products/solvere-sense` |
+| `compliance/test-plan.md`, `compliance/pre-scan-plan.md` | per-standard human tasks | same run |
 
-## Per market
+Re-run the generator whenever the profile changes; never paraphrase the generated files. Editions, bodies and triggers live only there (from the skill's `references/standards.toml`, sourced from R5a/R5b/R5e).
 
-Every row: **needs a qualified human** to confirm applicability, edition and route, and to sign.
+Markets (Owner round 2, Q-03): US, EU, UK and Canada are **mapped, not sold**; no sale in any market until a qualified human confirms that market's route.
 
-### United States
+## Addendum: what the generated map does not cover
 
-| Topic | What may apply | Source | Requirement |
-|---|---|---|---|
-| Unintentional emissions | FCC 47 CFR Part 15 Subpart B, Class B (residential); SDoC or Certification | R5e [V] | REQ-EMC-001 |
-| Intentional radiators | FCC Part 15 Subpart C; Certification through a TCB by default. Whether the kit's existing grants (if any) cover the pod as built is unknown: DS p.8 shows no FCC ID | R5e [V]; DS p.8 | REQ-EMC-002, REQ-EMC-005 |
-| Product safety | UL 62368-1 Ed. 4 (joint with CSA) for AV/ICT equipment, if a qualified human decides it applies to a 5 V USB sensor | R5b [V] | REQ-SAFE-001, -002 |
-| Enclosure flammability | UL 94 (7th ed., revised 2 Jul 2026), class called up by the end-product standard | R5a [V] | REQ-SAFE-001 |
-| IoT security | NIST IR 8259 Rev. 1 / 8259A / 8259B: voluntary | R5e [V] | REQ-FW-002, -003 |
-| Gaps | FCC "Cyber Trust Mark", module/host labelling rules: not covered or not re-read in R5e | R5e "Not found" | research needed |
+Each item below is either outside the skill's data file or a project-specific note on a generated row. **Every item needs a qualified human.**
 
-### European Union
+| # | Topic | Why it is here | Source | Requirement / owner action |
+|---|---|---|---|---|
+| 1 | **United Kingdom** | The data file has no UK rows, so `UK` in `target_markets` matches nothing. UK radio, EMC, product-safety and connectable-product security rules are not in the Forge R5 files: **nothing is mapped for the UK**. | R5e (no UK coverage) | research needed before any UK plan |
+| 2 | **IEC/UL 62368-1 product safety** | Not matched: the data row triggers only on `power_source` containing `"mains"`, and the pod has no mains (5 V USB-C from an external adapter). But the same row's trigger text names "sensors with a mains adapter" (R5b), which describes this pod. Kept as a candidate by REQ-SAFE-001 and REQ-SAFE-002 until a qualified human decides. | R5b; skill `standards.toml` row `iec-62368-1` | REQ-SAFE-001, -002; Q-17 |
+| 3 | **EU RED core requirements** (Art. 3(1)(a) safety, 3(1)(b) EMC, 3(2) spectrum) | The data file carries only the RED cybersecurity row (`eu-red-cyber`). The core RED articles, the ETSI EN 301 489 radio-EMC series [U] and the harmonised spectrum standards for 60 GHz and 2.4 GHz are not in the data file. | R5e | REQ-EMC-003; research needed |
+| 4 | **FCC intentional radiators** (on the generated `fcc-part15` row) | The pod carries a 60 GHz radar and a 2.4 GHz Wi-Fi/BLE/802.15.4 radio; DS p.8 shows a Part 15 statement and the co-location restriction (15.21) but no FCC ID, so it is unknown whether existing grants cover the kit inside the pod. | DS p.8; R5e | REQ-EMC-001, -002, -005 |
+| 5 | **Two pods per room** | Whether the DS p.8 co-location statement applies to two separate pods in one room. | DS p.8; Owner round 2 (Q-12) | REQ-SYS-003 |
+| 6 | **Canada, 60 GHz radar** (on the generated `ised-rss` row) | RSS-247 covers the 2.4 GHz radio; the RSS for the 60 GHz radar is not identified in R5e. Bilingual (EN/FR) labels and manual statements [U]. | R5e | REQ-EMC-004; research needed |
+| 7 | **Internet connection** | The profile sets `connects_to_internet = true` conservatively although the owner chose local Wi-Fi to Home Assistant only; whether local-only use changes the RED-cyber, CRA and EN 303 645 rows is for a qualified human. | Owner round 2 (Q-02); R5e | REQ-FW-002, -003 |
+| 8 | **PCB rows** (generated `ipc-2221c`) | Matched because the kit contains PCBs; Forge designs no PCB for v1 (kit bought assembled, Owner round 2 Q-01), so this row is expected to need no work unless the architecture changes. | DS p.7 | none at G0 |
+| 9 | **Privacy** | Data stays on the local network (Owner round 2); whether GDPR or national privacy law applies is not in the R5 files. | gap | research needed |
+| 10 | **Other EU product rules** | GPSR, WEEE, packaging rules: not in the R5 files. Battery rules do not apply (no battery). | R5e "Not found" | research needed |
+| 11 | **Claims** | Home-automation use, strict neutral wording (Owner round 2, Q-15); a medical, safety or alarm claim would change the route (medical and functional-safety rows exist in the data file and are deliberately not triggered: `category = "consumer_iot"`, `has_safety_function = false`). | Owner round 2 | REQ-SAFE-003, -004; `compliance/claims-wording.md` |
+| 12 | **IPX4** (bathroom variant, post-v1) | The IP-code test standard and edition are not in the R5 files or the data file. | Owner round 2 (Q-08) | REQ-MECH-018; research needed |
 
-| Topic | What may apply | Source | Requirement |
-|---|---|---|---|
-| Radio | RED 2014/53/EU (Art. 3(1)(a) safety, 3(1)(b) EMC, 3(2) spectrum) | R5e [V] | REQ-EMC-003 |
-| EMC | EN 55032 / EN 55035 (CISPR 32 Ed. 2.1 / CISPR 35 Ed. 1.0); radio products also use ETSI EN 301 489 series | R5e [V]/[R]; EN 301 489 [U] | REQ-EMC-003 |
-| Radio spectrum (60 GHz, 2.4 GHz) | harmonised radio standards for each radio: not covered in R5e | gap | research needed |
-| RED cybersecurity | Delegated Regulation 2022/30, applied from 1 Aug 2025 until 11 Dec 2027; EN 18031-1/-2/-3:2024 give no presumption if the user can skip setting a password | R5e [V] | REQ-FW-002 |
-| Cyber Resilience Act | Regulation (EU) 2024/2847: vulnerability and incident reporting from 11 Sep 2026; full application 11 Dec 2027 (Annex I, SBOM, CE marking, support period) | R5e [V] | REQ-FW-002, -003; SBOM at G5 |
-| Consumer IoT baseline | ETSI EN 303 645 V3.1.3: no universal default passwords (maps to EN 18031 and CRA Annex I) | R5e [V] | REQ-FW-003 |
-| Product safety | EN IEC 62368-1:2024: OJ citation status unsettled (only the 2014 edition appears cited under LVD) | R5b [R] | REQ-SAFE-001, -002 |
-| Substances | RoHS 2011/65/EU + 2015/863 (lead exemptions changed 1 Jul 2026); REACH Candidate List (253 entries, 4 Feb 2026) and SCIP | R5e [V]/[R]/[U] | BOM declarations at G2/G5 |
-| Privacy | data stays on the local network (Owner round 2); whether GDPR or national privacy law still applies is not covered in R5 files | gap | research needed |
-| Gaps | GPSR, WEEE, packaging rules, battery rules (not applicable: no battery): not covered in R5e | R5e "Not found" | research needed |
+## Known limits of the generator at G0 (for the Forge maintainers)
 
-### United Kingdom
+Found while writing the profile; recorded in `docs/g0-check-log.md` §6. The check cannot fail on:
 
-The Forge R5 research files do not cover UK-specific law (UKCA marking, the UK radio, EMC and product-safety regimes, or UK product-security rules for connectable products). **Nothing is mapped for the UK yet.** Research is needed before the UK can be planned, and a qualified human must confirm the result.
+- **a market code typo**: a seeded profile with `"EUU"` for `"EU"` passes and silently drops 5 EU standards (11 matched become 6);
+- **a radio removed**: a seeded profile with `has_radio = false` passes, even though REQ-EMC-002 and REQ-EMC-004 list radios (11 become 10).
 
-### Canada
-
-| Topic | What may apply | Source | Requirement |
-|---|---|---|---|
-| Licence-exempt radio | ISED RSS-Gen Issue 6 (30 Jul 2026, Amendment 1 15 Sep 2026; Issue 5 accepted until about 30 Jul 2027) | R5e [V] | REQ-EMC-004 |
-| 2.4 GHz radios | RSS-247 Issue 4 (24 Jul 2025) | R5e [V] | REQ-EMC-004 |
-| 60 GHz radar | the applicable RSS is not identified in R5e | gap | research needed |
-| Labels and manuals | bilingual (EN/FR) labelling and manual statements | R5e [U] | instructions at G4 |
-| Product safety | CSA C22.2 No. 62368-1-2025 (enforcement from 2026-04-30) | R5b [R] | REQ-SAFE-001, -002 |
-
-## Across all markets
-
-- **Medical, safety or alarm claims** change the route entirely (R-008). The owner chose home-automation use with strict wording (Owner round 2): REQ-SAFE-003, REQ-SAFE-004 and `compliance/claims-wording.md` apply to every user-facing text, including Home Assistant entity names.
-- **IPX4 (bathroom variant, post-v1)**: the IP-code test standard and edition are not in the Forge R5 files; research and a qualified human are needed before REQ-MECH-018 is tested.
-- **Two pods per room**: whether the DS p.8 co-location statement applies to two separate pods in one room is for a qualified human (REQ-SYS-003).
-- **Adding any radio** beyond the kit needs a new authorisation assessment (DS p.8 co-location statement; REQ-EMC-005). Owner round 2: kit as-is.
-- **Pre-scan plan**: `compliance/pre-scan-plan.md` is written at G3 by `mapping-compliance`, after markets and radios are fixed.
+It does fail on a missing required field and on an unmitigated EN 18031 blank-password tripwire. Until the skill validates market codes and cross-checks the profile against the requirements, a human reviews `product-profile.toml` against REQ-EMC-001..005 at each gate.
 
 ---
 

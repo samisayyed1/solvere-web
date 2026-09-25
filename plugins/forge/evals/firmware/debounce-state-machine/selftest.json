@@ -1,0 +1,105 @@
+{
+ "variants": {
+  "good": {
+   "files": {
+    "firmware/src/debounce.c": "#include \"debounce.h\"\n\nvoid debounce_init(debounce_t *d, uint32_t now_ms) {\n    d->state = BTN_RELEASED;\n    d->candidate = 0;\n    d->candidate_since = now_ms;\n    d->pressed_since = now_ms;\n    d->long_sent = 0;\n}\n\nbtn_event_t debounce_update(debounce_t *d, int raw_level, uint32_t now_ms) {\n    int level = raw_level ? 1 : 0;\n    if (level != d->candidate) {\n        d->candidate = level;\n        d->candidate_since = now_ms;\n    }\n    uint32_t stable = now_ms - d->candidate_since;\n#ifdef FORGE_MUTANT\n    int settled = stable + 1u >= DEBOUNCE_MS; /* off by one: accepts a 19 ms glitch */\n#else\n    int settled = stable >= DEBOUNCE_MS;\n#endif\n    if (settled && (btn_state_t)d->candidate != d->state) {\n        d->state = (btn_state_t)d->candidate;\n        if (d->state == BTN_PRESSED) {\n            d->pressed_since = now_ms;\n            d->long_sent = 0;\n            return BTN_EVT_PRESS;\n        }\n        return BTN_EVT_RELEASE;\n    }\n    if (d->state == BTN_PRESSED && !d->long_sent && now_ms - d->pressed_since >= LONG_PRESS_MS) {\n        d->long_sent = 1;\n        return BTN_EVT_LONG_PRESS;\n    }\n    return BTN_EVT_NONE;\n}\n\nbtn_state_t debounce_state(const debounce_t *d) { return d->state; }\n",
+    "firmware/tests/test_debounce.c": "#include \"forge_test.h\"\n#include \"debounce.h\"\n\nstatic btn_event_t run(debounce_t *d, int level, uint32_t *t, uint32_t ms, int *presses, int *releases, int *longs) {\n    btn_event_t last = BTN_EVT_NONE;\n    for (uint32_t i = 0; i < ms; i++) {\n        btn_event_t e = debounce_update(d, level, (*t)++);\n        if (e == BTN_EVT_PRESS) (*presses)++;\n        if (e == BTN_EVT_RELEASE) (*releases)++;\n        if (e == BTN_EVT_LONG_PRESS) (*longs)++;\n        if (e != BTN_EVT_NONE) last = e;\n    }\n    return last;\n}\n\nstatic void test_init_released(void) {\n    debounce_t d; debounce_init(&d, 0);\n    FORGE_CHECK(debounce_state(&d) == BTN_RELEASED);\n}\n\nstatic void test_glitch_19ms_ignored(void) {\n    debounce_t d; uint32_t t = 0; int p = 0, r = 0, l = 0;\n    debounce_init(&d, t);\n    run(&d, 1, &t, 19, &p, &r, &l);\n    run(&d, 0, &t, 50, &p, &r, &l);\n    FORGE_CHECK(p == 0);\n    FORGE_CHECK(debounce_state(&d) == BTN_RELEASED);\n}\n\nstatic void test_no_press_before_20ms_elapsed(void) {\n    debounce_t d; uint32_t t = 0; int p = 0, r = 0, l = 0;\n    debounce_init(&d, t);\n    run(&d, 1, &t, 20, &p, &r, &l);   /* last sample is 19 ms after the edge */\n    FORGE_CHECK(p == 0);\n}\n\nstatic void test_press_after_20ms(void) {\n    debounce_t d; uint32_t t = 0; int p = 0, r = 0, l = 0;\n    debounce_init(&d, t);\n    run(&d, 1, &t, 21, &p, &r, &l);\n    FORGE_CHECK(p == 1);\n    FORGE_CHECK(debounce_state(&d) == BTN_PRESSED);\n}\n\nstatic void test_release_event(void) {\n    debounce_t d; uint32_t t = 0; int p = 0, r = 0, l = 0;\n    debounce_init(&d, t);\n    run(&d, 1, &t, 50, &p, &r, &l);\n    run(&d, 0, &t, 50, &p, &r, &l);\n    FORGE_CHECK(r == 1);\n    FORGE_CHECK(debounce_state(&d) == BTN_RELEASED);\n}\n\nstatic void test_long_press_once(void) {\n    debounce_t d; uint32_t t = 0; int p = 0, r = 0, l = 0;\n    debounce_init(&d, t);\n    run(&d, 1, &t, 3000, &p, &r, &l);\n    FORGE_CHECK(p == 1);\n    FORGE_CHECK(l == 1);\n}\n\nstatic void test_bounce_restarts_timer(void) {\n    debounce_t d; uint32_t t = 0; int p = 0, r = 0, l = 0;\n    debounce_init(&d, t);\n    for (int k = 0; k < 10; k++) { run(&d, 1, &t, 5, &p, &r, &l); run(&d, 0, &t, 3, &p, &r, &l); }\n    FORGE_CHECK(p == 0);\n}\n\nstatic void test_timestamp_wrap(void) {\n    debounce_t d; uint32_t t = 0xFFFFFFF0u; int p = 0, r = 0, l = 0;\n    debounce_init(&d, t);\n    run(&d, 1, &t, 30, &p, &r, &l);\n    FORGE_CHECK(p == 1);\n}\n\nint main(void) {\n    test_init_released();\n    test_glitch_19ms_ignored();\n    test_no_press_before_20ms_elapsed();\n    test_press_after_20ms();\n    test_release_event();\n    test_long_press_once();\n    test_bounce_restarts_timer();\n    test_timestamp_wrap();\n    return FORGE_REPORT();\n}\n",
+    "out/verify/firmware.debounce.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"firmware.debounce\",\n  \"target\": \"firmware/tests/test_debounce.c\",\n  \"status\": \"pass\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"tests_run\",\n      \"value\": 12,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"min\": 1\n      },\n      \"pass\": true,\n      \"remediation\": \"test_debounce.c defines no FORGE_CHECK assertions; a test file must test something.\"\n    },\n    {\n      \"name\": \"test_failures\",\n      \"value\": 0,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"max\": 0\n      },\n      \"pass\": true,\n      \"remediation\": \"0 of 12 test(s) failed; see output above.\"\n    },\n    {\n      \"name\": \"static_analysis_warnings\",\n      \"value\": 0,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"max\": 0\n      },\n      \"pass\": true,\n      \"remediation\": \"clang --analyze found 0 issue(s): \"\n    },\n    {\n      \"name\": \"host_size_proxy_bytes\",\n      \"value\": 1520,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"max\": 4096.0\n      },\n      \"pass\": true,\n      \"remediation\": \"debounce.c's HOST object is 1520 B -- unusually large even allowing for the missing target toolchain; investigate.\"\n    },\n    {\n      \"name\": \"mutation_kills\",\n      \"value\": 1,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": 1\n      },\n      \"pass\": true,\n      \"remediation\": \"tests for 'debounce' still ALL PASSED when rebuilt with -DFORGE_MUTANT (12 run, 1 failed) -- the test suite is a no-op and would not catch a real regression. Assert on real behaviour, not tautologies.\"\n    }\n  ],\n  \"tool_versions\": {\n    \"cc\": \"cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0\"\n  },\n  \"git_sha\": \"7934c3381bda51c6dd670e2039588ea606b94b23-dirty\",\n  \"started\": \"2026-09-25T09:31:46Z\",\n  \"duration_s\": 0.156\n}\n"
+   },
+   "tools": [
+    {
+     "tool": "Skill",
+     "input": {
+      "skill": "forge:building-firmware"
+     }
+    },
+    {
+     "tool": "Bash",
+     "input": {
+      "command": "~/.forge/bin/forge-python /p/plugins/forge/skills/building-firmware/scripts/verify.py --project ."
+     }
+    }
+   ],
+   "last_message": "Built on the host, 13 checks pass, and the FORGE_MUTANT off-by-one on DEBOUNCE_MS is caught.",
+   "expect": "all_pass",
+   "why": "reference/ run through the real building-firmware checker (gcc 13, host)"
+  },
+  "bad-weak-tests": {
+   "base": "good",
+   "files": {
+    "out/verify/firmware.debounce.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"firmware.debounce\",\n  \"target\": \"firmware/tests/test_debounce.c\",\n  \"status\": \"fail\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"tests_run\",\n      \"value\": 11,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"min\": 1\n      },\n      \"pass\": true,\n      \"remediation\": \"test_debounce.c defines no FORGE_CHECK assertions; a test file must test something.\"\n    },\n    {\n      \"name\": \"test_failures\",\n      \"value\": 0,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"max\": 0\n      },\n      \"pass\": true,\n      \"remediation\": \"0 of 11 test(s) failed; see output above.\"\n    },\n    {\n      \"name\": \"static_analysis_warnings\",\n      \"value\": 0,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"max\": 0\n      },\n      \"pass\": true,\n      \"remediation\": \"clang --analyze found 0 issue(s): \"\n    },\n    {\n      \"name\": \"host_size_proxy_bytes\",\n      \"value\": 1520,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"max\": 4096.0\n      },\n      \"pass\": true,\n      \"remediation\": \"debounce.c's HOST object is 1520 B -- unusually large even allowing for the missing target toolchain; investigate.\"\n    },\n    {\n      \"name\": \"mutation_kills\",\n      \"value\": 0,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": 1\n      },\n      \"pass\": false,\n      \"remediation\": \"tests for 'debounce' still ALL PASSED when rebuilt with -DFORGE_MUTANT (11 run, 0 failed) -- the test suite is a no-op and would not catch a real regression. Assert on real behaviour, not tautologies.\"\n    }\n  ],\n  \"tool_versions\": {\n    \"cc\": \"cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0\"\n  },\n  \"git_sha\": \"7934c3381bda51c6dd670e2039588ea606b94b23-dirty\",\n  \"started\": \"2026-09-25T09:31:33Z\",\n  \"duration_s\": 0.15\n}\n",
+    "firmware/tests/test_debounce.c": "#include \"forge_test.h\"\n#include \"debounce.h\"\nint main(void){ debounce_t d; debounce_init(&d,0); FORGE_CHECK(debounce_state(&d)==BTN_RELEASED); return FORGE_REPORT(); }\n"
+   },
+   "expect": {
+    "fw-check-pass": false,
+    "mutant-killed": false,
+    "tests-cover-glitch-and-long-press": false
+   },
+   "why": "the real checker output is from the first reference test file, whose 19 ms glitch test did not kill the off-by-one mutant"
+  },
+  "bad-mutant-cosmetic": {
+   "base": "good",
+   "files": {
+    "firmware/src/debounce.c": "#include \"debounce.h\"\n\nvoid debounce_init(debounce_t *d, uint32_t now_ms) {\n    d->state = BTN_RELEASED;\n    d->candidate = 0;\n    d->candidate_since = now_ms;\n    d->pressed_since = now_ms;\n    d->long_sent = 0;\n}\n\nbtn_event_t debounce_update(debounce_t *d, int raw_level, uint32_t now_ms) {\n    int level = raw_level ? 1 : 0;\n    if (level != d->candidate) {\n        d->candidate = level;\n        d->candidate_since = now_ms;\n    }\n    uint32_t stable = now_ms - d->candidate_since;\n    int settled = stable >= DEBOUNCE_MS;\n    if (settled && (btn_state_t)d->candidate != d->state) {\n        d->state = (btn_state_t)d->candidate;\n        if (d->state == BTN_PRESSED) {\n            d->pressed_since = now_ms;\n            d->long_sent = 0;\n            return BTN_EVT_PRESS;\n        }\n        return BTN_EVT_RELEASE;\n    }\n    if (d->state == BTN_PRESSED && !d->long_sent && now_ms - d->pressed_since >= LONG_PRESS_MS) {\n        d->long_sent = 1;\n        return BTN_EVT_LONG_PRESS;\n    }\n    return BTN_EVT_NONE;\n}\n\n#ifdef FORGE_MUTANT\nstatic int unused;\n#endif\nbtn_state_t debounce_state(const debounce_t *d) { return d->state; }\n"
+   },
+   "expect": {
+    "mutant-on-timing-logic": false
+   }
+  },
+  "bad-mutant-left-on": {
+   "base": "good",
+   "files": {
+    "firmware/src/debounce.c": "#define FORGE_MUTANT\n#include \"debounce.h\"\n\nvoid debounce_init(debounce_t *d, uint32_t now_ms) {\n    d->state = BTN_RELEASED;\n    d->candidate = 0;\n    d->candidate_since = now_ms;\n    d->pressed_since = now_ms;\n    d->long_sent = 0;\n}\n\nbtn_event_t debounce_update(debounce_t *d, int raw_level, uint32_t now_ms) {\n    int level = raw_level ? 1 : 0;\n    if (level != d->candidate) {\n        d->candidate = level;\n        d->candidate_since = now_ms;\n    }\n    uint32_t stable = now_ms - d->candidate_since;\n#ifdef FORGE_MUTANT\n    int settled = stable + 1u >= DEBOUNCE_MS; /* off by one: accepts a 19 ms glitch */\n#else\n    int settled = stable >= DEBOUNCE_MS;\n#endif\n    if (settled && (btn_state_t)d->candidate != d->state) {\n        d->state = (btn_state_t)d->candidate;\n        if (d->state == BTN_PRESSED) {\n            d->pressed_since = now_ms;\n            d->long_sent = 0;\n            return BTN_EVT_PRESS;\n        }\n        return BTN_EVT_RELEASE;\n    }\n    if (d->state == BTN_PRESSED && !d->long_sent && now_ms - d->pressed_since >= LONG_PRESS_MS) {\n        d->long_sent = 1;\n        return BTN_EVT_LONG_PRESS;\n    }\n    return BTN_EVT_NONE;\n}\n\nbtn_state_t debounce_state(const debounce_t *d) { return d->state; }\n"
+   },
+   "expect": {
+    "mutant-not-left-on": false
+   }
+  },
+  "bad-api-changed": {
+   "base": "good",
+   "edits": {
+    "firmware/include/debounce.h": [
+     [
+      "btn_event_t debounce_update(debounce_t *d, int raw_level, uint32_t now_ms);",
+      "btn_event_t debounce_update(debounce_t *d, int raw_level);"
+     ]
+    ]
+   },
+   "expect": {
+    "api-unchanged": false
+   }
+  },
+  "bad-failing-tests": {
+   "base": "good",
+   "files": {
+    "out/verify/firmware.debounce.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"firmware.debounce\",\n  \"target\": \"firmware/tests/test_debounce.c\",\n  \"status\": \"fail\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"tests_run\",\n      \"value\": 12,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"min\": 1\n      },\n      \"pass\": true,\n      \"remediation\": \"test_debounce.c defines no FORGE_CHECK assertions; a test file must test something.\"\n    },\n    {\n      \"name\": \"test_failures\",\n      \"value\": 2,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"max\": 0\n      },\n      \"pass\": true,\n      \"remediation\": \"0 of 12 test(s) failed; see output above.\"\n    },\n    {\n      \"name\": \"static_analysis_warnings\",\n      \"value\": 0,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"max\": 0\n      },\n      \"pass\": true,\n      \"remediation\": \"clang --analyze found 0 issue(s): \"\n    },\n    {\n      \"name\": \"host_size_proxy_bytes\",\n      \"value\": 1520,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"max\": 4096.0\n      },\n      \"pass\": true,\n      \"remediation\": \"debounce.c's HOST object is 1520 B -- unusually large even allowing for the missing target toolchain; investigate.\"\n    },\n    {\n      \"name\": \"mutation_kills\",\n      \"value\": 1,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": 1\n      },\n      \"pass\": true,\n      \"remediation\": \"tests for 'debounce' still ALL PASSED when rebuilt with -DFORGE_MUTANT (12 run, 1 failed) -- the test suite is a no-op and would not catch a real regression. Assert on real behaviour, not tautologies.\"\n    }\n  ],\n  \"tool_versions\": {\n    \"cc\": \"cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0\"\n  },\n  \"git_sha\": \"7934c3381bda51c6dd670e2039588ea606b94b23-dirty\",\n  \"started\": \"2026-09-25T09:31:46Z\",\n  \"duration_s\": 0.156\n}\n"
+   },
+   "expect": {
+    "fw-check-pass": false,
+    "tests-passed": false
+   }
+  },
+  "bad-no-checker": {
+   "base": "good",
+   "files": {
+    "out/verify/firmware.debounce.json": null
+   },
+   "tools": [
+    {
+     "tool": "Bash",
+     "input": {
+      "command": "gcc -Ifirmware/include firmware/src/debounce.c firmware/tests/test_debounce.c -o t && ./t"
+     }
+    }
+   ],
+   "expect": {
+    "fw-check-pass": false,
+    "tests-ran": false,
+    "tests-passed": false,
+    "mutant-killed": false,
+    "firmware-checker-ran": false,
+    "skill-fired": false
+   }
+  }
+ }
+}

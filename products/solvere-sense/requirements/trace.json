@@ -347,7 +347,9 @@
         "model/system.sysml#Shell",
         "model/system.sysml#BasePlate",
         "model/system.sysml#Radome",
-        "model/system.sysml#TBarClipAdapter"
+        "model/system.sysml#TBarClipAdapter",
+        "compliance/product-profile.toml",
+        "compliance/standards-map.md"
       ],
       "tests": [
         "tests/verification-plan.md#tp-safe-001"
@@ -388,7 +390,9 @@
     },
     "REQ-EMC-001": {
       "design": [
-        "model/system.sysml#SensorKit"
+        "model/system.sysml#SensorKit",
+        "compliance/product-profile.toml",
+        "compliance/standards-map.md"
       ],
       "tests": [
         "tests/verification-plan.md#tp-emc-001"
@@ -399,7 +403,9 @@
     "REQ-EMC-002": {
       "design": [
         "model/system.sysml#SensorKit",
-        "model/system.sysml#WirelessDataPort"
+        "model/system.sysml#WirelessDataPort",
+        "compliance/product-profile.toml",
+        "compliance/standards-map.md"
       ],
       "tests": [
         "tests/verification-plan.md#tp-emc-002"
@@ -409,7 +415,9 @@
     },
     "REQ-EMC-003": {
       "design": [
-        "model/system.sysml#SensorKit"
+        "model/system.sysml#SensorKit",
+        "compliance/product-profile.toml",
+        "compliance/standards-map.md"
       ],
       "tests": [
         "tests/verification-plan.md#tp-emc-003"
@@ -420,7 +428,9 @@
     "REQ-EMC-004": {
       "design": [
         "model/system.sysml#SensorKit",
-        "model/system.sysml#WirelessDataPort"
+        "model/system.sysml#WirelessDataPort",
+        "compliance/product-profile.toml",
+        "compliance/standards-map.md"
       ],
       "tests": [
         "tests/verification-plan.md#tp-emc-004"
@@ -452,7 +462,9 @@
     },
     "REQ-FW-002": {
       "design": [
-        "model/system.sysml#WirelessDataPort"
+        "model/system.sysml#WirelessDataPort",
+        "compliance/product-profile.toml",
+        "compliance/standards-map.md"
       ],
       "tests": [
         "tests/verification-plan.md#tp-fw-002"
@@ -462,7 +474,9 @@
     },
     "REQ-FW-003": {
       "design": [
-        "model/system.sysml#WirelessDataPort"
+        "model/system.sysml#WirelessDataPort",
+        "compliance/product-profile.toml",
+        "compliance/standards-map.md"
       ],
       "tests": [
         "tests/verification-plan.md#tp-fw-003"
