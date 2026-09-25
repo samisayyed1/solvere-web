@@ -1,0 +1,71 @@
+# DFM rules -- sheet metal. Sources: docs/research/R5c-dfm-molding-cnc-sheetmetal.md
+# ("## 3. Sheet metal"). See fdm.toml's header comment for the
+# conservative-value/check_family convention. `t` = sheet thickness, taken as
+# the part's `nominal_wall_mm` param (a sheet-metal part's thickness is its
+# nominal wall). `concave_only` (default true, only meaningful for
+# geometry.min_radius) lets bend-radius rules target the bend's convex outer
+# face instead of an internal fillet.
+[meta]
+process = "sheet_metal"
+source_doc = "docs/research/R5c-dfm-molding-cnc-sheetmetal.md#3-sheet-metal"
+
+[[rule]]
+id = "bend_radius_min_ratio_of_t"
+check_family = "geometry.min_radius"
+concave_only = false
+comparison = "min_ratio_of_wall"
+value_ratio = 1.0
+source = "Hubs / Xometry sheet-metal guides: minimum bend radius >= t"
+conflict = "Protolabs prefers standard tooled radii (0.030/0.060/0.090/0.120 in) rather than a t-relative rule, and notes some alloys (e.g. 6061-T6) may need a larger radius than the t-relative minimum -- 1.0t is kept as the conservative general floor; check material-specific tooling for a hard part."
+
+[[rule]]
+id = "hole_min_diameter_ratio_of_t"
+check_family = "geometry.hole_diameter"
+comparison = "min_ratio_of_wall"
+value_ratio = 1.0
+source = "Hubs sheet-metal guide: minimum hole diameter >= t; Protolabs: equal to t"
+conflict = "Xometry's stamping guide gives 1.2t in ductile aluminum, 2t in stainless, 1.5t for slots -- stricter for stamped stainless. 1.0t kept as the conservative general (non-stamped) floor; stamped stainless parts should use 2.0t."
+
+[[rule]]
+id = "hole_to_edge_min_mm"
+check_family = "geometry.hole_edge"
+comparison = "min"
+value_mm = 3.175
+source = "Protolabs design-guidelines: 0.125 in (3.175 mm) hole-to-edge for stock thicker than 0.036 in"
+conflict = "Protolabs gives 0.062 in (1.574 mm) for thinner (<=0.036 in) stock; Hubs gives a flat 1t; Xometry (laser/waterjet) gives 2t or 0.125 in, whichever is smaller. 3.175 mm (Protolabs, thicker-stock case) kept as the conservative default; thin-gauge parts should use a project-specific override or the 1t/2t ratio rules."
+
+[[rule]]
+id = "hole_to_edge_min_ratio_of_t"
+check_family = "geometry.hole_edge"
+comparison = "min_ratio_of_wall"
+value_ratio = 2.0
+source = "Xometry stamping guide: holes >= 0.100 in need 2.5t + R from the edge; Hubs: >= 2t from the start of the bend radius"
+conflict = "Hubs' plain hole-to-edge (not hole-to-bend) rule is 1t. 2.0t kept as the conservative figure for the general/stamped case; Xometry's stamping formula (2.5t + R) is stricter still for larger holes and should be used directly when R (bend radius) is known."
+
+[[rule]]
+id = "min_flange_min_ratio_of_t"
+check_family = "unsupported"
+value_ratio = 4.0
+source = "Protolabs design-guidelines: minimum flange >= 4t"
+conflict = "Hubs gives 2t + R; Xometry stamping gives 2.5t + R. No forge_cad flange/bend-adjacent-wall measurement exists yet -- kept as reference data."
+
+[[rule]]
+id = "bend_relief_min_ratio_of_t"
+check_family = "unsupported"
+value_ratio = 1.0
+source = "Hubs sheet-metal guide: bend relief width >= t"
+conflict = "Protolabs gives an absolute 0.030 in (0.762 mm) floor extending 0.015 in past the radius; Xometry stamping gives 2t x (R+t). No forge_cad bend-relief-feature measurement exists yet -- kept as reference data."
+
+[[rule]]
+id = "k_factor_air_bend"
+check_family = "unsupported"
+value_ratio = 0.33
+source = "Protolabs bend-radii tip: K-factor 0.33 for air bending, rising toward 0.5 at large radii (0.42 for bottoming)"
+conflict = "Hubs gives a 0.3-0.5 range averaging 0.4468. K-factor is a flat-pattern formability constant, not a pass/fail geometry check -- kept as reference data for the flat-pattern/unfold step, not wired to a forge_cad measurement."
+
+[[rule]]
+id = "bend_angle_tolerance_deg"
+check_family = "unsupported"
+value_deg = 1.0
+source = "Protolabs, Hubs, Xometry manufacturing standards: bend angle tolerance +-1 deg"
+conflict = "Xometry's mini-guide separately states +-2 deg. No forge_cad as-built-vs-nominal comparison exists yet -- kept as reference data."

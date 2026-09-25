@@ -1,0 +1,34 @@
+# PASS/FAIL-mixed fixture: box.py meets the FDM wall and hole-diameter DFM
+# rules, but its lid clearance (0.3 mm, params enclosure.lid_clearance) is
+# deliberately below checking-dfm's conservative FDM clearance_moving_mm
+# rule (1.0 mm) -- demonstrating that a part can pass verifying-geometry's
+# own (project-specific) requirements while still failing a process DFM
+# limit. See requirements/requirements.md for REQ text.
+[part]
+name = "box"
+module = "cad/box.py"
+process = "fdm"
+
+[[check]]
+rule = "wall_min_unsupported_mm"
+requirement = "REQ-MFG-001"
+sample_count = 2000
+
+[[check]]
+rule = "hole_min_diameter_mm"
+requirement = "REQ-MFG-002"
+
+[[check]]
+rule = "clearance_moving_mm"
+requirement = "REQ-MFG-003"
+other_module = "cad/lid.py"
+
+[[snap_fit]]
+name = "lid_latch"
+requirement = "REQ-MECH-010"
+material = "pc_makrolon"
+deflection_mm = 1.5
+length_mm = 15.0
+thickness_mm = 1.2
+taper = "constant"
+frequent = false

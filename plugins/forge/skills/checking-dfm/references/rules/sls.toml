@@ -1,0 +1,45 @@
+# DFM rules -- SLS (selective laser sintering, PA12 nylon unless noted).
+# Sources: docs/research/R5d-dfm-additive-snapfit-pcb.md ("## SLS"). See
+# fdm.toml's header comment for the conservative-value/check_family convention.
+[meta]
+process = "sls"
+source_doc = "docs/research/R5d-dfm-additive-snapfit-pcb.md#sls"
+
+[[rule]]
+id = "wall_min_mm"
+check_family = "geometry.min_wall"
+comparison = "min"
+value_mm = 0.8
+source = "Protolabs Network SLS guide: minimum wall 0.8 mm (PA12)"
+conflict = "PN PDF gives 0.7 mm (supported wall, combined SLS/MJF row); Formlabs Fuse guide gives 0.6 mm vertical / 0.3 mm horizontal (Nylon 12); Protolabs SLS service page gives 0.762 mm for nylons. 0.8 mm (PN guide) kept as the conservative figure; carbon-filled PA needs 2.0 mm (not modeled as a separate rule)."
+
+[[rule]]
+id = "hole_min_diameter_mm"
+check_family = "geometry.hole_diameter"
+comparison = "min"
+value_mm = 1.5
+source = "Protolabs Network PDF: minimum hole Ø1.5 mm"
+conflict = "Formlabs Fuse guide gives 1.0 mm; Xometry notes holes < 0.04 in (~1.0 mm) may sinter shut. 1.5 mm (PN) kept as the conservative (larger) minimum."
+
+[[rule]]
+id = "clearance_moving_mm"
+check_family = "geometry.clearance"
+comparison = "min"
+value_mm = 0.4
+source = "Formlabs (Fuse guide + interlocking-joints blog): separate assemblies printed apart need 0.2-0.4 mm depending on interface area; 0.4 mm kept as the conservative figure for a general-purpose clearance rule."
+conflict = "Protolabs Network PDF gives 0.3 mm moving / 0.1 mm connections; PN's SLS guide gives axle clearance 0.3 mm, hinge ball-in-socket 0.2 mm. 0.4 mm (Formlabs, larger-area case) kept as the conservative minimum; a part with known small (<20 mm^2) mating area could safely use tighter PN/Formlabs numbers."
+
+[[rule]]
+id = "min_feature_mm"
+check_family = "geometry.min_wall"
+comparison = "min"
+value_mm = 0.8
+source = "Protolabs Network PDF, PN SLS guide, Formlabs: minimum feature/pin 0.8 mm"
+conflict = "Xometry notes features < 0.030 in (~0.76 mm) may not resolve -- consistent with 0.8 mm; no conflict requiring a different conservative pick."
+
+[[rule]]
+id = "living_hinge_min_thickness_mm"
+check_family = "unsupported"
+value_mm = 0.3
+source = "Protolabs Network SLS guide: living hinge 0.3-0.8 mm thick, >= 5 mm long"
+conflict = "No forge_cad hinge-feature measurement exists yet; kept as reference data only."

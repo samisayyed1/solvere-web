@@ -1,0 +1,69 @@
+# Fixture project params (CONTRACTS §2). Dev-board-style enclosure: a box
+# with an open top, a lid, four corner mounting holes and filleted outer
+# vertical edges. Used only by plugins/forge/tests/mech's fixture-project
+# tests to demonstrate verifying-geometry / checking-dfm PASS and
+# seeded-FAIL cases end to end -- not a real product.
+
+[enclosure.length]
+value = 60.0
+unit = "mm"
+tol = { minus = 0.1, plus = 0.1 }
+status = "assumed"
+source = "Fixture spec: fits a generic dev-board-style enclosure footprint; not a real product requirement."
+
+[enclosure.width]
+value = 40.0
+unit = "mm"
+tol = { minus = 0.1, plus = 0.1 }
+status = "assumed"
+source = "Fixture spec, see enclosure.length."
+
+[enclosure.height]
+value = 20.0
+unit = "mm"
+tol = { minus = 0.1, plus = 0.1 }
+status = "assumed"
+source = "Fixture spec, see enclosure.length."
+
+[enclosure.wall_thickness]
+value = 2.0
+unit = "mm"
+tol = { minus = 0.1, plus = 0.1 }
+status = "assumed"
+source = "R5d FDM min wall 0.8-1.2 mm (docs/research/R5d-dfm-additive-snapfit-pcb.md#fdm); chosen 2.0 mm for stiffness margin above the checking-dfm FDM rule (1.2 mm)."
+
+[enclosure.edge_fillet_radius]
+value = 2.0
+unit = "mm"
+status = "assumed"
+source = "Fixture spec: cosmetic outer-edge break, arbitrary for this fixture."
+
+[enclosure.lid_thickness]
+value = 2.0
+unit = "mm"
+status = "assumed"
+source = "Fixture spec: matches enclosure.wall_thickness."
+
+[enclosure.lid_clearance]
+value = 0.3
+unit = "mm"
+status = "assumed"
+source = "R5d FDM clearance rule (0.5-1.2 mm range, docs/research/R5d-dfm-additive-snapfit-pcb.md#fdm); 0.3 mm intentionally kept BELOW the checking-dfm FDM minimum (1.0 mm, conservative pick) so the DFM clearance rule has a real fail case in the fixture."
+
+[mounting.hole_diameter]
+value = 3.0
+unit = "mm"
+status = "assumed"
+source = "Fixture spec: M3 clearance-hole-sized mounting hole, common dev-board standoff size."
+
+[mounting.hole_inset]
+value = 6.0
+unit = "mm"
+status = "assumed"
+source = "Fixture spec: arbitrary, keeps the hole-to-edge distance (inset minus hole radius = 4.5 mm) comfortably above the checking-dfm CNC/sheet-metal hole-to-edge rules for demonstration."
+
+[material.density_kg_m3]
+value = 1050.0
+unit = "kg/m3"
+status = "assumed"
+source = "Typical ABS density ~1.02-1.05 g/cm3 (generic materials reference, not datasheet-sourced) -- fixture only, not a real BOM material."

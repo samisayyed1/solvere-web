@@ -1,0 +1,155 @@
+# Snap-fit permissible strain by material. Sources: docs/research/R5d-dfm-additive-snapfit-pcb.md
+# ("## Snap-fit permissible strain"). `allowable_strain_once_pct` is the
+# single-assembly limit; `allowable_strain_frequent_pct` (where a source
+# states one directly) is for repeated separation/rejoining. Where no
+# material-specific frequent value is stated, checking-dfm/scripts/strain.py
+# applies Covestro's default "~60% of the single-assembly value" factor
+# (`frequent_use_factor` below) instead.
+#
+# Where Covestro (2019 snap-fit guide, [V] -- read directly off the PDF
+# table) and BASF/DuPont ([R] -- reported, read from third-party PDF copies)
+# disagree for the same or an equivalent material, the LOWER (more
+# conservative -- stricter allowable-strain ceiling) value is kept as
+# `allowable_strain_once_pct`, and the discarded figure is in `conflict`.
+[meta]
+formula_source = "Covestro snap-fit guide Table 1, p.9 (1557218421.pdf): y = k*eps*L^2/h, so eps = h*y/(k*L^2)"
+frequent_use_factor = 0.6
+frequent_use_factor_source = "Covestro snap-fit guide p.12: use ~60% of the single-assembly value for frequent separation/rejoining"
+k_constant_rectangle = 0.67
+k_tapered_to_half_thickness = 1.09
+k_tapered_width_quarter = 0.86
+k_source = "Covestro snap-fit guide Table 1, p.9"
+
+[[material]]
+id = "pc_makrolon"
+name = "PC (Makrolon)"
+allowable_strain_once_pct = 4.0
+source = "Covestro snap-fit guide, Table 2, 23 C, single assembly, p.12"
+conflict = "BASF Snap-Fit Design Manual gives PC 4-9.2% (a wider range); 4.0% (Covestro, [V]) kept as the conservative floor."
+
+[[material]]
+id = "pc_apec_high_heat"
+name = "High-heat PC (Apec)"
+allowable_strain_once_pct = 4.0
+source = "Covestro snap-fit guide, Table 2, p.12"
+conflict = ""
+
+[[material]]
+id = "pc_abs_bayblend"
+name = "PC/ABS (Bayblend)"
+allowable_strain_once_pct = 2.5
+source = "Covestro snap-fit guide, Table 2, p.12"
+conflict = ""
+
+[[material]]
+id = "pc_blend_makroblend"
+name = "PC blend (Makroblend)"
+allowable_strain_once_pct = 3.5
+source = "Covestro snap-fit guide, Table 2, p.12"
+conflict = ""
+
+[[material]]
+id = "pc_gf10"
+name = "PC with 10% glass fibre"
+allowable_strain_once_pct = 2.0
+source = "Covestro Part & Mold Design guide, Table 4-1, p.86 (1557222937.pdf)"
+conflict = "Covestro's own 2019 snap-fit guide gives 2.2% for the same grade; 2.0% (the 2015/16 Part & Mold Design guide) kept as the conservative (lower) figure."
+
+[[material]]
+id = "pc_gf20"
+name = "PC with 20% glass fibre"
+allowable_strain_once_pct = 1.5
+source = "Covestro Part & Mold Design guide, Table 4-1, p.86"
+conflict = "Covestro's 2019 snap-fit guide gives 2.0% for the same grade; 1.5% kept as the conservative (lower) figure."
+
+[[material]]
+id = "pom_delrin_100"
+name = "POM, Delrin 100 (unfilled)"
+allowable_strain_once_pct = 7.0
+allowable_strain_frequent_pct = 2.0
+source = "BASF Snap-Fit Design Manual, Table IV-I, p.IV-4 (productdesignonline.com copy) [R]"
+conflict = "DuPont General Design Principles Table 10.06 gives Delrin 100 as 8% once / 2-4% frequent [R]; 7.0% once (BASF) kept as the conservative figure, and the lower end of DuPont's frequent range (2%) kept as the conservative frequent figure."
+
+[[material]]
+id = "pom_delrin_500"
+name = "POM, Delrin 500"
+allowable_strain_once_pct = 6.0
+allowable_strain_frequent_pct = 2.0
+source = "DuPont General Design Principles, Table 10.06, p.75 [R]"
+conflict = ""
+
+[[material]]
+id = "pa66_zytel_101_dry"
+name = "PA66 (Zytel 101), dry-as-moulded"
+allowable_strain_once_pct = 4.0
+allowable_strain_frequent_pct = 2.0
+source = "DuPont General Design Principles, Table 10.06, p.75 [R]"
+conflict = ""
+
+[[material]]
+id = "pa66_zytel_101_50rh"
+name = "PA66 (Zytel 101), 50% RH conditioned"
+allowable_strain_once_pct = 6.0
+allowable_strain_frequent_pct = 3.0
+source = "DuPont General Design Principles, Table 10.06, p.75 [R]"
+conflict = ""
+
+[[material]]
+id = "pa66_zytel_gr20"
+name = "PA66 glass-reinforced (Zytel GR), dry"
+allowable_strain_once_pct = 0.8
+allowable_strain_frequent_pct = 0.5
+source = "DuPont General Design Principles, Table 10.06, p.75 [R] (0.8-1.2% once / 0.5-0.7% frequent range; lower bound kept as conservative)"
+conflict = ""
+
+[[material]]
+id = "pa6_basf_unfilled"
+name = "PA6, dry-as-moulded, unfilled"
+allowable_strain_once_pct = 4.0
+source = "BASF Snap-Fit Design Manual, Table IV-I, p.IV-4 [R] -- BASF's own manual states 8% for the material but directs the 4% figure to be used in its mating-force formula; 4.0% kept here as the conservative design value."
+conflict = "8.0% is BASF's raw material-strain figure; 4.0% is BASF's own recommended design/force-formula figure and is used here as the stricter, load-bearing-relevant number."
+
+[[material]]
+id = "pa6_gf30"
+name = "PA6, 30% glass fibre"
+allowable_strain_once_pct = 2.1
+source = "BASF Snap-Fit Design Manual, Table IV-I, p.IV-4 [R]"
+conflict = ""
+
+[[material]]
+id = "pbt_crastin_gf"
+name = "PBT GR (Crastin, glass-reinforced)"
+allowable_strain_once_pct = 1.2
+allowable_strain_frequent_pct = 0.6
+source = "DuPont General Design Principles, Table 10.06, p.75 [R]"
+conflict = "BASF gives PBT 30% glass as 2.0%; 1.2% (DuPont) kept as the conservative figure."
+
+[[material]]
+id = "pbt_basf_unfilled"
+name = "PBT, unfilled"
+allowable_strain_once_pct = 8.8
+source = "BASF Snap-Fit Design Manual, Table IV-I, p.IV-4 [R]"
+conflict = ""
+
+[[material]]
+id = "abs"
+name = "ABS"
+allowable_strain_once_pct = 6.0
+source = "BASF Snap-Fit Design Manual, Table IV-I, p.IV-4 [R] (range 6-7%; lower bound kept as conservative)"
+conflict = ""
+
+[[material]]
+id = "pet_rynite_gr"
+name = "PET GR (Rynite, glass-reinforced)"
+allowable_strain_once_pct = 1.0
+allowable_strain_frequent_pct = 0.5
+source = "DuPont General Design Principles, Table 10.06, p.75 [R]"
+conflict = "BASF gives PET 30% glass as 1.5%; 1.0% (DuPont) kept as the conservative figure."
+
+[[material]]
+id = "tpc_hytrel"
+name = "TPC elastomer (Hytrel)"
+allowable_strain_once_pct = 20.0
+allowable_strain_frequent_pct = 10.0
+source = "DuPont General Design Principles, Table 10.06, p.75 [R]"
+conflict = ""

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin.json",
+  "name": "forge",
+  "version": "0.1.0",
+  "description": "A disciplined product-engineering operating system for Claude Code: verification-first workflows for systems, mechanical, electrical, firmware, software, simulation, manufacturing and compliance work. Every claim rests on a check that can fail, and every design gets an independent, read-only review before a human signs a gate.",
+  "author": {
+    "name": "Forge maintainers"
+  },
+  "license": "MIT",
+  "keywords": [
+    "engineering",
+    "cad",
+    "ecad",
+    "firmware",
+    "systems-engineering",
+    "verification",
+    "hardware"
+  ]
+}

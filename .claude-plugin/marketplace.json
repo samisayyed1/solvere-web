@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "forge-local",
+  "owner": {
+    "name": "Forge maintainers"
+  },
+  "description": "Local marketplace serving the forge product-engineering plugin from this repo (ADR-001 D2).",
+  "plugins": [
+    {
+      "name": "forge",
+      "source": "./plugins/forge",
+      "description": "Turns Claude Code into a disciplined product-engineering organisation: requirements, CAD, ECAD, firmware, simulation, manufacturing, compliance -- every claim backed by a check that can fail.",
+      "category": "engineering",
+      "tags": [
+        "engineering",
+        "cad",
+        "ecad",
+        "firmware",
+        "systems-engineering",
+        "verification"
+      ],
+      "strict": true
+    }
+  ]
+}

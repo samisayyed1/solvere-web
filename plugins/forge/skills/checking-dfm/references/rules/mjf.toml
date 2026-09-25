@@ -1,0 +1,46 @@
+# DFM rules -- MJF (multi jet fusion, PA12 nylon unless noted). Sources:
+# docs/research/R5d-dfm-additive-snapfit-pcb.md ("## MJF"). See fdm.toml's
+# header comment for the conservative-value/check_family convention.
+[meta]
+process = "mjf"
+source_doc = "docs/research/R5d-dfm-additive-snapfit-pcb.md#mjf"
+
+[[rule]]
+id = "wall_min_mm"
+check_family = "geometry.min_wall"
+comparison = "min"
+value_mm = 2.5
+source = "Protolabs Network MJF guide: wall range 2.5-12.7 mm (minimum/maximum, as stated on the page)"
+conflict = "Protolabs MJF service page gives 0.5 mm (0.508 mm in its toolkit); the combined PN PDF SLS/MJF row gives 0.7 mm; Xometry notes features < 0.030 in may not resolve. 2.5 mm (PN guide's own stated minimum) kept as the conservative figure for a general-purpose structural wall; a lightly-loaded cosmetic feature could use the 0.5-0.7 mm figures with engineering review."
+
+[[rule]]
+id = "watertight_wall_min_mm"
+check_family = "geometry.min_wall"
+comparison = "min"
+value_mm = 4.0
+source = "Protolabs Network MJF guide: >= 4 mm wall needed for a fully watertight part (1 mm gives only water resistance, not watertightness)"
+conflict = ""
+
+[[rule]]
+id = "hole_min_diameter_mm"
+check_family = "geometry.hole_diameter"
+comparison = "min"
+value_mm = 1.5
+source = "Protolabs Network PDF: minimum hole Ø1.5 mm"
+conflict = "Xometry notes holes < 0.04 in (~1.0 mm) may sinter shut. 1.5 mm (PN) kept as the conservative (larger) minimum."
+
+[[rule]]
+id = "clearance_mm"
+check_family = "geometry.clearance"
+comparison = "min"
+value_mm = 0.9
+source = "Protolabs Network MJF guide: 0.9 mm clearance if the assembly is printed already assembled"
+conflict = "PN also gives 0.6 mm if the parts are assembled after printing (separate SKUs) -- 0.9 mm (printed-assembled, the harder case) kept as the conservative figure."
+
+[[rule]]
+id = "min_feature_mm"
+check_family = "geometry.min_wall"
+comparison = "min"
+value_mm = 0.8
+source = "Protolabs Network PDF: minimum feature 0.8 mm"
+conflict = "Protolabs MJF service page and PN's own minimum-feature guidance give 0.5 mm; Xometry notes features < 0.030 in (~0.76 mm) may not resolve. 0.8 mm (PN PDF) kept as the conservative figure."

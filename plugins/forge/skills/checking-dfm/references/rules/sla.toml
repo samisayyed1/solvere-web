@@ -1,0 +1,54 @@
+# DFM rules -- SLA (stereolithography), normal/standard resolution. Sources:
+# docs/research/R5d-dfm-additive-snapfit-pcb.md ("## SLA"). See fdm.toml's
+# header comment for the conservative-value and check_family convention.
+[meta]
+process = "sla"
+source_doc = "docs/research/R5d-dfm-additive-snapfit-pcb.md#sla"
+
+[[rule]]
+id = "wall_min_supported_mm"
+check_family = "geometry.min_wall"
+comparison = "min"
+value_mm = 0.5
+source = "Protolabs Network design-rules PDF: supported wall 0.5 mm"
+conflict = "PN's own SLA guide gives >= 0.4 mm; Formlabs Form 4 (Grey V5, 50 um) gives 0.2 mm. 0.5 mm (PN PDF) kept as the conservative figure for a general/normal-resolution process; a Form-4-only part could use the tighter Formlabs number."
+
+[[rule]]
+id = "wall_min_unsupported_mm"
+check_family = "geometry.min_wall"
+comparison = "min"
+value_mm = 1.0
+source = "Protolabs Network design-rules PDF: unsupported wall 1 mm"
+conflict = "PN SLA guide gives >= 0.6 mm; Formlabs Form 4 gives 0.2 mm; Protolabs SLA service page gives 0.254-0.305 mm (Normal). 1.0 mm (PN PDF) kept as the conservative figure."
+
+[[rule]]
+id = "hole_min_diameter_mm"
+check_family = "geometry.hole_diameter"
+comparison = "min"
+value_mm = 0.8
+source = "Protolabs Network SLA guide: minimum hole 0.5-0.8 mm"
+conflict = "PN PDF gives a flat 0.5 mm; Formlabs Form 3/4 also 0.5 mm (Form 2 was 0.8 mm); Protolabs SLA service page (Normal) 0.635 mm. 0.8 mm kept as the conservative (larger) minimum."
+
+[[rule]]
+id = "clearance_moving_mm"
+check_family = "geometry.clearance"
+comparison = "min"
+value_mm = 0.5
+source = "Protolabs Network SLA guide and PDF: moving-part clearance 0.5 mm"
+conflict = "Formlabs Form 3 also gives 0.5 mm; Form 4 tightens to 0.4 mm minimum. 0.5 mm kept as the conservative (larger) figure; connection/push-fit clearances (0.1-0.2 mm) are a separate, tighter use case not modeled as its own rule."
+
+[[rule]]
+id = "hollow_wall_min_mm"
+check_family = "geometry.min_wall"
+comparison = "min"
+value_mm = 2.0
+source = "Protolabs Network SLA guide: hollow-part wall >= 2 mm (needed for a drain hole and to survive resin drainage/cure)"
+conflict = ""
+
+[[rule]]
+id = "overhang_min_angle_deg"
+check_family = "geometry.draft"
+comparison = "min_from_vertical"
+value_deg = 19.0
+source = "Protolabs Network SLA guide: unsupported overhang needs >= 19 deg from level (and < 1 mm long)"
+conflict = "PN PDF says 'support always required' for any overhang (most conservative -- effectively 0 deg unsupported budget); Formlabs Form 4 allows >= 10 deg and <= 5 mm unsupported. 19 deg (PN guide) kept as the working conservative middle value since 'always support' isn't checkable as a numeric limit."

@@ -1,0 +1,122 @@
+"""Tests for hooks/subagent_stop.py -- reviewer verdict-schema enforcement (CONTRACTS.md §5, §13)."""
+
+from __future__ import annotations
+
+import json
+
+from .hookutil import forge_project, non_forge_project, run_hook
+
+VALID_VERDICT = {
+    "schema": "forge.verdict/1", "reviewer": "verification-evaluator", "gate": "G2", "subject": "enclosure rev B",
+    "criteria": [{
+        "id": "REQ-MECH-004", "verdict": "FAIL", "evidence": ["out/verify/geometry.min_wall.json"],
+        "finding": "Lid lip wall 1.62 mm below 2.0 mm minimum.", "severity": "major",
+        "affects": ["manufacturability", "function"],
+    }],
+    "overall": "FAIL", "summary": "1 major defect; 11 criteria PASS.", "not_checked": [],
+}
+
+
+def _msg_with_block(payload: dict) -> str:
+    return f"Reviewed the design.\n\n```json\n{json.dumps(payload)}\n```\n"
+
+
+def test_noop_outside_forge_project(non_forge_project):
+    result = run_hook("subagent_stop.py", {
+        "cwd": str(non_forge_project), "agent_type": "forge:red-team", "last_assistant_message": "no json",
+    })
+    assert result.returncode == 0
+    assert result.output is None
+
+
+def test_non_judge_agent_is_ignored(forge_project):
+    result = run_hook("subagent_stop.py", {
+        "cwd": str(forge_project), "agent_type": "forge:mechanical-engineer",
+        "last_assistant_message": "no verdict here at all",
+    })
+    assert result.returncode == 0
+    assert result.output is None
+
+
+def test_empty_agent_type_is_ignored(forge_project):
+    result = run_hook("subagent_stop.py", {
+        "cwd": str(forge_project), "agent_type": "", "last_assistant_message": "no verdict here",
+    })
+    assert result.returncode == 0
+    assert result.output is None
+
+
+def test_valid_verdict_from_verification_evaluator_passes(forge_project):
+    result = run_hook("subagent_stop.py", {
+        "cwd": str(forge_project), "agent_type": "forge:verification-evaluator",
+        "last_assistant_message": _msg_with_block(VALID_VERDICT),
+    })
+    assert result.returncode == 0
+    assert result.output is None
+
+
+def test_valid_verdict_from_red_team_passes(forge_project):
+    payload = dict(VALID_VERDICT, reviewer="red-team")
+    result = run_hook("subagent_stop.py", {
+        "cwd": str(forge_project), "agent_type": "forge:red-team",
+        "last_assistant_message": _msg_with_block(payload),
+    })
+    assert result.returncode == 0
+    assert result.output is None
+
+
+def test_missing_verdict_block_blocks(forge_project):
+    """Sabotage case: a judge that free-forms its answer with no ```json block must be rejected."""
+    result = run_hook("subagent_stop.py", {
+        "cwd": str(forge_project), "agent_type": "forge:red-team",
+        "last_assistant_message": "Looks fine to me, no issues found.",
+    })
+    assert result.returncode == 2
+    assert result.output["decision"] == "block"
+    assert "```json" in result.output["reason"] or "fenced" in result.output["reason"]
+
+
+def test_malformed_json_block_blocks(forge_project):
+    result = run_hook("subagent_stop.py", {
+        "cwd": str(forge_project), "agent_type": "forge:red-team",
+        "last_assistant_message": "```json\n{not: valid json,,,}\n```",
+    })
+    assert result.returncode == 2
+    assert result.output["decision"] == "block"
+
+
+def test_schema_invalid_verdict_blocks_with_precise_errors(forge_project):
+    """Sabotage case: a FAIL criterion missing severity/affects must be rejected
+    with the actual schema errors, not a generic message."""
+    bad = json.loads(json.dumps(VALID_VERDICT))
+    del bad["criteria"][0]["severity"]
+    del bad["criteria"][0]["affects"]
+    result = run_hook("subagent_stop.py", {
+        "cwd": str(forge_project), "agent_type": "forge:verification-evaluator",
+        "last_assistant_message": _msg_with_block(bad),
+    })
+    assert result.returncode == 2
+    assert "severity" in result.output["reason"]
+    assert "affects" in result.output["reason"]
+
+
+def test_uses_the_last_json_block_when_several_present(forge_project):
+    """The reviewer may think out loud in earlier ```json blocks; only the LAST one counts."""
+    bad_block = "```json\n{\"scratch\": \"notes\"}\n```"
+    good_block = f"```json\n{json.dumps(VALID_VERDICT)}\n```"
+    message = f"Some notes first.\n\n{bad_block}\n\nFinal verdict:\n\n{good_block}"
+    result = run_hook("subagent_stop.py", {
+        "cwd": str(forge_project), "agent_type": "forge:red-team", "last_assistant_message": message,
+    })
+    assert result.returncode == 0
+    assert result.output is None
+
+
+def test_wrong_schema_const_blocks(forge_project):
+    bad = json.loads(json.dumps(VALID_VERDICT))
+    bad["schema"] = "forge.verdict/2"
+    result = run_hook("subagent_stop.py", {
+        "cwd": str(forge_project), "agent_type": "forge:verification-evaluator",
+        "last_assistant_message": _msg_with_block(bad),
+    })
+    assert result.returncode == 2

@@ -1,0 +1,30 @@
+[case]
+name = "smoke_cantilever"
+description = "steel cantilever beam, tip transverse load -- hand-check reference case"
+
+[geometry]
+length_mm = 100.0
+width_mm = 10.0
+height_mm = 10.0
+
+[material]
+name = "generic_structural_steel"
+E_MPa = 210000.0
+nu = 0.3
+yield_MPa = 250.0
+source = "assumed generic structural steel (E=210 GPa, nu=0.3); replace with a datasheet-backed value via intaking-datasheets before this case gates a real design"
+
+[load]
+force_n = 100.0
+
+[mesh]
+levels = [[10, 2, 2], [20, 4, 4], [40, 4, 4]]
+convergence_tol_pct = 3.0
+
+[hand_calc]
+deflection_tolerance_pct = 5.0
+stress_tolerance_pct = 15.0
+
+[requirement]
+min_safety_factor = 1.5
+max_reaction_imbalance_pct = 2.0

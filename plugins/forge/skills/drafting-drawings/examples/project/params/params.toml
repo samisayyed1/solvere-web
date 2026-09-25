@@ -1,0 +1,262 @@
+# Example project params (CONTRACTS.md §2) for the drafting-drawings worked examples.
+# Values are illustrative example values, status 'assumed' -- not a real product.
+
+[bracket.base_length]
+value = 60.0
+unit = "mm"
+tol = { minus = 0.2, plus = 0.2 }
+status = "assumed"
+source = "drafting-drawings example: L bracket overall base length"
+verified_by = ""
+evidence = []
+
+[bracket.width]
+value = 40.0
+unit = "mm"
+tol = { minus = 0.2, plus = 0.2 }
+status = "assumed"
+source = "drafting-drawings example: L bracket width"
+verified_by = ""
+evidence = []
+
+[bracket.thickness]
+value = 6.0
+unit = "mm"
+tol = { minus = 0.1, plus = 0.1 }
+status = "assumed"
+source = "drafting-drawings example: plate thickness, base and upright"
+verified_by = ""
+evidence = []
+
+[bracket.height]
+value = 50.0
+unit = "mm"
+tol = { minus = 0.2, plus = 0.2 }
+status = "assumed"
+source = "drafting-drawings example: overall height"
+verified_by = ""
+evidence = []
+
+[bracket.base_hole_dia]
+value = 6.6
+unit = "mm"
+tol = { minus = 0.0, plus = 0.1 }
+status = "assumed"
+source = "drafting-drawings example: clearance for M6 (fine series, example value)"
+verified_by = ""
+evidence = []
+
+[bracket.base_hole_x]
+value = 40.0
+unit = "mm"
+tol = { minus = 0.1, plus = 0.1 }
+status = "assumed"
+source = "drafting-drawings example: base hole axis from the upright back face"
+verified_by = ""
+evidence = []
+
+[bracket.base_hole_pitch]
+value = 16.0
+unit = "mm"
+tol = { minus = 0.1, plus = 0.1 }
+status = "assumed"
+source = "drafting-drawings example: base hole pitch across the width"
+verified_by = ""
+evidence = []
+
+[bracket.upright_hole_dia]
+value = 8.0
+unit = "mm"
+tol = { minus = 0.05, plus = 0.05 }
+status = "assumed"
+source = "drafting-drawings example: upright hole"
+verified_by = ""
+evidence = []
+
+[bracket.upright_hole_z]
+value = 35.0
+unit = "mm"
+tol = { minus = 0.1, plus = 0.1 }
+status = "assumed"
+source = "drafting-drawings example: upright hole axis height above the base bottom"
+verified_by = ""
+evidence = []
+
+[bushing.flange_dia]
+value = 60.0
+unit = "mm"
+tol = { minus = 0.1, plus = 0.1 }
+status = "assumed"
+source = "drafting-drawings example: flange OD"
+verified_by = ""
+evidence = []
+
+[bushing.flange_thickness]
+value = 8.0
+unit = "mm"
+tol = { minus = 0.1, plus = 0.1 }
+status = "assumed"
+source = "drafting-drawings example: flange thickness"
+verified_by = ""
+evidence = []
+
+[bushing.boss_dia]
+value = 30.0
+unit = "mm"
+tol = { minus = 0.05, plus = 0.0 }
+status = "assumed"
+source = "drafting-drawings example: boss OD"
+verified_by = ""
+evidence = []
+
+[bushing.boss_height]
+value = 20.0
+unit = "mm"
+tol = { minus = 0.1, plus = 0.1 }
+status = "assumed"
+source = "drafting-drawings example: boss height above the flange"
+verified_by = ""
+evidence = []
+
+[bushing.bore_dia]
+value = 12.0
+unit = "mm"
+tol = { minus = 0.0, plus = 0.018 }
+status = "assumed"
+source = "drafting-drawings example: through bore"
+verified_by = ""
+evidence = []
+
+[bushing.cbore_dia]
+value = 20.0
+unit = "mm"
+tol = { minus = 0.05, plus = 0.05 }
+status = "assumed"
+source = "drafting-drawings example: counterbore diameter"
+verified_by = ""
+evidence = []
+
+[bushing.cbore_depth]
+value = 6.0
+unit = "mm"
+tol = { minus = 0.1, plus = 0.1 }
+status = "assumed"
+source = "drafting-drawings example: counterbore depth from the boss end face"
+verified_by = ""
+evidence = []
+
+[bushing.bolt_pcd]
+value = 45.0
+unit = "mm"
+tol = { minus = 0.1, plus = 0.1 }
+status = "assumed"
+source = "drafting-drawings example: bolt pitch circle diameter"
+verified_by = ""
+evidence = []
+
+[bushing.bolt_hole_dia]
+value = 5.5
+unit = "mm"
+tol = { minus = 0.0, plus = 0.1 }
+status = "assumed"
+source = "drafting-drawings example: bolt hole"
+verified_by = ""
+evidence = []
+
+[enclosure.length]
+value = 80.0
+unit = "mm"
+tol = { minus = 0.2, plus = 0.2 }
+status = "assumed"
+source = "drafting-drawings example: outer length"
+verified_by = ""
+evidence = []
+
+[enclosure.width]
+value = 50.0
+unit = "mm"
+tol = { minus = 0.2, plus = 0.2 }
+status = "assumed"
+source = "drafting-drawings example: outer width"
+verified_by = ""
+evidence = []
+
+[enclosure.height]
+value = 30.0
+unit = "mm"
+tol = { minus = 0.2, plus = 0.2 }
+status = "assumed"
+source = "drafting-drawings example: outer height"
+verified_by = ""
+evidence = []
+
+[enclosure.wall]
+value = 2.5
+unit = "mm"
+tol = { minus = 0.1, plus = 0.1 }
+status = "assumed"
+source = "drafting-drawings example: side wall thickness"
+verified_by = ""
+evidence = []
+
+[enclosure.floor]
+value = 3.0
+unit = "mm"
+tol = { minus = 0.1, plus = 0.1 }
+status = "assumed"
+source = "drafting-drawings example: floor thickness"
+verified_by = ""
+evidence = []
+
+[enclosure.boss_dia]
+value = 8.0
+unit = "mm"
+tol = { minus = 0.1, plus = 0.1 }
+status = "assumed"
+source = "drafting-drawings example: screw boss OD"
+verified_by = ""
+evidence = []
+
+[enclosure.boss_height]
+value = 10.0
+unit = "mm"
+tol = { minus = 0.1, plus = 0.1 }
+status = "assumed"
+source = "drafting-drawings example: boss height above the floor top"
+verified_by = ""
+evidence = []
+
+[enclosure.boss_x]
+value = 28.0
+unit = "mm"
+tol = { minus = 0.1, plus = 0.1 }
+status = "assumed"
+source = "drafting-drawings example: boss axis offset from the centre along X"
+verified_by = ""
+evidence = []
+
+[enclosure.pilot_dia]
+value = 3.2
+unit = "mm"
+tol = { minus = 0.0, plus = 0.05 }
+status = "assumed"
+source = "drafting-drawings example: pilot hole for a thread-forming screw (example value)"
+verified_by = ""
+evidence = []
+[bushing.overall_height]
+value = 28.0
+unit = "mm"
+tol = { minus = 0.1, plus = 0.1 }
+status = "assumed"
+source = "drafting-drawings example: flange thickness + boss height (derived; kept equal to their sum by the drawing check)"
+verified_by = ""
+evidence = []
+
+[enclosure.boss_pitch]
+value = 56.0
+unit = "mm"
+tol = { minus = 0.1, plus = 0.1 }
+status = "assumed"
+source = "drafting-drawings example: 2 x enclosure.boss_x (derived; the drawing check catches it going stale)"
+verified_by = ""
+evidence = []

@@ -1,0 +1,161 @@
+# Worked example: shell / enclosure -- two A3 sheets. Sheet 1: principal views + iso.
+# Sheet 2: section A-A through the bosses and detail B (wall/floor corner) at 4:1.
+schema = "forge.drawing/2"
+
+[drawing]
+title = "ENCLOSURE BASE"
+number = "FX-1003"
+rev = "A"
+material = "PC/ABS, black (example)"
+units = "mm"
+general_tolerance = "ISO 2768-m"
+author = "forge"
+date = "2026-09-25"
+projection = "third"
+sheet_size = "A3"
+
+[model]
+module = "cad/enclosure.py"
+
+[[sheet]]
+scale = "1:1"
+views = ["front", "top", "right", "iso"]
+
+[[sheet]]
+scale = "1:1"
+views = ["a", "b"]
+
+[[view]]
+id = "front"
+kind = "front"
+
+[[view]]
+id = "top"
+kind = "top"
+
+[[view]]
+id = "right"
+kind = "right"
+
+[[view]]
+id = "iso"
+kind = "iso"
+
+[[view]]
+id = "a"
+kind = "section"
+base = "top"
+label = "A"
+origin = [0, 0, "enclosure.height/2"]
+normal = "-Y"
+
+[[view]]
+id = "b"
+kind = "detail"
+base = "a"
+label = "B"
+center = ["-enclosure.length/2 + enclosure.wall", 0, "enclosure.floor"]
+radius = 7
+scale = "4:1"
+
+[[dimension]]
+id = "length"
+param = "enclosure.length"
+requirement = "REQ-MECH-020"
+view = "front"
+type = "linear"
+axis = "X"
+from = { plane = "X", at = "min" }
+to = { plane = "X", at = "max" }
+tol = 0.2
+
+[[dimension]]
+id = "height"
+param = "enclosure.height"
+requirement = "REQ-MECH-021"
+view = "front"
+type = "linear"
+axis = "Z"
+from = { plane = "Z", at = "min" }
+to = { plane = "Z", at = "max" }
+tol = 0.2
+
+[[dimension]]
+id = "width"
+param = "enclosure.width"
+requirement = "REQ-MECH-020"
+view = "right"
+type = "linear"
+axis = "Y"
+from = { plane = "Y", at = "min" }
+to = { plane = "Y", at = "max" }
+tol = 0.2
+
+[[dimension]]
+id = "boss_pitch"
+param = "enclosure.boss_pitch"
+requirement = "REQ-MECH-022"
+view = "top"
+type = "linear"
+axis = "X"
+from = { cylinder = "Z", near = ["-enclosure.boss_x - enclosure.boss_dia/2", 0, "enclosure.floor + 5"] }
+to = { cylinder = "Z", near = ["enclosure.boss_x + enclosure.boss_dia/2", 0, "enclosure.floor + 5"] }
+tol = 0.1
+
+[[dimension]]
+id = "boss_dia"
+param = "enclosure.boss_dia"
+requirement = "REQ-MECH-022"
+view = "top"
+type = "diameter"
+count = 2
+of = { cylinder = "Z", near = ["enclosure.boss_x + enclosure.boss_dia/2", 0, "enclosure.floor + 5"] }
+tol = 0.1
+
+[[dimension]]
+id = "pilot_dia"
+param = "enclosure.pilot_dia"
+requirement = "REQ-MECH-023"
+view = "a"
+type = "diameter"
+count = 2
+side = "above"
+of = { cylinder = "Z", near = ["enclosure.boss_x + enclosure.pilot_dia/2", 0, "enclosure.floor + 5"] }
+tol = { plus = 0.05, minus = 0.0 }
+
+[[dimension]]
+id = "boss_height"
+param = "enclosure.boss_height"
+requirement = "REQ-MECH-023"
+view = "a"
+type = "linear"
+axis = "Z"
+from = { plane = "+Z", at = "enclosure.floor" }
+to = { plane = "+Z", at = "enclosure.floor + enclosure.boss_height" }
+tol = 0.1
+
+[[dimension]]
+id = "wall"
+param = "enclosure.wall"
+requirement = "REQ-MECH-024"
+view = "b"
+type = "linear"
+axis = "X"
+side = "above"
+from = { plane = "X", at = "min" }
+to = { plane = "+X", at = "-enclosure.length/2 + enclosure.wall" }
+tol = 0.1
+
+[[dimension]]
+id = "floor"
+param = "enclosure.floor"
+requirement = "REQ-MECH-024"
+view = "b"
+type = "linear"
+axis = "Z"
+from = { plane = "Z", at = "min" }
+to = { plane = "+Z", at = "enclosure.floor" }
+tol = 0.1
+
+[[note]]
+text = "DRAFT ANGLES AND MOULDING RADII PER CHECKING-DFM RESULTS; NOT SHOWN ON THIS EXAMPLE."

@@ -1,0 +1,33 @@
+# Single source of truth for every dimension and value used in cad/, ecad/,
+# firmware/ or analysis/ (CONTRACTS.md §2). Nothing is hard-coded in source.
+#
+# status: assumed | datasheet | measured | verified
+# Changing a `status = "verified"` value needs `forge params set --justification "..."`;
+# the PreToolUse hook blocks direct edits to verified params.
+
+[enclosure.wall_thickness]
+value = 2.0
+unit = "mm"
+tol = { minus = 0.1, plus = 0.1 }
+status = "assumed"
+source = "R5d FDM min wall 0.8-1.2 mm; chosen 2.0 mm for stiffness margin on the lid lip"
+verified_by = ""
+evidence = []
+
+[enclosure.lid_snap_fit_strain]
+value = 4.0
+unit = "%"
+tol = { minus = 0.0, plus = 0.5 }
+status = "assumed"
+source = "R5d snap-fit permissible strain table; conservative starting value pending material selection"
+verified_by = ""
+evidence = []
+
+[power.regulator_output_voltage]
+value = 3.3
+unit = "V"
+tol = { minus = 0.05, plus = 0.05 }
+status = "datasheet"
+source = "example regulator datasheet p.4 Table 2 (Vout); replace with the selected part's page reference"
+verified_by = ""
+evidence = []

@@ -1,0 +1,24 @@
+# Seeded-FAIL fixture: cad/box_thin.py's 0.6 mm hard-coded wall is well
+# below the FDM unsupported-wall DFM minimum (1.2 mm, checking-dfm's
+# conservative pick from R5d). The snap_fit entry is also seeded to fail:
+# 8 mm deflection over a 15 mm/1.2 mm arm exceeds PC (Makrolon)'s 4%
+# allowable strain.
+[part]
+name = "box_thin"
+module = "cad/box_thin.py"
+process = "fdm"
+
+[[check]]
+rule = "wall_min_unsupported_mm"
+requirement = "REQ-MFG-001"
+sample_count = 2000
+
+[[snap_fit]]
+name = "overstressed_latch"
+requirement = "REQ-MECH-010"
+material = "pc_makrolon"
+deflection_mm = 8.0
+length_mm = 15.0
+thickness_mm = 1.2
+taper = "constant"
+frequent = false

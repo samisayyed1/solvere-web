@@ -1,0 +1,198 @@
+# Standards applicability data (mapping-compliance skill).
+#
+# Every row's `edition`, `year` and `trigger` text traces to a specific
+# Forge research file (R5a, R5b or R5e) -- never invented. `source_file`
+# names exactly which one. Re-check `as_of` before trusting a row more than
+# ~180 days old (R5e's own recommendation: "store dated snapshots, not
+# 'current' claims").
+#
+# `applies_if`: a list of {field, op, value} predicates, ALL of which must
+# hold against the product profile (compliance/product-profile.toml) for
+# this standard to be flagged applicable. `op` is one of "eq", "in"
+# (profile field is a list containing value), "true".
+#
+# This file states which standards exist and why they might apply. It is
+# NOT a compliance determination -- see mapping-compliance/SKILL.md and
+# every generated report for the required disclaimer.
+
+as_of = "2026-09-25"
+
+[[standard]]
+id = "iec-62368-1"
+name = "IEC/EN/UL 62368-1 -- audio/video, IT and communications equipment safety"
+edition = "IEC Ed. 4.0 (2023-05-26); EN IEC 62368-1:2024+A11:2024 (EU); UL 62368-1 Ed. 4 (2025-07-31, US/Canada)"
+body = "IEC TC 108 / CENELEC / UL Standards & Engagement / CSA"
+source_file = "R5b"
+trigger = "Any mains- or battery-powered AV/ICT product (chargers, PSUs, routers, sensors with a mains adapter)."
+applies_if = [ { field = "power_source", op = "in", value = "mains" } ]
+needs_human = "A test lab or certification body (NRTL, IECEE CB Scheme). In the EU, note the 2024 edition's OJ-harmonisation status is unresolved (R5b) -- ask a qualified human which edition to certify against."
+
+[[standard]]
+id = "iec-60601-1"
+name = "IEC 60601-1 (+60601-1-2 EMC) -- medical electrical equipment basic safety"
+edition = "Ed. 3.2 consolidated (2005+AMD1:2012+AMD2:2020+COR3:2022); 60601-1-2 Ed. 4.1 (2020)"
+body = "IEC SC 62A"
+source_file = "R5b"
+trigger = "Any device with an applied part or mains/battery power sold or marketed as medical equipment."
+applies_if = [ { field = "category", op = "eq", value = "medical" } ]
+needs_human = "Accredited test lab, IECEE CB Scheme, EU notified body under the MDR."
+
+[[standard]]
+id = "iec-61508"
+name = "IEC 61508 -- functional safety of E/E/PE safety-related systems"
+edition = "Ed. 2.0 (2010-04-30); Ed. 3 at CDV stage, expected ~early 2027"
+body = "IEC SC 65A"
+source_file = "R5b"
+trigger = "Any product where a control or protection function reduces risk (industrial/process safety functions)."
+applies_if = [ { field = "has_safety_function", op = "true", value = true } ]
+needs_human = "A functional-safety assessor / certification body (TUV, exida) for independent assessment."
+
+[[standard]]
+id = "iso-26262"
+name = "ISO 26262 -- functional safety, road vehicles"
+edition = "2nd edition (2018-12-17); 3rd-edition DIS registered 2026-08-04"
+body = "ISO TC 22/SC 32"
+source_file = "R5b"
+trigger = "Any automotive electrical/electronic item or supplier component."
+applies_if = [ { field = "category", op = "eq", value = "automotive" } ]
+needs_human = "Confirmation reviews, functional-safety audits, independent assessor (I0-I3)."
+
+[[standard]]
+id = "ul94-flammability"
+name = "UL 94 flammability rating (+ IEC 60695-11-10/-20 equivalents)"
+edition = "UL 94 7th ed. (2023-02-28, rev. 2026-07-02); IEC 60695-11-10 Ed.2.0 (2013); -11-20 Ed.2.0 (2015)"
+body = "UL Standards & Engagement / IEC TC 89"
+source_file = "R5a"
+trigger = "Enclosures, housings and internal plastic parts in electrical appliances and IT/AV equipment; called up by end-product standards such as 62368-1."
+applies_if = [ { field = "has_plastic_enclosure", op = "true", value = true } ]
+needs_human = "UL iQ Yellow Card lookup at actual wall thickness/colour; all testing and certification."
+
+[[standard]]
+id = "wcag22"
+name = "WCAG 2.2 (= ISO/IEC 40500:2025)"
+edition = "W3C Recommendation, updated 2024-12-12; ISO/IEC 40500:2025 (2nd ed., 2025-09-24)"
+body = "W3C AG WG / ISO/IEC JTC 1"
+source_file = "R5a"
+trigger = "Public-sector websites, EU EN 301 549 / European Accessibility Act, ADA-related procurement, any product claiming accessibility conformance."
+applies_if = [ { field = "has_web_or_app_ui", op = "true", value = true } ]
+needs_human = "Keyboard/screen-reader walkthroughs, cognitive-criteria judgement, signing the conformance claim."
+
+[[standard]]
+id = "ipc-2221c"
+name = "IPC-2221C -- generic PCB design rules"
+edition = "Rev C (Dec 2023)"
+body = "IPC (Global Electronics Association), task group D-31b"
+source_file = "R5a"
+trigger = "Any PCB design package or fabrication note."
+applies_if = [ { field = "has_pcb", op = "true", value = true } ]
+needs_human = "High-voltage creepage decisions, product class (1/2/3), impedance/thermal trade-offs."
+
+[[standard]]
+id = "ipc-a-610j"
+name = "IPC-A-610J / J-STD-001J -- solder assembly acceptance"
+edition = "Rev J (Mar/Apr 2024); Rev K in Final Draft for Industry Review as of R5a's access date"
+body = "IPC committees 7-31b / 5-22a"
+source_file = "R5a"
+trigger = "Contract manufacturing; any purchase order naming an acceptance class."
+applies_if = [ { field = "has_pcb", op = "true", value = true }, { field = "contract_manufactured", op = "true", value = true } ]
+needs_human = "IPC-certified inspectors (CIS/CIT) for the actual inspection calls."
+
+[[standard]]
+id = "eu-rohs"
+name = "EU RoHS -- restricted substances in EEE"
+edition = "Directive 2011/65/EU + 2015/863; 2025 lead-exemption resets apply from 2026-07-01"
+body = "EP & Council / European Commission"
+source_file = "R5e"
+trigger = "Any electrical/electronic equipment placed on the EU market."
+applies_if = [ { field = "target_markets", op = "in", value = "EU" } ]
+needs_human = "Scope determination, exemption applicability, analytical test (XRF/ICP), signing the EU DoC."
+
+[[standard]]
+id = "reach-scip"
+name = "REACH Candidate List (Art. 33) + SCIP notification"
+edition = "253 entries as of 2026-02-04 snapshot (treat as a floor; re-check before relying on it)"
+body = "ECHA / EP & Council"
+source_file = "R5e"
+trigger = "Any article placed on the EU market containing a Candidate-List SVHC above 0.1% w/w."
+applies_if = [ { field = "target_markets", op = "in", value = "EU" } ]
+needs_human = "Supplier data quality, article-level calculation, ECHA submission."
+
+[[standard]]
+id = "fcc-part15"
+name = "FCC 47 CFR Part 15 -- unintentional/intentional radiators"
+edition = "eCFR current, last amended 2026-04-27"
+body = "FCC"
+source_file = "R5e"
+trigger = "Any digital device (Subpart B) or licence-exempt intentional radiator (Subpart C) sold in the US."
+applies_if = [ { field = "target_markets", op = "in", value = "US" } ]
+needs_human = "FCC-recognised accredited test lab; TCB grant for Subpart C; the SDoC US responsible party."
+
+[[standard]]
+id = "ised-rss"
+name = "ISED RSS-Gen + RSS-247 -- Canadian radio equipment certification"
+edition = "RSS-Gen Issue 6 (2026-07-30, Amendment 1 2026-09-15); RSS-247 Issue 4 (2025-07-24)"
+body = "ISED Canada"
+source_file = "R5e"
+trigger = "Any licence-exempt radio sold in Canada (DTS/FHSS/LE-LAN or general Category I device)."
+applies_if = [ { field = "has_radio", op = "true", value = true }, { field = "target_markets", op = "in", value = "CA" } ]
+needs_human = "Accredited lab, ISED-recognised certification body, ISED registration."
+
+[[standard]]
+id = "eu-red-cyber"
+name = "EU RED cybersecurity (Delegated Reg. 2022/30 + EN 18031-1/-2/-3)"
+edition = "2022/30 applies 2025-08-01, repealed 2027-12-11 by 2026/339; EN 18031-1/-2/-3:2024 cited with restrictions by (EU) 2025/138"
+body = "European Commission / CEN-CENELEC JTC 13"
+source_file = "R5e"
+trigger = "Internet-connected radio equipment, or toy/childcare/wearable radio equipment processing personal data, placed on the EU market."
+applies_if = [ { field = "has_radio", op = "true", value = true }, { field = "connects_to_internet", op = "true", value = true }, { field = "target_markets", op = "in", value = "EU" } ]
+needs_human = "Risk assessment, notified-body route if a restricted clause is triggered, signing the DoC."
+
+[[standard]]
+id = "cispr32-35-emc"
+name = "CISPR 32 / CISPR 35 (EN 55032 / EN 55035) -- multimedia equipment EMC"
+edition = "CISPR 32 Ed. 2.1 (2019, consolidated); CISPR 35 Ed. 1.0 (2016); both at IEC stability date 2026, Ed.3 of 32 reported near FDIS"
+body = "IEC CISPR/I / CENELEC"
+source_file = "R5e"
+trigger = "IT/AV/broadcast-receiver multimedia equipment up to 600 V, typically via the EU EMC Directive harmonised route."
+applies_if = [ { field = "target_markets", op = "in", value = "EU" }, { field = "has_pcb", op = "true", value = true } ]
+needs_human = "An accredited (ISO/IEC 17025) EMC lab and interpretation of results."
+
+[[standard]]
+id = "etsi-en303645"
+name = "ETSI EN 303 645 -- consumer IoT security baseline"
+edition = "V3.1.3 (2024-09)"
+body = "ETSI TC CYBER"
+source_file = "R5e"
+trigger = "Consumer IoT devices; not itself mandatory but maps to EN 18031 and CRA Annex I."
+applies_if = [ { field = "connects_to_internet", op = "true", value = true }, { field = "category", op = "eq", value = "consumer_iot" } ]
+needs_human = "Third-party assessment where a national scheme requires one."
+
+[[standard]]
+id = "eu-cra"
+name = "EU Cyber Resilience Act (Regulation (EU) 2024/2847)"
+edition = "In force since 2024-12-10; reporting duties from 2026-09-11; full application 2027-12-11"
+body = "EP & Council"
+source_file = "R5e"
+trigger = "Any 'product with digital elements' placed on the EU market (hardware or software, including remote data processing). Reporting duties (Art. 14) already apply to products placed on the market before full application."
+applies_if = [ { field = "connects_to_internet", op = "true", value = true }, { field = "target_markets", op = "in", value = "EU" } ]
+needs_human = "Product classification (important/critical?), conformity-assessment module or notified body, the DoC, and the actual ENISA SRP submission."
+
+[[standard]]
+id = "nist-ir8259"
+name = "NIST IR 8259 series -- voluntary IoT cybersecurity capability baseline"
+edition = "IR 8259 Rev. 1 (final, 2026-04-20); 8259A (2020-05); 8259B (2021-08-25)"
+body = "NIST"
+source_file = "R5e"
+trigger = "Not mandatory; relevant to US federal procurement (SP 800-213) and voluntary IoT labelling."
+applies_if = [ { field = "connects_to_internet", op = "true", value = true }, { field = "target_markets", op = "in", value = "US" } ]
+needs_human = "None strictly -- voluntary; still worth an internal checklist pass."
+
+[[standard]]
+id = "owasp-asvs"
+name = "OWASP ASVS -- application security verification standard"
+edition = "5.0.0 (2025-05-30)"
+body = "OWASP"
+source_file = "R5e"
+trigger = "Any companion app, cloud API or web service shipped with the product."
+applies_if = [ { field = "has_web_or_app_ui", op = "true", value = true } ]
+needs_human = "None strictly -- voluntary checklist; useful as a code-review gate."

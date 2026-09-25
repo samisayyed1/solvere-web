@@ -1,0 +1,80 @@
+# DFM rules -- FDM (fused deposition modeling). Every value cites its row in
+# docs/research/R5d-dfm-additive-snapfit-pcb.md ("## FDM"). Where sources
+# disagree, the CONSERVATIVE (stricter/safer) value is kept as `value_*` and
+# the discarded alternative is recorded in `conflict` -- never silently
+# averaged. `check_family` names the forge_cad-backed geometry.* check this
+# rule applies to; `unsupported` means no forge_cad measurement maps to it
+# yet (checking-dfm/scripts/verify.py skips it with a note, never a silent
+# pass).
+[meta]
+process = "fdm"
+source_doc = "docs/research/R5d-dfm-additive-snapfit-pcb.md#fdm"
+
+[[rule]]
+id = "wall_min_supported_mm"
+check_family = "geometry.min_wall"
+comparison = "min"
+value_mm = 1.0
+source = "Protolabs Network 'What is FDM': 0.8-1 mm desktop / 1 mm industrial (hubs.com/knowledge-base/what-is-fdm-3d-printing/)"
+conflict = "PN design-rules PDF gives a flat 0.8 mm supported/unsupported; 1.0 mm (industrial) kept as the conservative figure."
+
+[[rule]]
+id = "wall_min_unsupported_mm"
+check_family = "geometry.min_wall"
+comparison = "min"
+value_mm = 1.2
+source = "Xometry FDM design guide, 'unsupported (cantilever) walls >= 1.2 mm' (xometry.com/resources/design-guides/design-guide-fused-deposition-modeling-fdm-3d-printing/) [R: behind a form download]"
+conflict = "Protolabs Network PDF gives 0.8 mm for supported AND unsupported walls; 1.2 mm kept as the conservative (thicker) unsupported-wall figure. Large-format FDM needs 2.5 mm (not modeled as a separate rule here)."
+
+[[rule]]
+id = "hole_min_diameter_mm"
+check_family = "geometry.hole_diameter"
+comparison = "min"
+value_mm = 2.0
+source = "Protolabs Network design-rules PDF: minimum hole Ø2 mm"
+conflict = "Xometry mini-guide/manufacturing-standards: > 0.04 in (1.0 mm), with holes < 0.04 in printing slightly oval. 2.0 mm kept as the conservative (larger) minimum."
+
+[[rule]]
+id = "clearance_moving_mm"
+check_family = "geometry.clearance"
+comparison = "min"
+value_mm = 1.0
+source = "Xometry design guide (search snippet, [R]): clearance/gaps about 0.5-1 mm"
+conflict = "Protolabs Network PDF and snap-fit article give a flat 0.5 mm for moving/connecting parts. 1.0 mm kept as the conservative (larger) clearance."
+
+[[rule]]
+id = "overhang_max_deg"
+check_family = "geometry.draft"
+comparison = "min_from_vertical"
+value_deg = 45.0
+source = "Protolabs Network PDF and FDM guide: 45 deg max overhang without support"
+conflict = ""
+
+[[rule]]
+id = "bridge_max_structural_mm"
+check_family = "unsupported"
+value_mm = 10.0
+source = "Protolabs Network design-rules PDF: horizontal bridge 10 mm"
+conflict = "PN's own FDM guide gives < 5 mm for a bridge with no sag or support marks -- a cosmetic, not structural, limit; kept as a separate rule (bridge_max_cosmetic_mm) rather than averaged."
+
+[[rule]]
+id = "bridge_max_cosmetic_mm"
+check_family = "unsupported"
+value_mm = 5.0
+source = "Protolabs Network FDM guide (hubs.com/knowledge-base/how-design-parts-fdm-3d-printing/): bridge with no sag or support marks < 5 mm"
+conflict = ""
+
+[[rule]]
+id = "rib_min_mm"
+check_family = "geometry.min_wall"
+comparison = "min"
+value_mm = 1.5
+source = "Xometry FDM mini-guide: minimum rib 0.06 in (1.5 mm)"
+conflict = ""
+
+[[rule]]
+id = "embossed_detail_min_mm"
+check_family = "unsupported"
+value_mm = 0.6
+source = "Protolabs Network design-rules PDF: embossed/engraved detail 0.6 mm wide x 2 mm high"
+conflict = "Xometry mini-guide: raised text >= 1 mm (1.2-1.5 mm recommended). 0.6 mm kept only because it is the PN PDF's own stated floor -- prefer >= 1.2 mm in practice; no forge_cad text-feature measurement exists to enforce either automatically."

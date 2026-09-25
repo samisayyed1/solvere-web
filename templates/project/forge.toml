@@ -1,0 +1,68 @@
+# Forge project config (CONTRACTS.md §9). Maps changed paths to verify
+# entrypoints and ladder rungs. `forge verify` runs every matching
+# entrypoint in ladder order; `forge verify --all` (== `make verify`) runs
+# everything. Hooks call the same entrypoints with `--fast --changed <path>`.
+
+[project]
+name = "{{PROJECT_NAME}}"
+gate = "G0"          # current gate; only a human advances it (docs/standards/gates.md)
+
+# --- systems -----------------------------------------------------------
+
+[[verify]]
+domain = "sys"
+paths = ["requirements/**"]
+entrypoints = ["writing-requirements", "tracing-requirements"]
+rung = "validity"    # EARS lint (syntax) + trace graph (validity); see skills' own rungs
+
+[[verify]]
+domain = "sys"
+paths = ["model/**"]
+entrypoints = ["modeling-systems"]
+rung = "build"        # spec42 check on the SysML v2 textual model
+
+# --- mechanical ----------------------------------------------------------
+
+[[verify]]
+domain = "mech"
+paths = ["cad/**", "params/**"]
+entrypoints = ["verifying-geometry", "checking-dfm", "stacking-tolerances"]
+rung = "numeric"
+
+# --- simulation ------------------------------------------------------------
+
+[[verify]]
+domain = "sim"
+paths = ["analysis/**"]
+entrypoints = ["running-fea"]
+rung = "physics"
+
+# --- electrical ------------------------------------------------------------
+
+[[verify]]
+domain = "elec"
+paths = ["ecad/**", "circuits/**"]
+entrypoints = ["checking-ecad"]
+rung = "validity"     # ERC/DRC/fab DFM
+
+[[verify]]
+domain = "elec"
+paths = ["ecad/**", "circuits/**"]
+entrypoints = ["designing-circuits"]
+rung = "physics"      # ngspice simulation on critical nets
+
+# --- firmware ----------------------------------------------------------
+
+[[verify]]
+domain = "fw"
+paths = ["firmware/**"]
+entrypoints = ["building-firmware"]
+rung = "build"
+
+# --- docs ----------------------------------------------------------------
+
+[[verify]]
+domain = "docs"
+paths = ["docs/**", "*.md", "requirements/**", "reviews/**"]
+entrypoints = ["gardening-docs"]
+rung = "syntax"        # link check

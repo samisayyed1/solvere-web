@@ -1,0 +1,63 @@
+# DFM rules -- injection molding. Sources: docs/research/R5c-dfm-molding-cnc-sheetmetal.md
+# ("## 1. Injection molding"). See fdm.toml's header comment for the
+# conservative-value/check_family convention. `comparison = "min_ratio_of_wall"`
+# / `"max_ratio_of_wall"` means checking-dfm/scripts/verify.py multiplies
+# `value_ratio` by the part's nominal wall (params.toml) before comparing --
+# these are relative rules, not absolute mm.
+[meta]
+process = "injection_molding"
+source_doc = "docs/research/R5c-dfm-molding-cnc-sheetmetal.md#1-injection-molding"
+
+[[rule]]
+id = "wall_min_general_mm"
+check_family = "geometry.min_wall"
+comparison = "min"
+value_mm = 1.0
+source = "Protolabs 'design-stronger-molded-parts': small parts 0.040 in (1 mm) nominal wall"
+conflict = "Fictiv 'wall-thickness-in-injection-molding': usually 1-5 mm, about 1 mm is the thinnest generally usable. No real conflict -- both name ~1 mm as the practical floor; material-specific ranges (R5c table, 0.020-1.000 in depending on resin) are not modeled per-material here."
+
+[[rule]]
+id = "draft_min_general_deg"
+check_family = "geometry.draft"
+comparison = "min_from_vertical"
+value_deg = 2.0
+source = "Hubs injection-molding guide: at least 2 deg draft"
+conflict = "Protolabs design-guidelines gives 0.5 deg minimum (1-2 deg typical, 2 deg general/3 deg at shut-offs); Xometry bands draft by cavity depth (0.5-5 deg). 2.0 deg (Hubs) kept as the conservative general minimum; deep-draw features need more per the depth-banded Xometry rule (not modeled as a single number)."
+
+[[rule]]
+id = "draft_min_deep_feature_deg"
+check_family = "unsupported"
+value_deg = 3.0
+source = "Xometry draft-angle guide: 75-150 mm feature height needs 2-3 deg; over 150 mm needs 3-5 deg"
+conflict = "Depth-banded -- no single forge_cad rule models 'draft required scales with feature height' yet; kept as reference data for manual review of deep features."
+
+[[rule]]
+id = "rib_max_ratio_of_wall"
+check_family = "geometry.boss_rib"
+comparison = "max_ratio_of_wall"
+value_ratio = 0.5
+source = "Hubs injection-molding guide: rib thickness 0.5x nominal wall"
+conflict = "Protolabs/Xometry allow up to 0.6x (60%) nominal wall (40% for glossy materials per Xometry); Fictiv allows 0.5-0.6x. 0.5x (Hubs) kept as the conservative (stricter) cap; glossy-finish parts should use the tighter 0.4x figure."
+
+[[rule]]
+id = "boss_wall_max_ratio_of_wall"
+check_family = "geometry.boss_rib"
+comparison = "max_ratio_of_wall"
+value_ratio = 0.6
+source = "Protolabs boss-design tip and Xometry sink-in guide: boss wall at most 60% of the wall it rises from"
+conflict = "An older (2018) Protolabs blog allows 60-70%; the current tip page and Xometry's 40-60% both cap at 60%, so 0.6 is kept as the conservative, currently-stated figure and the 70% figure is discarded as stale/less conservative."
+
+[[rule]]
+id = "inside_radius_min_ratio_of_wall"
+check_family = "geometry.min_radius"
+comparison = "min_ratio_of_wall"
+value_ratio = 0.5
+source = "Protolabs, Hubs, Fictiv (all agree): inside radius >= 0.5x nominal wall"
+conflict = ""
+
+[[rule]]
+id = "tolerance_standard_mm"
+check_family = "unsupported"
+value_mm = 0.25
+source = "Hubs manufacturing standards: standard molding tolerance +-0.250 mm"
+conflict = "Protolabs: +-0.003 in (0.08 mm) plus +-0.002 in/in resin shrink tolerance; Xometry: +-0.005 in (0.13 mm) mold plus +-0.002 in/in. No forge_cad as-built-vs-nominal comparison exists yet (this checks a single build, not a molded sample) -- kept as reference data only."

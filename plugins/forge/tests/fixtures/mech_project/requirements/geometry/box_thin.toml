@@ -1,0 +1,34 @@
+# Seeded-FAIL fixture: cad/box_thin.py hard-codes a 0.6 mm wall instead of
+# reading params/params.toml's enclosure.wall_thickness (2.0 mm) -- see that
+# file's docstring. geometry.min_wall and geometry.volume MUST fail here;
+# everything else (outer envelope, validity) is unaffected by wall
+# thickness and should still pass, which is itself part of the point: a
+# wrong wall thickness does not show up in every check, only the ones that
+# actually measure it.
+[part]
+name = "box_thin"
+module = "cad/box_thin.py"
+
+[[check]]
+family = "geometry.validity"
+requirement = "REQ-MECH-001"
+
+[[check]]
+family = "geometry.bbox"
+requirement = "REQ-MECH-002"
+axis = "x"
+min_mm = 59.9
+max_mm = 60.1
+
+[[check]]
+family = "geometry.volume"
+requirement = "REQ-MECH-003"
+# Same limits as box.toml -- box_thin's much-lower material volume must fail this.
+min_mm3 = 11000.0
+max_mm3 = 12200.0
+
+[[check]]
+family = "geometry.min_wall"
+requirement = "REQ-MECH-004"
+min_mm = 1.9
+sample_count = 2000

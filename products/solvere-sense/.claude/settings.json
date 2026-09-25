@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "enabledPlugins": {
+    "forge@forge-local": true
+  },
+  "permissions": {
+    "deny": [
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)",
+      "Read(~/.config/gh/**)",
+      "Edit(~/.ssh/**)",
+      "Edit(~/.aws/**)",
+      "Edit(~/.config/gh/**)",
+      "Agent(fork)",
+      "mcp__kicad-mcp-pro__lib_get_bom_with_pricing",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf ~*)"
+    ],
+    "ask": [
+      "Bash(git push *)",
+      "Bash(gh pr merge *)",
+      "Bash(kicad-cli pcb export gerbers *)",
+      "Bash(kicad-cli pcb export drill *)",
+      "Bash(tsci push *)",
+      "Bash(tsci registry *)",
+      "Bash(tsci clone *)",
+      "Bash(tsci import *)",
+      "Bash(west flash *)",
+      "Bash(openocd *)",
+      "Bash(pyocd *)",
+      "Bash(esptool*)",
+      "Bash(STM32_Programmer_CLI *)",
+      "Bash(forge release *)",
+      "mcp__agentic-hil__flash",
+      "mcp__agentic-hil__reset",
+      "mcp__agentic-hil__project_config_create",
+      "mcp__agentic-hil__project_config_set",
+      "mcp__agentic-hil__project_config_adopt_hardware",
+      "mcp__agentic-hil__server_upgrade"
+    ],
+    "allow": [
+      "Bash(uv run forge-check *)",
+      "Bash(/Users/samisayyed/solvere/.claude/worktrees/forge-product-engineering-55a284/plugins/forge/bin/forge doctor *)",
+      "Bash(/Users/samisayyed/solvere/.claude/worktrees/forge-product-engineering-55a284/plugins/forge/bin/forge lint *)",
+      "Bash(/Users/samisayyed/solvere/.claude/worktrees/forge-product-engineering-55a284/plugins/forge/bin/forge verify *)",
+      "Bash(/Users/samisayyed/solvere/.claude/worktrees/forge-product-engineering-55a284/plugins/forge/bin/forge evidence *)",
+      "Bash(/Users/samisayyed/solvere/.claude/worktrees/forge-product-engineering-55a284/plugins/forge/bin/forge params *)",
+      "Bash(/Users/samisayyed/solvere/.claude/worktrees/forge-product-engineering-55a284/plugins/forge/bin/forge trace *)",
+      "Bash(/Users/samisayyed/solvere/.claude/worktrees/forge-product-engineering-55a284/plugins/forge/bin/forge ears *)",
+      "Bash(~/.forge/bin/forge-python *)"
+    ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": true,
+    "allowUnsandboxedCommands": false,
+    "excludedCommands": ["docker *"],
+    "filesystem": {
+      "allowWrite": ["~/.forge", "~/.cache/uv"],
+      "denyRead": ["~/.ssh", "~/.aws", "~/.config/gh"]
+    },
+    "network": {
+      "allowedDomains": [
+        "pypi.org",
+        "files.pythonhosted.org",
+        "registry.npmjs.org",
+        "github.com",
+        "api.github.com",
+        "objects.githubusercontent.com",
+        "conda.anaconda.org",
+        "code.claude.com"
+      ]
+    }
+  },
+  "env": {
+    "CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH": "2"
+  },
+  "worktree": {
+    "baseRef": "head"
+  }
+}

@@ -1,0 +1,162 @@
+# Worked example: L bracket with holes -- 4 views on one A3 sheet, third angle.
+schema = "forge.drawing/2"
+
+[drawing]
+title = "L MOUNTING BRACKET"
+number = "FX-1001"
+rev = "A"
+material = "EN AW-6061-T6 (example)"
+units = "mm"
+general_tolerance = "ISO 2768-m"
+tolerancing_standard = "ISO 1101:2017, ISO 8015:2011"
+author = "forge"
+date = "2026-09-25"
+projection = "third"
+sheet_size = "A3"
+
+[model]
+module = "cad/l_bracket.py"
+
+[[sheet]]
+scale = "1:1"
+views = ["front", "top", "right", "iso"]
+
+[[view]]
+id = "front"
+kind = "front"
+
+[[view]]
+id = "top"
+kind = "top"
+
+[[view]]
+id = "right"
+kind = "right"
+
+[[view]]
+id = "iso"
+kind = "iso"
+
+[[datum]]
+id = "A"
+view = "front"
+on = { plane = "-Z", at = "min" }
+
+[[datum]]
+id = "B"
+view = "front"
+on = { plane = "-X", at = "min" }
+
+[[dimension]]
+id = "base_length"
+param = "bracket.base_length"
+requirement = "REQ-MECH-001"
+view = "front"
+type = "linear"
+axis = "X"
+from = { plane = "X", at = "min" }
+to = { plane = "X", at = "max" }
+tol = 0.2
+
+[[dimension]]
+id = "height"
+param = "bracket.height"
+requirement = "REQ-MECH-002"
+view = "front"
+type = "linear"
+axis = "Z"
+from = { plane = "Z", at = "min" }
+to = { plane = "Z", at = "max" }
+tol = 0.2
+
+[[dimension]]
+id = "thickness"
+param = "bracket.thickness"
+requirement = "REQ-MECH-003"
+view = "front"
+type = "linear"
+axis = "Z"
+side = "left"
+from = { plane = "-Z", at = "min" }
+to = { plane = "+Z", at = "bracket.thickness" }
+tol = { plus = 0.1, minus = 0.1 }
+
+[[dimension]]
+id = "width"
+param = "bracket.width"
+requirement = "REQ-MECH-004"
+view = "top"
+type = "linear"
+axis = "Y"
+from = { plane = "Y", at = "min" }
+to = { plane = "Y", at = "max" }
+tol = 0.2
+
+[[dimension]]
+id = "base_hole_x"
+param = "bracket.base_hole_x"
+requirement = "REQ-MECH-005"
+view = "top"
+type = "linear"
+axis = "X"
+from = { plane = "X", at = "min" }
+to = { cylinder = "Z", near = ["bracket.base_hole_x + bracket.base_hole_dia/2", "bracket.width/2 - bracket.base_hole_pitch/2", "bracket.thickness/2"] }
+tol = 0.1
+
+[[dimension]]
+id = "base_hole_pitch"
+param = "bracket.base_hole_pitch"
+requirement = "REQ-MECH-005"
+view = "top"
+type = "linear"
+axis = "Y"
+side = "left"
+from = { cylinder = "Z", near = ["bracket.base_hole_x + bracket.base_hole_dia/2", "bracket.width/2 - bracket.base_hole_pitch/2", "bracket.thickness/2"] }
+to = { cylinder = "Z", near = ["bracket.base_hole_x + bracket.base_hole_dia/2", "bracket.width/2 + bracket.base_hole_pitch/2", "bracket.thickness/2"] }
+tol = 0.1
+
+[[dimension]]
+id = "base_hole_dia"
+param = "bracket.base_hole_dia"
+requirement = "REQ-MECH-006"
+view = "top"
+type = "diameter"
+count = 2
+of = { cylinder = "Z", near = ["bracket.base_hole_x + bracket.base_hole_dia/2", "bracket.width/2 + bracket.base_hole_pitch/2", "bracket.thickness/2"] }
+tol = { plus = 0.1, minus = 0.0 }
+
+[[dimension]]
+id = "upright_hole_dia"
+param = "bracket.upright_hole_dia"
+requirement = "REQ-MECH-007"
+view = "right"
+type = "diameter"
+of = { cylinder = "X", near = ["bracket.thickness/2", "bracket.width/2 + bracket.upright_hole_dia/2", "bracket.upright_hole_z"] }
+tol = { plus = 0.05, minus = 0.05, style = "limits" }
+
+[[dimension]]
+id = "upright_hole_z"
+param = "bracket.upright_hole_z"
+requirement = "REQ-MECH-007"
+view = "right"
+type = "linear"
+axis = "Z"
+from = { plane = "Z", at = "min" }
+to = { cylinder = "X", near = ["bracket.thickness/2", "bracket.width/2 + bracket.upright_hole_dia/2", "bracket.upright_hole_z"] }
+tol = 0.1
+
+[[gdt]]
+id = "base_holes_position"
+characteristic = "position"
+tolerance = 0.2
+diameter_zone = true
+modifier = "M"
+datums = ["A", "B"]
+dimension = "base_hole_dia"
+requirement = "REQ-MECH-006"
+
+[[note]]
+text = "BREAK SHARP EDGES 0.2 MAX."
+
+[[note]]
+text = "EXAMPLE PART FOR THE FORGE DRAFTING-DRAWINGS SKILL; VALUES ARE ILLUSTRATIVE."

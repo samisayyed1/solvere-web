@@ -51,7 +51,7 @@ Four platform facts shaped almost every decision below:
 | D11 | Electronics | KiCad 10.0.6 through `kicad-cli` wrappers, with no MCP needed. **tscircuit** is the primary capture tool and SKiDL the fallback. **atopile is deferred.** ngspice 47 always runs inside an OS sandbox (no network, writes only to `out/`), because a netlist's `shell` command stays available even with `-n`, which only skips `.spiceinit` [CROSSCHECK C17]. A netlist lint also rejects `shell` in `.control` blocks. |
 | D12 | MCP | Adopt **build123d-mcp 0.3.87** (hardened). `kicad-mcp-pro 3.35.0` is optional, read-only profile only. `agentic-hil 0.21.5` waits for the HIL phase. No FreeCAD, Blender, Fusion, Context7 or Wokwi MCP. Every server runs behind `forge-mcp-guard` under `srt`. |
 | D13 | Supply chain | Pin everything: exact versions plus hashes, 40-char SHAs and OCI digests. Keep `security/mcp-lock.json` (RFC 8785 canonical JSON, SHA-256 per surface). `forge doctor` fails closed, and the runtime guard re-verifies on every list response. |
-| D14 | Evals | `claude plugin eval` with 25+ cases in two tiers (smoke / full). Outcome is graded by `regex` over agent-written evidence files, path by `tool_used`. pass@k and pass^k are computed by a Forge script. Pinned agent `claude-sonnet-5`, judge `claude-opus-5-5`, with a `--max-cost-usd` ceiling. |
+| D14 | Evals | `claude plugin eval` with 25+ cases in two tiers (smoke / full). Outcome is graded by `regex` over agent-written evidence files, path by `tool_used`. pass@k and pass^k are computed by a Forge script. Pinned agent `claude-opus-5-5` (owner speed-mode rule: top model for eval subject runs) and judge `claude-opus-5-5` for rubric graders, with a `--max-cost-usd` ceiling. |
 | D15 | Evidence | L0–L5 credibility levels in `evidence/manifest.json`. "Validated" needs ≥ L4, and "certified" or "production-ready" needs L5. The wording is linted. |
 
 The rest of this ADR gives the rationale, the pins, the permissions and the risks.
@@ -151,7 +151,7 @@ Maker agents that edit in parallel use `isolation: worktree` with project `workt
 - **Workflows run from the main thread only** (the `Workflow` tool is stripped from subagents, and `workflow()` nests one level) [R1b]:
   - Plugin workflows run as `/forge:<meta.name>`.
   - Scripts are deterministic, and timestamps come in through `args`.
-  - Every `agent()` returns a schema-validated object, which becomes saved evidence.
+  - Every `agent()` returns an object checked against its schema, which becomes saved evidence.
   - There is no mid-run user input, so each gate is one workflow followed by a human sign-off.
   - Expect about 8 concurrent agents on this M4.
 - **`/goal`** is a prompt-based Stop hook whose Haiku evaluator only reads the transcript [R1b]. Forge suggests `/goal` only with the check command, the evidence path and an explicit bound named in the condition. The authoritative gate stays the command-type Stop hook (D5).

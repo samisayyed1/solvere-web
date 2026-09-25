@@ -1,0 +1,38 @@
+{
+  "mcpServers": {
+    "build123d-mcp": {
+      "type": "stdio",
+      "command": "${FORGE_ROOT}/plugins/forge/bin/forge-mcp-guard",
+      "args": [
+        "--server", "build123d-mcp",
+        "--",
+        "/Users/samisayyed/.forge/bin/srt",
+        "--settings", "${FORGE_ROOT}/security/srt/build123d-mcp.json",
+        "/Users/samisayyed/.forge/envs/build123d-mcp/bin/build123d-mcp",
+        "--memory-limit-mb", "2048",
+        "--cpu-limit-s", "120",
+        "--exec-timeout", "60",
+        "--disable-tool-groups", "drawing",
+        "--tools", "execute,render_view,measure,validate,locate_gate_defects,design_audit,analyze_printability,cross_sections,inspect_part,export,save_snapshot,restore_snapshot,session_state,health_check,reset,compare,find_holes,find_hole_patterns,find_bosses,find_bored_bosses,find_countersinks,recognise_features,resolve,script,import_cad_file,repair_hints,repair_advice,last_error,version,workflow_hints"
+      ],
+      "env": {}
+    },
+    "kicad-mcp-pro": {
+      "type": "stdio",
+      "command": "${FORGE_ROOT}/plugins/forge/bin/forge-mcp-guard",
+      "args": [
+        "--server", "kicad-mcp-pro",
+        "--",
+        "/Users/samisayyed/.forge/bin/srt",
+        "--settings", "${FORGE_ROOT}/security/srt/kicad-mcp-pro.json",
+        "/Users/samisayyed/.forge/envs/kicad-mcp-pro/bin/kicad-mcp-pro",
+        "--transport", "stdio",
+        "--profile", "review"
+      ],
+      "env": {
+        "KICAD_MCP_OPERATING_MODE": "readonly",
+        "KICAD_MCP_WORKSPACE_ROOT": "${CLAUDE_PROJECT_DIR}"
+      }
+    }
+  }
+}

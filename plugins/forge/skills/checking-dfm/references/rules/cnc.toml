@@ -1,0 +1,60 @@
+# DFM rules -- CNC machining. Sources: docs/research/R5c-dfm-molding-cnc-sheetmetal.md
+# ("## 2. CNC machining"). See fdm.toml's header comment for the
+# conservative-value/check_family convention.
+[meta]
+process = "cnc"
+source_doc = "docs/research/R5c-dfm-molding-cnc-sheetmetal.md#2-cnc-machining"
+
+[[rule]]
+id = "wall_min_metal_mm"
+check_family = "geometry.min_wall"
+comparison = "min"
+value_mm = 0.8
+source = "Hubs CNC guide/KB: metal wall 0.8 mm recommended (0.5 mm feasible)"
+conflict = "Xometry gives 0.794 mm (consistent); Fictiv gives 'over 0.25 mm' (its own guide also mentions a conflicting 0.5 mm); Protolabs gives 0.51 mm as its stated floor. 0.8 mm (Hubs 'recommended', not 'feasible') kept as the conservative figure -- the feasible-but-risky floors (0.25-0.51 mm) need extra process review."
+
+[[rule]]
+id = "wall_min_plastic_mm"
+check_family = "geometry.min_wall"
+comparison = "min"
+value_mm = 1.5
+source = "Hubs CNC guide/KB and Xometry: plastic wall 1.5 mm recommended (1.0 mm feasible)"
+conflict = "Fictiv gives 'over 0.5 mm' as its floor. 1.5 mm (Hubs/Xometry 'recommended') kept as the conservative figure."
+
+[[rule]]
+id = "internal_corner_radius_min_mm"
+check_family = "geometry.min_radius"
+comparison = "min"
+value_mm = 0.8
+source = "Fictiv CNC guide: avoid internal corner radii under 0.8 mm"
+conflict = "Hubs/Xometry state the rule as a ratio to tool radius or cavity depth (>= half the tool diameter, ~30% above tool radius, 1:4 radius:depth) rather than an absolute floor -- not directly checkable without knowing the cutting tool, so Fictiv's absolute 0.8 mm floor is kept as the conservative, checkable minimum. A part machined with an unusually small tool may legitimately need a smaller radius; treat a near-limit fail as a prompt to confirm the tooling, not an automatic redesign."
+
+[[rule]]
+id = "hole_min_diameter_mm"
+check_family = "geometry.hole_diameter"
+comparison = "min"
+value_mm = 2.5
+source = "Hubs CNC guide/KB: smallest hole 2.5 mm (0.1 in) recommended"
+conflict = "Protolabs states a 0.040 in (1.02 mm) nominal-hole floor with a 1 mm (Ø2 mm cutter-based) minimum in its complex-features guidance; Hubs' own page also prints an internally inconsistent '0.05 mm (0.005 in)' feasible figure (a units mismatch flagged as a source error in R5c, not used here). 2.5 mm kept as the conservative recommended minimum."
+
+[[rule]]
+id = "hole_to_edge_min_mm"
+check_family = "geometry.hole_edge"
+comparison = "min"
+value_mm = 3.175
+source = "Protolabs design-guidelines: 0.125 in (3.175 mm) hole-to-edge when stock is thicker than 0.036 in"
+conflict = "Protolabs itself gives 0.062 in (1.574 mm) for thin (<=0.036 in) stock; this rule targets the general/thicker-stock case as the conservative default -- thin-stock parts should use a project-specific override."
+
+[[rule]]
+id = "pocket_depth_max_ratio_of_width"
+check_family = "unsupported"
+value_ratio = 4.0
+source = "Hubs CNC guide: pocket depth up to 4x width recommended"
+conflict = "Range across sources is 2-3x (cost-optimal) to 15x (feasible in plastic); no forge_cad pocket-feature measurement (depth vs width) exists yet -- kept as reference data."
+
+[[rule]]
+id = "hole_depth_max_ratio_of_diameter"
+check_family = "unsupported"
+value_ratio = 6.0
+source = "Protolabs: more than 6x hole diameter deep becomes a machining challenge"
+conflict = "Hubs/Xometry allow 4x recommended up to 10-40x feasible with extra cost; Fictiv allows up to 12x. No forge_cad hole-depth measurement exists yet -- kept as reference data."

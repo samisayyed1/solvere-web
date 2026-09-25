@@ -1,0 +1,67 @@
+# PASS fixture: every check here should pass against cad/box.py as built
+# from params/params.toml. See ../../requirements.md for the REQ text.
+[part]
+name = "box"
+module = "cad/box.py"
+
+[[check]]
+family = "geometry.validity"
+requirement = "REQ-MECH-001"
+
+[[check]]
+family = "geometry.watertight"
+requirement = "REQ-MECH-001"
+
+[[check]]
+family = "geometry.bbox"
+requirement = "REQ-MECH-002"
+axis = "x"
+min_mm = 59.9
+max_mm = 60.1
+
+[[check]]
+family = "geometry.volume"
+requirement = "REQ-MECH-003"
+min_mm3 = 11000.0
+max_mm3 = 12200.0
+
+[[check]]
+family = "geometry.mass"
+requirement = "REQ-MECH-003"
+density_kg_m3_param = "material.density_kg_m3"
+min_g = 11.0
+max_g = 13.5
+
+[[check]]
+family = "geometry.min_wall"
+requirement = "REQ-MECH-004"
+# 1.9 mm = params enclosure.wall_thickness (2.0 mm) minus its tol.minus (0.1 mm).
+min_mm = 1.9
+sample_count = 2000
+
+[[check]]
+family = "geometry.min_radius"
+requirement = "REQ-MECH-006"
+# concave_only=false: the fixture's only cylindrical faces are the 4 convex
+# outer-edge fillets (r=2.0 mm) and the 4 concave mounting-hole walls
+# (r=1.5 mm) -- see verifying-geometry/references/algorithms.md for the
+# documented hole-vs-fillet ambiguity of geometry.min_radius.
+concave_only = false
+min_mm = 1.0
+
+[[check]]
+family = "geometry.hole_edge"
+requirement = "REQ-MECH-007"
+boundary_face = "bottom"
+min_mm = 3.0
+
+[[check]]
+family = "geometry.clearance"
+requirement = "REQ-MECH-005"
+other_module = "cad/lid.py"
+min_mm = 0.2
+
+[[check]]
+family = "geometry.interference"
+requirement = "REQ-MECH-005"
+other_module = "cad/lid.py"

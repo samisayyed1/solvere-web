@@ -1,0 +1,17 @@
+{
+  "schema": "forge.trace/1",
+  "requirements": {
+    "REQ-MECH-001": {
+      "design": [],
+      "tests": [],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-SYS-001": {
+      "design": [],
+      "tests": [],
+      "evidence": [],
+      "status": "open"
+    }
+  }
+}

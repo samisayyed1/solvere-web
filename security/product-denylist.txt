@@ -1,0 +1,7 @@
+# Product identifiers that must never appear inside Forge (plugins/forge, templates/, docs/standards, .claude-plugin).
+# Forge is product-agnostic; product content lives in the product's own project folder.
+# One case-insensitive regex per line. Add every new product's names and part numbers here.
+\bsolvere\b
+mr60fda2
+ceiling[ -]pod
+voice[ -]?pe\b

@@ -1,0 +1,173 @@
+# Worked example: cylindrical part with a boss and a counterbore -- front, top,
+# section A-A through the axis (shows the counterbore depth) and iso; first angle.
+schema = "forge.drawing/2"
+
+[drawing]
+title = "FLANGED BUSHING"
+number = "FX-1002"
+rev = "B"
+material = "CuSn8 (example)"
+units = "mm"
+general_tolerance = "ISO 2768-f"
+tolerancing_standard = "ISO 1101:2017, ISO 8015:2011"
+author = "forge"
+date = "2026-09-25"
+projection = "first"
+sheet_size = "A3"
+
+[model]
+module = "cad/flanged_bushing.py"
+
+[[sheet]]
+scale = "1:1"
+views = ["front", "top", "a", "iso"]
+
+[[view]]
+id = "front"
+kind = "front"
+
+[[view]]
+id = "top"
+kind = "top"
+
+[[view]]
+id = "a"
+kind = "section"
+base = "top"
+label = "A"
+origin = [0, 0, 0]
+normal = "-Y"
+
+[[view]]
+id = "iso"
+kind = "iso"
+
+[[datum]]
+id = "A"
+view = "front"
+on = { plane = "-Z", at = "min" }
+
+[[datum]]
+id = "B"
+view = "a"
+on = { cylinder = "Z", near = ["bushing.bore_dia/2", 0, 2] }
+
+[[dimension]]
+id = "flange_dia"
+param = "bushing.flange_dia"
+requirement = "REQ-MECH-010"
+view = "top"
+type = "diameter"
+angle = 135
+of = { cylinder = "Z", near = ["bushing.flange_dia/2", 0, 4] }
+tol = 0.1
+
+[[dimension]]
+id = "boss_dia"
+param = "bushing.boss_dia"
+requirement = "REQ-MECH-011"
+view = "front"
+type = "diameter"
+side = "above"
+of = { cylinder = "Z", near = ["bushing.boss_dia/2", 0, 20] }
+tol = { plus = 0.0, minus = 0.05 }
+
+[[dimension]]
+id = "bolt_pcd"
+param = "bushing.bolt_pcd"
+requirement = "REQ-MECH-012"
+view = "top"
+type = "linear"
+axis = "X"
+from = { cylinder = "Z", near = ["-bushing.bolt_pcd/2 + bushing.bolt_hole_dia/2", 0, 4] }
+to = { cylinder = "Z", near = ["bushing.bolt_pcd/2 + bushing.bolt_hole_dia/2", 0, 4] }
+tol = 0.1
+
+[[dimension]]
+id = "bolt_hole_dia"
+param = "bushing.bolt_hole_dia"
+requirement = "REQ-MECH-012"
+view = "top"
+type = "diameter"
+count = 4
+angle = 60
+of = { cylinder = "Z", near = ["bushing.bolt_pcd/2 + bushing.bolt_hole_dia/2", 0, 4] }
+tol = { plus = 0.1, minus = 0.0 }
+
+[[dimension]]
+id = "bore_dia"
+param = "bushing.bore_dia"
+requirement = "REQ-MECH-013"
+view = "a"
+type = "diameter"
+side = "below"
+of = { cylinder = "Z", near = ["bushing.bore_dia/2", 0, 2] }
+tol = { plus = 0.018, minus = 0.0, style = "limits" }
+decimals = 3
+
+[[dimension]]
+id = "cbore_dia"
+param = "bushing.cbore_dia"
+requirement = "REQ-MECH-014"
+view = "a"
+type = "diameter"
+side = "above"
+of = { cylinder = "Z", near = ["bushing.cbore_dia/2", 0, "bushing.flange_thickness + bushing.boss_height - 1"] }
+tol = 0.05
+
+[[dimension]]
+id = "cbore_depth"
+param = "bushing.cbore_depth"
+requirement = "REQ-MECH-014"
+view = "a"
+type = "linear"
+axis = "Z"
+side = "right"
+from = { plane = "+Z", at = "bushing.flange_thickness + bushing.boss_height - bushing.cbore_depth" }
+to = { plane = "Z", at = "max" }
+tol = 0.1
+
+[[dimension]]
+id = "overall_height"
+param = "bushing.overall_height"
+requirement = "REQ-MECH-015"
+view = "front"
+type = "linear"
+axis = "Z"
+from = { plane = "Z", at = "min" }
+to = { plane = "Z", at = "max" }
+tol = 0.1
+
+[[dimension]]
+id = "flange_thickness"
+param = "bushing.flange_thickness"
+requirement = "REQ-MECH-015"
+view = "front"
+type = "linear"
+axis = "Z"
+side = "left"
+from = { plane = "Z", at = "min" }
+to = { plane = "+Z", at = "bushing.flange_thickness" }
+tol = 0.1
+
+[[gdt]]
+id = "flange_face_flat"
+characteristic = "flatness"
+tolerance = 0.02
+dimension = "flange_thickness"
+
+[[gdt]]
+id = "bore_perpendicular"
+characteristic = "perpendicularity"
+tolerance = 0.02
+diameter_zone = true
+datums = ["A"]
+dimension = "bore_dia"
+requirement = "REQ-MECH-013"
+
+[[gdt]]
+id = "boss_runout"
+characteristic = "circular_runout"
+tolerance = 0.03
+datums = ["B"]
+dimension = "boss_dia"

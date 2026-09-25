@@ -1,0 +1,47 @@
+name: forge-ci
+
+# Static gates only (ADR-001 §3, §10): no paid `claude plugin eval` runs here.
+# Requires the Forge toolchain (~/.forge/bin/forge-python and friends,
+# plugins/forge/toolchain/install.sh) to already be set up on the runner,
+# and FORGE_ROOT to point at the Forge repo checkout.
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  static-gates:
+    runs-on: ubuntu-latest
+    env:
+      FORGE_ROOT: ${{ github.workspace }}/forge
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Checkout Forge (plugin + toolchain)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ vars.FORGE_REPOSITORY }}  # set the repo variable FORGE_REPOSITORY to where Forge lives (owner/repo)
+          path: forge
+
+      - name: forge lint (agents, skills, claudemd, wording, manifest)
+        run: |
+          "$FORGE_ROOT/plugins/forge/bin/forge" lint agents
+          "$FORGE_ROOT/plugins/forge/bin/forge" lint skills
+          "$FORGE_ROOT/plugins/forge/bin/forge" lint claudemd
+          "$FORGE_ROOT/plugins/forge/bin/forge" lint wording
+          "$FORGE_ROOT/plugins/forge/bin/forge" lint manifest
+
+      - name: forge verify --all
+        run: "\"$FORGE_ROOT/plugins/forge/bin/forge\" verify --all"
+
+      - name: claude plugin validate (Forge plugin + marketplace)
+        run: |
+          if command -v claude >/dev/null 2>&1; then
+            claude plugin validate "$FORGE_ROOT" --strict
+            claude plugin validate "$FORGE_ROOT/plugins/forge" --strict
+          else
+            echo "claude CLI not present on this runner; skipping claude plugin validate." >&2
+          fi

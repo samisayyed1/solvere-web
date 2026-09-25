@@ -1,0 +1,20 @@
+# Build and check outputs (promoted evidence is committed explicitly, not this directory)
+out/
+
+# Forge's local, gitignored state (gate snapshot, Stop-block counter, open findings)
+.forge/
+
+# Python / test caches
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+
+# Node
+node_modules/
+
+# OS
+.DS_Store
+
+# Local Claude Code settings (personal, not committed)
+.claude/settings.local.json

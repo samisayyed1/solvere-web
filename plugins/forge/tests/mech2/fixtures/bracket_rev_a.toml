@@ -1,0 +1,34 @@
+[drawing]
+name = "bracket_rev_a"
+title = "MOUNTING BRACKET"
+dwg_no = "DWG-1001"
+rev = "A"
+drawn_by = "forge"
+date = "2026-09-25"
+scale = "1:1"
+
+[part]
+length_mm = 80.0
+width_mm = 40.0
+height_mm = 5.0
+hole_diameter_mm = 8.0
+hole_x_mm = 40.0
+hole_y_mm = 20.0
+
+[[dimension]]
+id = "length"
+value_mm = 80.0
+tol_plus_mm = 0.10
+tol_minus_mm = 0.10
+
+[[dimension]]
+id = "width"
+value_mm = 40.0
+tol_plus_mm = 0.10
+tol_minus_mm = 0.10
+
+[[dimension]]
+id = "hole_diameter"
+value_mm = 8.0
+tol_plus_mm = 0.05
+tol_minus_mm = 0.05

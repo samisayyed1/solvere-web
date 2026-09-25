@@ -10,6 +10,7 @@
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$HERE/../../.." && pwd)"
 FORGE_HOME="${FORGE_HOME:-$HOME/.forge}"
 ENVS="$FORGE_HOME/envs"; BIN="$FORGE_HOME/bin"; OPT="$FORGE_HOME/opt"; DL="$FORGE_HOME/downloads"
 LOG="$HERE/INSTALL-LOG.md"
@@ -28,10 +29,16 @@ RENODE_URL="https://github.com/renode/renode/releases/download/v${RENODE_VER}/re
 RENODE_SHA=63b1fb691207f503cea937e4ec8fad3e068a517d0abac3c24c0206c62f6c4d12
 KICAD_MCP_WHEEL_SHA=b2297186a61dfbf5fe57fce26a6b8d7fc5b0877514444a26d5b5786f50e017a0
 
-log()  { printf '%s\n' "$*" | tee -a "$LOG"; }
+# INSTALL-LOG.md lives under plugins/forge, which forge lint / test_product_agnostic.py
+# scan for leaked product identifiers. A checkout's absolute path (this repo's own name,
+# a worktree name, the user's home dir) is product/deployment-specific, so every line
+# written to the log is redacted to a portable "<repo>" placeholder first -- the actual
+# commands still run against the real, unredacted paths.
+redact() { sed "s#$REPO_ROOT#<repo>#g"; }
+log()  { printf '%s\n' "$*" | redact | tee -a "$LOG"; }
 die()  { log "FAIL: $*"; exit 1; }
 step() { log ""; log "### $* ($(date -u +%Y-%m-%dT%H:%M:%SZ))"; }
-run()  { log "\`$*\`"; "$@" 2>&1 | tail -n 15 | sed 's/^/    /' | tee -a "$LOG"; return "${PIPESTATUS[0]}"; }
+run()  { log "\`$*\`"; "$@" 2>&1 | tail -n 15 | redact | sed 's/^/    /' | tee -a "$LOG"; return "${PIPESTATUS[0]}"; }
 
 check_disk() {
   local free; free=$(df -g / | awk 'NR==2{print $4}')
@@ -46,6 +53,25 @@ sha_check() { # file expected
 }
 
 link() { mkdir -p "$BIN"; ln -sf "$1" "$BIN/$2"; log "linked $BIN/$2 -> $1"; }
+
+# Some binaries (forge-python, blender) misbehave when launched through a symlink: a
+# venv's python resolves its prefix from the symlink target's own directory unless it's
+# exec'd by its real path, and Blender resolves its resource path (fonts, scripts,
+# datafiles) from argv[0] and crashes headless if that's a symlink instead of the real
+# path inside the .app bundle. An exec-wrapper script names the real path directly on
+# the `exec` line, so argv[0]/prefix detection always sees the real path. Idempotent:
+# each run rewrites the wrapper unconditionally.
+wrap() { # real-path name
+  mkdir -p "$BIN"
+  # Remove any existing file first: if $BIN/$2 is a stale symlink (e.g. from an earlier
+  # run of `link`, or a prior install), writing through it with `>` follows the symlink
+  # and tries to overwrite its target (an installed .app bundle) instead of replacing
+  # the symlink itself, which fails with EPERM.
+  rm -f "$BIN/$2"
+  printf '#!/bin/sh\nexec "%s" "$@"\n' "$1" > "$BIN/$2"
+  chmod +x "$BIN/$2"
+  log "wrapped $BIN/$2 -> $1"
+}
 
 brew_cask() { # name pinned-version
   local v; v=$(brew info --cask --json=v2 "$1" | python3 -c 'import json,sys;print(json.load(sys.stdin)["casks"][0]["version"])')
@@ -89,7 +115,7 @@ tier_core() {
 tier_mech() {
   step "mech"
   uv_env cad cad "$PY_CAD"
-  link "$ENVS/cad/bin/python" forge-python
+  wrap "$ENVS/cad/bin/python" forge-python
   run "$ENVS/cad/bin/python" "$HERE/smoke/smoke_cad.py" || die "CAD smoke test failed"
   uv_env build123d-mcp build123d-mcp "$PY_CAD"
   link "$ENVS/build123d-mcp/bin/build123d-mcp" build123d-mcp
@@ -160,7 +186,7 @@ tier_sim() {
 tier_render() {
   step "render"
   brew_cask blender "$CASK_BLENDER"
-  link /Applications/Blender.app/Contents/MacOS/Blender blender
+  wrap /Applications/Blender.app/Contents/MacOS/Blender blender
 }
 
 tier_systems() {
