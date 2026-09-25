@@ -18,8 +18,29 @@ import time
 import traceback
 from pathlib import Path
 
+import importlib
+import pkgutil
+
 from . import checks, doctor, files_lock
 from . import lock as lock_module
+from . import commands as commands_pkg
+
+
+def _plugin_commands() -> dict:
+    """Discover ``forge.commands.<name>`` modules.
+
+    Each module defines ``NAME``, ``HELP``, ``register(parser)`` and
+    ``run(ns, forge_root) -> int``, so parallel builders add subcommands
+    without editing this file. Project-scoped commands take ``--project``
+    (default: the current directory).
+    """
+    found = {}
+    for info in pkgutil.iter_modules(commands_pkg.__path__):
+        if info.name.startswith("_"):
+            continue
+        mod = importlib.import_module(f"{commands_pkg.__name__}.{info.name}")
+        found[mod.NAME] = mod
+    return found
 
 __all__ = ["main"]
 
@@ -55,6 +76,9 @@ def _build_parser() -> argparse.ArgumentParser:
     lock_files_p.add_argument(
         "--write", action="store_true", help="update security/files-lock.json (human-run only)"
     )
+
+    for name, mod in sorted(_plugin_commands().items()):
+        mod.register(sub.add_parser(name, help=mod.HELP))
 
     return parser
 
@@ -140,6 +164,9 @@ def _dispatch(argv: list[str], repo_root: Path) -> int:
             return _cmd_lock_mcp(ns, repo_root)
         if ns.lock_command == "files":
             return _cmd_lock_files(ns, repo_root)
+    plugin = _plugin_commands().get(ns.command)
+    if plugin is not None:
+        return int(plugin.run(ns, repo_root))
     parser.error(f"unknown command {ns.command!r}")
     return 2  # unreachable; parser.error() exits
 

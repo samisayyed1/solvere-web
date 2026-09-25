@@ -121,3 +121,96 @@ evidence = []                 # evidence entry ids, required when status = "veri
 - **Timeouts:** every hook sets a timeout. PreToolUse runs in ≤ 1 s, and PostToolUse checks in ≤ 30 s.
 - **Identity:** `agent_type` values for Forge agents look like `forge:<name>`.
 - **Tests:** every hook has fixture tests in `tests/hooks/` that pipe JSON to stdin and assert the exit code and output. That includes a sabotaged input that must block.
+
+## 9. Verify entrypoints, `forge.toml` and `make verify`
+
+- **One verify entrypoint per verifying skill:** `skills/<skill>/scripts/verify.py`.
+- **Invocation:**
+  ```
+  forge-python skills/<skill>/scripts/verify.py --project <root> [--changed <path> ...] [--fast]
+  ```
+  - `--changed` limits the run to the affected inputs.
+  - `--fast` is the ≤ 30 s mode used by PostToolUse hooks.
+- **Output:** the entrypoint writes one or more `out/verify/<check_id>.json` files through `forge.checkresult` and exits with the aggregate status: 0 if all passed, 1 if any failed, 2 on any error.
+- **Nothing to check:** it exits 0 and prints `[SKIP] <reason>`. It never fakes a pass.
+
+**Registered entrypoints.** Each owner must create its file with exactly this path:
+
+| Domain | Entrypoint |
+|---|---|
+| sys | `writing-requirements/scripts/verify.py` (EARS lint) |
+| sys | `tracing-requirements/scripts/verify.py` (trace graph) |
+| sys | `modeling-systems/scripts/verify.py` (spec42 check) |
+| mech | `verifying-geometry/scripts/verify.py` |
+| mech | `checking-dfm/scripts/verify.py` |
+| mech | `stacking-tolerances/scripts/verify.py` |
+| sim | `running-fea/scripts/verify.py` |
+| elec | `designing-circuits/scripts/verify.py` (ngspice) |
+| elec | `checking-ecad/scripts/verify.py` (ERC/DRC/fab DFM) |
+| fw | `building-firmware/scripts/verify.py` |
+| docs | `gardening-docs/scripts/verify.py` (links) |
+
+**`forge.toml`** at the product-repo root maps paths to entrypoints and rungs:
+
+```toml
+[project]
+name = "example"
+gate = "G0"                      # current gate; only a human advances it
+[[verify]]
+domain = "mech"
+paths = ["cad/**", "params/**"]
+entrypoints = ["verifying-geometry", "checking-dfm", "stacking-tolerances"]
+rung = "numeric"                 # syntax|build|validity|numeric|physics|visual
+```
+
+- **`forge verify`** runs every matching entrypoint in ladder order and records evidence per domain. `make verify` calls `forge verify --all`.
+- **Hooks** call the same entrypoints with `--fast --changed <path>`.
+
+## 10. Runtimes and imports
+
+- **Hooks and the `forge` CLI** run on `python3` with the standard library only.
+- **Domain scripts** run on `~/.forge/bin/forge-python`, the CAD env on Python 3.12 (build123d, OCP, trimesh, pyvista, gmsh, ezdxf, skidl, jsonschema).
+- **Other tools** come from `~/.forge/bin`: kicad-cli, ngspice, ccx, freecadcmd, blender, spec42, renode, tsci and srt.
+- **Imports:** scripts import the shared library with
+  ```python
+  sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "lib"))
+  ```
+  (skills/<skill>/scripts/x.py → plugins/forge/lib).
+- **Missing tools:** if a required tool is absent, fail with exit 2 and the fix (`plugins/forge/toolchain/install.sh <tier>`), never exit 0.
+- **Units:** SI with mm for geometry. Every number in output carries a unit.
+
+## 11. `forge` subcommands
+
+New subcommands are modules `lib/forge/commands/<name>.py` defining `NAME`, `HELP`, `register(parser)` and `run(ns, forge_root) -> int`. They are auto-discovered, so never edit `cli.py`. Project-scoped commands take `--project` (default: cwd).
+
+| Command | Owner |
+|---|---|
+| `lint` (agents, skills, claudemd, wording, manifest) | the agents builder |
+| `evidence`, `params`, `state` | the hooks builder |
+| `ears`, `trace` | the systems builder |
+| `verify`, `passk` | the reviews/release builder |
+
+## 12. Authoring conventions (verified in `docs/research/R1a` and `R1c`)
+
+- **Agents:**
+  - Use only these frontmatter fields: `name, description, tools, disallowedTools, model, effort, maxTurns, memory, isolation, omitClaudeMd, color, skills, background`.
+  - Plugin agents ignore `hooks`, `mcpServers` and `permissionMode`, and `forge lint agents` rejects them.
+  - Model aliases only (`sonnet`, `opus`). Judges get `opus`, `effort: xhigh`, no `memory`, and no Write/Edit/NotebookEdit/Agent.
+- **Skills:**
+  - The folder name must equal `name`, in gerund kebab-case of at most 64 characters.
+  - `description` is at most 1,024 characters: what it does, when to use it, trigger terms, and when **not** to use it.
+  - The body is under 500 lines, with non-negotiable rules in the first lines. `references/` is one level deep.
+  - Scripts run through `${CLAUDE_SKILL_DIR}` or `${CLAUDE_PLUGIN_ROOT}`. Narrow `allowed-tools` only; never bare `Bash` or wildcards.
+  - Anything with side effects sets `disable-model-invocation: true`.
+- **Tests:** every script with logic has pytest tests in `plugins/forge/tests/<area>/`, including a seeded-wrong input that must fail. Run them with `uv run --with pytest pytest plugins/forge/tests`. Tests that need the CAD env run under `~/.forge/bin/forge-python -m pytest`.
+
+## 13. Fixed names
+
+- **MCP server ids** (the same in `security/mcp-servers.json`, in the product `.mcp.json` launched via `forge-mcp-guard`, and in tool names):
+  - `build123d-mcp`, tools named like `mcp__build123d-mcp__execute`
+  - `kicad-mcp-pro`, tools named like `mcp__kicad-mcp-pro__run_erc`
+- **Judges** (read-only, verdict schema enforced at SubagentStop): `forge:verification-evaluator` and `forge:red-team`. Specialist reviews inside a gate review run as the maker agents, but in review mode, and must also return a verdict block. The gate-review workflow collects them.
+- **Skill-name exceptions:** `new-project` and `init` are user entry points named by the brief, so they are exempt from the gerund rule.
+- **Side-effect skills** (`disable-model-invocation: true`): `new-project`, `init`, `releasing-designs` and `testing-on-hardware`, plus any fab-export or flash step.
+- **Approval file** for release, fab or flash: `release/APPROVAL.toml`, containing `approved_by`, `date`, `git_sha`, `scope` and `gate`. It is written by a human, and hooks refuse the side-effect command when it's missing or its sha doesn't match HEAD.
+- **State file:** `.forge/state.json` (gitignored). It holds the gate snapshot, the consecutive Stop-block counter, the last green tree per domain, and open findings.
