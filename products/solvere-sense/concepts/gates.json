@@ -1,0 +1,39 @@
+{
+  "schema": "forge.concept-gates/1",
+  "applied": "before Pugh scoring; any gate FAIL excludes the concept from scoring",
+  "recorded": "2026-09-25, owner instruction",
+  "gates": [
+    {
+      "id": "GATE-S1",
+      "name": "no-fall retention",
+      "sources": ["REQ-MECH-004", "REQ-MECH-005", "REQ-MECH-015", "REQ-MECH-016", "docs/intake/G0-owner-answers-2.md"],
+      "pass_if_all": [
+        "positive mechanical interlock pod-to-base (not friction-, adhesive- or magnet-only)",
+        "stated load path pod -> base plate -> fixings -> ceiling for drywall, concrete and T-bar",
+        "twist-off needs deliberate rotation against a detent; accidental release prevention stated",
+        "retention loads per REQ-MECH-015 (safety factor value may be TBD at G2; mechanism may not)"
+      ]
+    },
+    {
+      "id": "GATE-S2",
+      "name": "enclosure flammability",
+      "sources": ["REQ-SAFE-001", "docs/research R5a/R5b", "Q-17 (class set by a qualified human)"],
+      "pass_if_all": [
+        "every enclosure part names a material and grade per process",
+        "each grade cites a published UL 94 listing at or below its wall thickness, or is marked fit-check only",
+        "no dependence on a material with no UL 94 listing"
+      ]
+    },
+    {
+      "id": "GATE-S3",
+      "name": "radar window material and thickness",
+      "sources": ["MR60FDA2 module datasheet s8 p.11-12", "REQ-MECH-010", "REQ-MECH-013", "REQ-MECH-014", "params radome.antenna_gap_step", "params radome.keepout_half_angle"],
+      "pass_if_all": [
+        "radome er and tan-delta from the MDS s8 table or a cited datasheet (PETG, SLA resin and PA12 need a citation or a measurement plan)",
+        "T = N*c/(2*f*sqrt(er)) at f = 60 GHz with integer N, from that er; uniform and smooth over the FoV",
+        "antenna-to-radome inner-surface gap d = N*2.5 mm, held by a stated datum",
+        "no metal, metallic pigment or conductive coating within the 60 deg half-angle cone"
+      ]
+    }
+  ]
+}
