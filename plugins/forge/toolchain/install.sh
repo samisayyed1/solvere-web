@@ -58,9 +58,15 @@ KICAD_DEB_SHA=a4920d3fc7b5719b8d5efa4ee24603a4313b50a53409bb5417f50770ce73926d  
 # INSTALL-LOG.md lives under plugins/forge, which forge lint / test_product_agnostic.py
 # scan for leaked product identifiers. A checkout's absolute path (this repo's own name,
 # a worktree name, the user's home dir) is product/deployment-specific, so every line
-# written to the log is redacted to a portable "<repo>" placeholder first -- the actual
-# commands still run against the real, unredacted paths.
-redact() { sed "s#$REPO_ROOT#<repo>#g"; }
+# written to the log is redacted before it's written -- the actual commands still run
+# against the real, unredacted paths:
+#   - $REPO_ROOT           -> <repo>
+#   - $FORGE_HOME           -> ~/.forge        (whatever it actually resolves to)
+#   - /Users/<name>/...    -> ~/...           (any macOS home, not just the installing one)
+#   - /root/...            -> ~/...           (root's home, e.g. this container)
+# N13 (review #2): a machine-specific /Users/samisayyed/... path shipped in
+# INSTALL-LOG.md because this redaction covered only $REPO_ROOT.
+redact() { sed -E "s#$REPO_ROOT#<repo>#g; s#$FORGE_HOME#~/.forge#g; s#/Users/[A-Za-z0-9_.-]+#~#g; s#/root(/|\$)#~\1#g"; }
 log()  { printf '%s\n' "$*" | redact | tee -a "$LOG"; }
 die()  { log "FAIL: $*"; exit 1; }
 step() { log ""; log "### $* ($(date -u +%Y-%m-%dT%H:%M:%SZ))"; }

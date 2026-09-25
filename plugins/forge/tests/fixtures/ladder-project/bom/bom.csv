@@ -1,0 +1,4 @@
+ref_des,description,mpn,manufacturer,qty_per_unit,lifecycle,lead_time_weeks,alternates,risk_note,price_1,price_100
+R1,10k resistor 0603,RC0603FR-0710KL,Yageo,1,Active,4,ERJ-3EKF1002V,,0.02,0.005
+R2,10k resistor 0603,RC0603FR-0710KL,Yageo,1,Active,4,ERJ-3EKF1002V,,0.02,0.005
+MP1,mounting plate FDM ABS,LADDER-PLATE-A,in-house,1,Active,1,,single-source by design: printed in-house; owner fixture; fallback any FDM bureau,1.50,0.90

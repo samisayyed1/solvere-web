@@ -1,0 +1,11 @@
+divider board: 10k/10k resistor divider from a 5 V rail (REQ-ELEC-001)
+V1 in 0 DC 5
+R1 in out 10k
+R2 out 0 10k
+.tran 10u 1m
+.control
+run
+meas tran vout_dc avg v(out) from=0.2m to=1m
+quit
+.endc
+.end

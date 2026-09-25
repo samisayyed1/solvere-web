@@ -1,0 +1,14 @@
+# Ladder fixture: FDM process rules applied to cad/plate.py (checking-dfm).
+[part]
+name = "plate"
+module = "cad/plate.py"
+process = "fdm"
+
+[[check]]
+rule = "wall_min_unsupported_mm"
+requirement = "REQ-MFG-001"
+sample_count = 600
+
+[[check]]
+rule = "hole_min_diameter_mm"
+requirement = "REQ-MFG-001"

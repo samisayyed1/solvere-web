@@ -1,0 +1,2 @@
+# kicad-cli writes local project settings here on every ERC run; not a design input.
+*.kicad_prl

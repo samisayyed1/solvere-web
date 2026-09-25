@@ -31,5 +31,26 @@ for n in (1, 2, 3):
     r = a + d * math.tan(math.radians(KEEPOUT))
     print(f"  d = {d:.1f} mm (N={n}): keep-out radius at radome inner face = {r:.2f} mm, dia {2*r:.1f} mm")
 
-print(f"\nSlant path through a flat radome at the cone edge = T / cos({KEEPOUT:.0f} deg) (straight-line, no refraction) "
+print(f"\nSlant path through a flat radome at the cone edge = T / cos({KEEPOUT:.0f} deg) (no refraction: upper bound only, see refraction-corrected figures below) "
       f"= {1/math.cos(math.radians(KEEPOUT)):.2f} x T")
+
+# --- added after gates.md: refraction-corrected path, band-edge phase, cited er ---
+F_MIN, F_MAX = 58e9, 62e9   # sensor.freq_min / freq_max (MDS p.4)
+df = max(F - F_MIN, F_MAX - F) / F
+print(f"\nBand-edge phase error of the half-wave conditions (fractional offset {df:.4f}):")
+for n in (1, 2, 3):
+    print(f"  N={n}: gap round-trip error {360*n*df:.0f} deg, radome one-way error {180*n*df:.0f} deg")
+
+CITED = {"PETG (Gregory 2022, 75-110 GHz)": 2.675, "Formlabs FR resin (TDS, 1 MHz only)": 3.83}
+for name, er in CITED.items():
+    print(f"  {name}: T N=1 {half_lambda/math.sqrt(er):.3f} mm, N=2 {2*half_lambda/math.sqrt(er):.3f} mm")
+er = 2.675
+for ang in (35, 44, 60):
+    ti = math.degrees(math.asin(math.sin(math.radians(ang)) / math.sqrt(er)))
+    print(f"  incidence {ang} deg in air -> {ti:.1f} deg inside er={er}: path factor {1/math.cos(math.radians(ti)):.3f}")
+# Fall-zone corner angle from boresight: half-diagonal of mount.coverage_side at mount.height_min/max
+for h in (2.2, 3.0):
+    print(f"  3x3 m corner at h={h} m: {math.degrees(math.atan(math.hypot(1.5,1.5)/h)):.1f} deg off boresight")
+# Largest er for which UL 94 listing thickness <= T
+for lab, tmin, n in (("FR resin HB 1.5 mm, N=1", 1.5, 1), ("FR resin V-1 2.5 mm, N=2", 2.5, 2), ("FR resin V-0 3.0 mm, N=2", 3.0, 2)):
+    print(f"  {lab}: needs er <= {(n*half_lambda/tmin)**2:.2f}")

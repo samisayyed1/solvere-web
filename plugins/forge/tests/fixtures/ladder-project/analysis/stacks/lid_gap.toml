@@ -1,0 +1,33 @@
+# REQ-MECH-004: lid-to-plate gap, three-part 1-D stack.
+[stack]
+name = "lid_gap"
+description = "lid standoff + spacer - plate stack height"
+
+[requirement]
+unit = "mm"
+gap_min = 2.5
+gap_max = 3.5
+
+[[contributor]]
+id = "standoff"
+nominal = 10.00
+tol_plus = 0.10
+tol_minus = 0.10
+direction = 1
+distribution = "normal"
+
+[[contributor]]
+id = "spacer"
+nominal = 5.00
+tol_plus = 0.05
+tol_minus = 0.05
+direction = 1
+distribution = "normal"
+
+[[contributor]]
+id = "board_stack"
+nominal = 12.00
+tol_plus = 0.08
+tol_minus = 0.08
+direction = -1
+distribution = "normal"

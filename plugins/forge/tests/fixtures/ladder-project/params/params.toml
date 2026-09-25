@@ -1,0 +1,61 @@
+# Ladder fixture params (CONTRACTS.md §2): the single source of truth for the
+# mounting plate in cad/plate.py and its geometry/DFM limits. Fixture only.
+
+[plate.length]
+value = 60.0
+unit = "mm"
+tol = { minus = 0.1, plus = 0.1 }
+status = "assumed"
+source = "Ladder fixture: footprint of a generic 60 x 40 mm mounting plate."
+verified_by = ""
+evidence = []
+
+[plate.width]
+value = 40.0
+unit = "mm"
+tol = { minus = 0.1, plus = 0.1 }
+status = "assumed"
+source = "Ladder fixture: footprint of a generic 60 x 40 mm mounting plate."
+verified_by = ""
+evidence = []
+
+[plate.thickness]
+value = 3.0
+unit = "mm"
+tol = { minus = 0.1, plus = 0.1 }
+status = "assumed"
+source = "Ladder fixture: 3.0 mm plate, above the FDM unsupported-wall rule (1.2 mm, R5d)."
+verified_by = ""
+evidence = []
+
+[plate.min_thickness]
+value = 2.9
+unit = "mm"
+status = "assumed"
+source = "Ladder fixture: plate.thickness minus its tol.minus (3.0 - 0.1 mm), REQ-MECH-002."
+verified_by = ""
+evidence = []
+
+[plate.hole_diameter]
+value = 3.2
+unit = "mm"
+status = "assumed"
+source = "Ladder fixture: M3 clearance hole (ISO 273 medium fit 3.4 mm; 3.2 mm close fit)."
+verified_by = ""
+evidence = []
+
+[plate.hole_inset]
+value = 6.0
+unit = "mm"
+status = "assumed"
+source = "Ladder fixture: hole centre 6.0 mm from each edge, 4.4 mm hole-to-edge web."
+verified_by = ""
+evidence = []
+
+[material.density_kg_m3]
+value = 1050.0
+unit = "kg/m3"
+status = "assumed"
+source = "Ladder fixture: typical ABS density 1.02-1.05 g/cm3 (generic reference, not a datasheet)."
+verified_by = ""
+evidence = []

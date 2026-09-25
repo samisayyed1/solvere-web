@@ -1,0 +1,78 @@
+Fetched 2026-09-25 by concept generator D. Text extracted with pypdf; PDFs not kept in repo.
+
+== Formlabs Flame Retardant Resin TDS, https://formlabs-media.formlabs.com/datasheets/2301750-TDS-ENUS-0_1.pdf
+sha256 1d189b9c62303704479cb48b14592c272914befae0a21fe0906ccfc26885774c
+SPECIAL TY RESIN
+Flame Retardant
+For UL 94 V-0 Certified Parts With Excellent Part Quality 
+and Heat Resistance
+Easily and quickly create stiff, creep-resistant, and functional plastic parts that perform 
+well long-term in indoor and industrial environments. FR Resin is self-extinguishing and 
+halogen-free with favorable flame, smoke, and toxicity (FST) ratings.
+Custom jigs, fixtures, and replacement parts for industrial environments with high 
+temperatures or ignition sources
+Interior parts in airplanes, 
+automobiles, and railways  
+with excellent surface finish
+Protective and internal consumer or medical 
+electronics components
+Prepared 13 . 04 . 2023 T o the best of our knowledge the information contained herein is accurate. However, 
+Formlabs, Inc. makes no warranty, expressed or implied, regarding the accuracy of these 
+results to be obtained from the use thereof.Rev. 02 26 . 07 . 2023
+V1 FLFRGR01 * May not be available in all regions
+MATERIAL PROPERTIES DATA Flame Retardant Resin
+Flammability 1, 2 Result Method
+UL 94 V-0 (3mm) V-1 (2.5mm) HB (1.5mm)
+ 
+Scan to view 
+Blue CardFAR 25.853 Appendix F, Part I 
+(a) (1) (ii)12 seconds Vertical Burn Pass (2.5mm)
+Rate: 3°Cpm
+MATERIAL PROPERTIES DATA Flame Retardant Resin
+General Properties Result Method
+Hardness Green: 74D Post Cured: 80D ASTM D2240
+Bulk Density 1.25 g/cm3 ASTM D792-20
+Viscosity (25 °C) 4500 - 5000 cP
+Color Light grey
+Electrical Properties 3, 5 Result Method
+Dielectric Strength 15.1 kV/mm ASTM D149
+Dielectric Constant 3.83 ASTM D150, 0.5 MHz
+Dielectric Constant 3.82 ASTM D150, 1.0 MHz
+Dissipation Factor 0.024 ASTM D150, 0.5 MHz
+
+== HP 3D HR PA 12 FR datasheet (Feb 2025), https://www.druckerfachmann.de/wp-content/uploads/2025/02/HP-3D-HR-PA-12-FR-Material-Datasheet_Jan-2025.pdf
+sha256 c4d787e4c78aca1ba01cfaae4765374ac6f71588cb74f13c26ff25b53bafd523
+HP 3D Printing Material Datasheet
+Flame Retardant
+Halogen-free material,4 UL94 certified.5
+• Made with halogen-free chemicals.4
+• Achieves UL94 V0 flammability safety standard at 2.5 mm 
+thickness.5
+• PA12 particles encapsulated with FR particles provide 
+homogenous flammability across parts.
+Bulk density of powder 0.47 / 0.017 g/cm2 / lb/in3 ASTM D1895
+HP 3D Printing Material Datasheet
+UL 94 
+(Blue Card available)
+High-Current Arc Ignition
+(HAI)
+Hot Wire Ignition 
+(HWI)
+Thickness Orientation Value Unit Method Value Unit Method Value Unit Method
+1 mm XY and Z HB Pass
+UL 94
+PLC 0 Pass
+UL 746A
+PLC 4 Pass
+UL 746A
+2.5 mm XY and Z V0 Pass PLC 0 Pass PLC 0 Pass
+Railway Thickness Value Unit Method
+XXXX-XXXXENW, February 2025
+1. HP Jet Fusion 5600 Series 3D Printing Solutions using HP 3D High Reusability PA 12 FR, enabled by Evonik, provide 50% powder reusability ratio, producing functional parts batch after batch. For testing, material is 
+aged in real printing conditions and powder is tracked by generations (worst case for reusability). Parts are then made from each generation and tested for mechanical properties and accuracy.
+2. Based on internal testing and public data for solutions on market as of January, 2024. Cost analysis based on: standard solution configuration price, supplies price, and maintenance costs recommended by 
+manufacturer. Cost criteria: printing 2 full build chambers of parts per week over 1 year of 41 cm3 parts at 8% packing density on Balanced print mode using HP 3D High Reusability PA 12 FR material on HP Jet Fusion 
+5600 Series 3D Printing Solutions, and the powder reusability ratio recommended by manufacturer, and printing under certain build conditions and part geometries.
+3. Compatible with HP Jet Fusion 5600 Series 3D Printing Solutions.
+4. This flame retardant is non-halogenated according to IEC 61249-2-21, based on Evonik material composition as of September, 2024.
+5. Based on testing done by UL and reported on UL blue card on January, 2025.

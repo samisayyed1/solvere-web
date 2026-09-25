@@ -1,9 +1,48 @@
 name: forge-ci
 
 # Static gates only (ADR-001 §3, §10): no paid `claude plugin eval` runs here.
-# Requires the Forge toolchain (~/.forge/bin/forge-python and friends,
-# plugins/forge/toolchain/install.sh) to already be set up on the runner,
-# and FORGE_ROOT to point at the Forge repo checkout.
+#
+# N14 (review #2): this job needs a working `forge-python` -- the *whole*
+# CAD/analysis Python env (build123d, OCP, trimesh, pyvista, gmsh, jsonschema
+# ...) every domain's `verify.py` runs under (CONTRACTS.md §10), not just the
+# mechanical domain's. Installing it is `plugins/forge/toolchain/install.sh
+# mech` on Linux (`linux_tier_mech`), and that installer refuses to even
+# start below its own documented floor: `MIN_FREE_GIB=20` free disk for
+# Linux-x86_64 (toolchain/install.sh, check_disk). GitHub-hosted standard
+# Linux runners ("ubuntu-latest") ship 14 GB of SSD -- below that 20 GB
+# floor -- so an install-in-CI step on a hosted runner would fail
+# install.sh's own disk check on a cold cache, every time. Installing the
+# toolchain in CI was the honest-looking option, but it does not actually
+# run as shipped on the runner label this workflow used to claim.
+#
+# The honest option is therefore a **self-hosted runner**, pre-provisioned
+# once (or with enough disk to self-provision) with the Forge toolchain:
+#
+#   Requirements for a runner carrying the `forge-toolchain` label below:
+#     - Linux x86_64 (or adjust the label/OS to match your runner)
+#     - >= 20 GB free disk (install.sh's own Linux floor; ~16 GB is actually
+#       used by the `mech` tier plus growing caches -- see toolchain/INSTALL-LOG.md)
+#     - `~/.forge` provisioned via:
+#         plugins/forge/toolchain/install.sh mech
+#       (run once by a human/admin; re-running is idempotent and fast --
+#       install.sh only re-fetches what changed). `forge doctor` below then
+#       verifies on every run that what's installed still matches the pinned
+#       manifest, so a stale or drifted runner fails loudly instead of
+#       silently skipping checks.
+#     - `git`, standard build tools available (install.sh's own dependencies)
+#
+#   To register one: https://docs.github.com/actions/hosting-your-own-runners
+#   Give it the label `forge-toolchain` (Settings -> Actions -> Runners),
+#   or edit `runs-on:` below to match whatever label(s) your runner has.
+#
+# If you would rather CI install the toolchain itself, you need a runner
+# (self-hosted or a larger GitHub-hosted runner tier) with >= 20 GB free
+# disk, and can replace the "Verify toolchain" step below with:
+#     ${FORGE_ROOT}/plugins/forge/toolchain/install.sh mech
+# plus an actions/cache step keyed on
+# plugins/forge/toolchain/{linux/*.lock.json,*/pixi.lock} so repeat runs
+# don't re-download everything -- but budget real CI minutes for a cold
+# cache: this is a multi-GB env, not a package-manager one-liner.
 
 on:
   push:
@@ -13,7 +52,7 @@ on:
 
 jobs:
   static-gates:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, forge-toolchain]
     env:
       FORGE_ROOT: ${{ github.workspace }}/forge
     steps:
@@ -25,6 +64,13 @@ jobs:
         with:
           repository: ${{ vars.FORGE_REPOSITORY }}  # set the repo variable FORGE_REPOSITORY to where Forge lives (owner/repo)
           path: forge
+
+      - name: Verify toolchain (forge doctor)
+        run: |
+          # Fails loudly if this runner's ~/.forge toolchain is missing or has
+          # drifted from the pinned manifest, instead of every later step
+          # silently skipping its checks against a stale or absent forge-python.
+          "$FORGE_ROOT/plugins/forge/bin/forge" doctor --quick
 
       - name: forge lint (agents, skills, claudemd, wording, manifest)
         run: |

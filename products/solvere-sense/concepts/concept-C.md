@@ -29,13 +29,13 @@ A round, flat pod in two main printed parts. A **base plate** screws to the ceil
 2. Put the screws in loosely. The fixing holes are **slotted arcs**, so P2 can be turned to point its cable notch at the raceway line, then tightened. Screw heads sit inside the P2 boss, under the pod (REQ-UX-002, REQ-MECH-006).
 3. Press the cable into the P2 channel and snap P3 on by thumb. Leave the service loop in the gutter.
 4. At chest height, plug the USB-C into the XIAO and press the jacket into the P1 jacket clip, so the connector never carries the cable load.
-5. Lift the pod. The conical lead-in centres it without looking. The unequal lugs let it enter at one rotation only, with the cable notch toward the cable. Push up, turn by the fluted side wall until it clicks. The rim goes flush with the ceiling when locked; a visible gap means not locked.
+5. Lift the pod. The conical lead-in centres it without looking. The unequal lugs let it enter at one rotation only, with the cable notch toward the cable. Push up, turn by the fluted side wall until the lugs drop into their seat notches with a click. The rim then sits at the ceiling datum; a visible gap means not locked.
 
 **T-bar:** lift the adjacent tile, press P5 onto the flange (the stepped jaw takes 15 mm in the inner step and 24 mm in the outer step, `tbar.grid_width_narrow`/`_wide`), lower the tile, screw P2 to P5, then continue from step 3. No drilling or cutting (REQ-MECH-003).
 
-**Removal (cleaning, reset):** turn back past the detent and lower the pod. The service loop pays out, so the pod stays plugged in and **powered** in the installer's hand. Reset is pressed on the kit from the open ceiling side of the pod. To take the pod away, unclip the jacket and unplug.
+**Removal (cleaning, reset):** push the pod up against the detent spring to lift the lugs out of their notches, turn back, and lower it. The service loop pays out, so the pod stays plugged in and **powered** in the installer's hand. Reset is pressed on the kit from the open ceiling side of the pod. To take the pod away, unclip the jacket and unplug.
 
-**Twist feel and retention:** the vertical load goes through the bayonet lugs in bearing. The detent resists rotation only, so detent wear does not reduce pull retention (REQ-MECH-005). The ramp's end stop pulls the P1 rim against the P2 datum, so axial play from the process clearance (REQ-MFG-005) is taken out when locked. That keeps the level chain short (REQ-MECH-009). The turn angle, detent torque and lug count and size are TBD at G2, with retention loads from REQ-MECH-015.
+**Twist feel and retention:** the vertical load goes through the bayonet lugs in bearing on the slot floors. At the end of travel each lug drops into a **seat notch** whose side walls block rotation. The P2 detent flexure pushes the P1 rim down and gravity pulls the pod down, so both hold the lugs in the notches. To release, the user has to push up against the flexure by the notch depth (TBD) and then turn. A knock or vibration that only rotates the pod cannot unlock it. The flexure only sets the feel and the preload, so its wear does not reduce pull retention (REQ-MECH-005). The flexure preload holds the P1 rim against the P2 datum, which takes out the axial play from the process clearance (REQ-MFG-005). That keeps the level chain short (REQ-MECH-009). The turn angle, detent torque and lug count and size are TBD at G2, with retention loads from REQ-MECH-015.
 
 ## 4. Key dimensions (derived only; everything else TBD at G2)
 
@@ -93,7 +93,7 @@ A round, flat pod in two main printed parts. A **base plate** screws to the ceil
 | ELEC-001 | meets | No mains |
 | ENV-001 | at risk | Needs test; the ratings contain the range |
 | ENV-002 | at risk | Kit enclosed by P1+P2; 32.1 K/W budget not yet analysed (R-006) |
-| SAFE-001 | at risk | UL94 grades of PETG/resin/PA not chosen; class from Q-17 |
+| SAFE-001 | at risk | Listed paths found for SLA (Formlabs FR Resin) and MJF (HP HR PA 12 / PA 12 FR), §10; PETG is fit-check only; P4 light pipe has no listed grade yet; class from Q-17 |
 | SAFE-002 | at risk | Limit from Q-17; not measured |
 | SAFE-003 | not addressed | Text item; the concept adds no text |
 | SAFE-004 | not addressed | Text and firmware item |
@@ -131,7 +131,7 @@ A round, flat pod in two main printed parts. A **base plate** screws to the ceil
 | COST-002 | at risk (likely fails) | $1.01 left after the kit (R-002); this concept has more small parts than the minimum |
 | COST-003 | not addressed | BOM not built |
 
-Tally: meets / meets (concept) 22, at risk 30, not addressed 14 (66).
+Tally: meets / meets (concept) 20, at risk 30, not addressed 16 (66).
 
 ## 7. Top 5 risks and mitigations
 
@@ -160,3 +160,45 @@ Tally: meets / meets (concept) 22, at risk 30, not addressed 14 (66).
 - **Magnetic attach:** puts magnets or steel near the antenna and depends on magnet pull for fall retention. C has no metal in the pod and carries the load through lugs in bearing.
 - **Face-seal bathroom gasket on the twist ramp:** the squeeze grows while turning, so torque rises and the O-ring drags (R-016). C's radial gland seals independently of the twist, so v1 and bathroom feel alike and the bayonet does not carry the squeeze load.
 - **Two T-bar clips or an adjustable jaw:** C uses one stepped jaw that fits both widths with no setting to get wrong on a ladder.
+
+## 10. Safety gates (concepts/gates.md)
+
+Sources fetched 2026-09-25, not yet copied into `docs/sources/` (to be added with sha256 before G1 closes):
+- **[FLR]** Formlabs "Flame Retardant" Resin TDS, Rev. 01, 13.04.2023, https://formlabs-media.formlabs.com/datasheets/2301761-TDS-ENUS-0.pdf (sha256 17382e91…f681 of the fetched copy). It gives UL 94 V-0 (3 mm), V-1 (2.5 mm), HB (1.5 mm); colour light grey; εr 3.83 at 0.5 MHz, tan δ 0.024 at 0.5 MHz (ASTM D150).
+- **[HPPA]** HP technical note "UL 94 and UL 746A Certification", 4AA7-2792ENW, May 2018 (copy at forerunner3d.com, sha256 96d85f61…e3c3). HP 3D HR PA 12 (with 3D600/700/710 agents) is UL-certified **HB at 0.75 mm**.
+- **[HPFR]** HP "3D HR PA 12 FR, enabled by Evonik" material datasheet, February 2025 (copy at druckerfachmann.de, sha256 c4d787e4…d523). It gives UL 94 **HB at 1 mm** and **V0 at 2.5 mm**, XY and Z, "UL blue card, January 2025". No εr is given.
+- None of these gives εr or tan δ at 60 GHz. The 0.5 MHz FLR value cannot be used for T at 60 GHz.
+
+### GATE-S1 no-fall retention: claimed PASS (L0), mechanism stated
+
+| Criterion | How concept C meets it |
+|---|---|
+| 1. Positive interlock | A three-lug bayonet. At the end of travel the lugs drop into seat notches whose walls block rotation. Release needs a push up against the P2 flexure by the notch depth, then a turn (§3). There is no friction, adhesive or magnet in the load path. |
+| 2. Load path, drywall | P1 lugs → P2 slot floors (bearing) → P2 → screws → drywall anchors → drywall. |
+| 2. Load path, concrete | P1 lugs → P2 slot floors → P2 → screws → wall plugs → concrete. |
+| 2. Load path, T-bar | P1 lugs → P2 slot floors → P2 → screws into P5 → P5 stepped-jaw hooks over the T-bar flange → T-bar → the grid's own hangers. The tile carries no load. |
+| 3. Deliberate twist and accidental release | Unlocking takes two separate motions: an upward push against the flexure, then a turn. Gravity and the flexure preload keep the lugs seated, so a knock or vibration that only rotates the pod is blocked by the notch walls. The flexure sets the feel only; it is not in the pull load path. |
+| 4. Loads per REQ-MECH-015 | TP loads = measured weight of the retained parts × a safety factor recorded in `params/params.toml` (value and source TBD at G2, set by a qualified human or a cited standard). The weight of the parts held by P1 includes the service-loop share. Lug, notch and fixing sizes follow from that load. |
+
+Short of full PASS evidence: nothing has been tested, and anchor capacity comes from the makers' datasheets, which are not yet chosen. The unlocking force must stay a comfortable hand force on a ladder (TBD at G2), in tension with a notch deep enough not to be knocked out.
+
+### GATE-S2 enclosure flammability: PASS for P1, P2, P3 and P5; **falls short for P4 (light pipe)**
+
+| Part | FDM (G3 fit) | SLA demo | MJF demo |
+|---|---|---|---|
+| P1 pod (shell + radome) | PETG: **fit-check only, not a demo or production material** | Formlabs Flame Retardant Resin: V-0 ≥3 mm, V-1 ≥2.5 mm, HB ≥1.5 mm [FLR] | HP 3D HR PA 12 FR: V0 ≥2.5 mm, HB ≥1 mm [HPFR]; or HP 3D HR PA 12: HB ≥0.75 mm [HPPA] |
+| P2 base plate, P3 clamp lid, P5 T-bar clip | PETG: fit-check only | Formlabs FR Resin, as above [FLR] | HP 3D HR PA 12 FR or HR PA 12, as above |
+| P4 light pipe | PETG natural: fit-check only | **No listed translucent grade found.** FLR is opaque light grey | **No listed translucent grade found** |
+
+- **Wall versus listing:** each wall must be at or above the listed thickness for the class the qualified human picks (Q-17). That links GATE-S2 to GATE-S3. For example, a V-0 class in FLR forces a P1 radome ≥3 mm, so N is chosen to give T ≥3 mm. HB in HPFR allows ≥1 mm, which is below the 2.5 mm MJF wall rule (R-015) anyway.
+- **Colour:** FLR is light grey. Neither HP datasheet read gives a colour. The matte warm white (REQ-UX-001) would need a non-metallic coating or dye. A coating is not covered by the base listing, so the qualified human must accept it, or colour must come from a listed white grade (none found yet).
+- **P4 shortfall and mitigation:** by G1 close, find a UL 94-listed translucent material for a small pin: a listed PC grade is the obvious search, since PC is also in the MDS §8 table (εr 2.9, tan δ 0.012). Until one is cited, P4 blocks a full S2 PASS for demo units. The fallback is no separate pipe: a thin, uniform-thickness spot in the listed P1 material, which then has to pass TP-SYS-002 (R-018).
+
+### GATE-S3 radar window: PASS on method; εr is sourced by measurement plan
+
+| Criterion | How concept C meets it |
+|---|---|
+| 1. εr and tan δ source | The candidates (PETG, FLR, HP PA 12 / PA 12 FR) are not in the MDS §8 table, and no fetched datasheet gives a 60 GHz value (FLR gives 0.5–1 MHz only). **Measurement plan:** TP-SYS-002 coupons of each grade in its print orientation, as flat plates at 2–3 candidate thicknesses, measured at 58–62 GHz (`sensor.freq_min/max`) for εr and tan δ (method, for example an open resonator or free-space transmission, chosen by the test owner), plus a bare-kit A/B through each coupon. The measured value per grade, including its print process and colour coat, is what sets T. A grade with a range is pinned by measuring the actual lot and colour. |
+| 2. Thickness | T = N·c/(2·f·√εr), f = 60 GHz, integer N. **T computed at G2 from the measured εr.** N is the smallest integer whose T is at or above the larger of the process wall rule and the UL-listed thickness (§4 illustrates about 1.3–1.8 mm at N=1 for the MDS-table plastics). Flat, uniform and smooth over the ±60° field; printed as the first layer; no texture, text or ribs inside the footprint. |
+| 3. Antenna gap | d = N × 2.5 mm (`radome.antenna_gap_step`), N = 1 preferred. It is held by a datum inside the one part P1: kit locating pads on standoffs printed from the radome inner face, with the antenna face pressed against them. The gap does not pass through the bayonet stack. Tolerance is open (R-001). |
+| 4. Keep-out | No metal in P1. Ceiling screws, P2 and the fallback P9 plunger sit above (behind) the antenna plane, outside the downward 60° cone (`radome.keepout_half_angle`). The service-loop cable lies in the P2 gutter behind the kit. The light-pipe path clears the cone only if the LED is at least d·tan 60° (4.33 mm at N=1) outboard of the aperture edge (§4, A-005); if not, it is a non-metal intrusion that TP-SYS-002 must clear. The colour coat must be confirmed non-metallic. |

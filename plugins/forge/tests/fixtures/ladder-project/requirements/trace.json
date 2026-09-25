@@ -1,0 +1,17 @@
+{
+  "schema": "forge.trace/1",
+  "requirements": {
+    "REQ-MECH-001": {"design": ["cad/plate.py", "requirements/geometry/plate.toml"], "tests": ["out/verify/geometry.plate.validity.json"], "evidence": [], "status": "open"},
+    "REQ-MECH-002": {"design": ["cad/plate.py"], "tests": ["out/verify/geometry.plate.min_wall.json"], "evidence": [], "status": "open"},
+    "REQ-MECH-003": {"design": ["cad/plate.py"], "tests": ["out/verify/geometry.plate.hole_edge.json"], "evidence": [], "status": "open"},
+    "REQ-MECH-004": {"design": ["analysis/stacks/lid_gap.toml"], "tests": ["out/verify/mech.stack_lid_gap.json"], "evidence": [], "status": "open"},
+    "REQ-MFG-001": {"design": ["cad/plate.py", "requirements/dfm/plate.toml"], "tests": ["out/verify/dfm.plate.json"], "evidence": [], "status": "open"},
+    "REQ-MFG-002": {"design": ["bom/bom.csv"], "tests": ["out/verify/supply.bom_rollup.json"], "evidence": [], "status": "open"},
+    "REQ-SIM-001": {"design": ["analysis/fea/arm.toml"], "tests": ["out/verify/sim.fea_arm.json"], "evidence": [], "status": "open"},
+    "REQ-ELEC-001": {"design": ["analysis/spice/divider.cir", "analysis/spice/divider.limits.toml"], "tests": ["out/verify/spice.divider.json"], "evidence": [], "status": "open"},
+    "REQ-ELEC-002": {"design": ["ecad/divider/divider.kicad_sch"], "tests": ["out/verify/ecad.divider.json"], "evidence": [], "status": "open"},
+    "REQ-FW-001": {"design": ["firmware/src/clamp.c", "firmware/include/clamp.h", "firmware/tests/test_clamp.c"], "tests": ["firmware/tests/test_clamp.c"], "evidence": [], "status": "open"},
+    "REQ-SYS-001": {"design": ["model/system.sysml"], "tests": ["out/verify/systems.sysml_check.json"], "evidence": [], "status": "open"},
+    "REQ-COMP-001": {"design": ["compliance/product-profile.toml"], "tests": ["out/verify/compliance.standards_map.json"], "evidence": [], "status": "open"}
+  }
+}

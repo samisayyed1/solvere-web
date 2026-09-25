@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "divider")(type "KiCad")(uri "${KIPRJMOD}/divider.kicad_sym")(options "")(descr "fixture"))
+)

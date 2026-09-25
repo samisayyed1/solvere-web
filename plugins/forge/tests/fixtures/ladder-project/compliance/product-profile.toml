@@ -1,0 +1,13 @@
+# Ladder fixture product profile (mapping-compliance).
+category = "consumer_iot"
+power_source = ["usb", "external_adapter"]
+has_radio = false
+has_pcb = true
+has_plastic_enclosure = true
+has_web_or_app_ui = false
+connects_to_internet = false
+contract_manufactured = false
+has_safety_function = false
+is_toy_or_childcare = false
+allows_blank_password = false
+target_markets = ["US", "EU"]

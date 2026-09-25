@@ -1,15 +1,34 @@
 # Standards applicability data (mapping-compliance skill).
 #
 # Every row's `edition`, `year` and `trigger` text traces to a specific
-# Forge research file (R5a, R5b or R5e) -- never invented. `source_file`
-# names exactly which one. Re-check `as_of` before trusting a row more than
+# Forge research file (R5a, R5b, R5e or R5f -- docs/research/R5f-compliance-data-gaps.md)
+# -- never invented. `source_file` names exactly which one (or a list). Re-check `as_of` before trusting a row more than
 # ~180 days old (R5e's own recommendation: "store dated snapshots, not
 # 'current' claims").
 #
 # `applies_if`: a list of {field, op, value} predicates, ALL of which must
 # hold against the product profile (compliance/product-profile.toml) for
-# this standard to be flagged applicable. `op` is one of "eq", "in"
-# (profile field is a list containing value), "true".
+# this standard to be flagged applicable. `op` is one of:
+#   "eq"          profile field == value
+#   "in"          profile field is a list containing value
+#   "any_in"      profile field is a list sharing at least one item with the list value
+#   "one_of"      profile field (a scalar) is one of the list value
+#   "not_one_of"  profile field (a scalar) is present and not one of the list value
+#   "true" / "false"  profile field is truthy / falsy
+# verify.py normalises the profile first: power_source becomes a list,
+# target_markets aliases (GB -> UK) are resolved, and has_radio defaults to
+# whether `radios` is non-empty.
+#
+# Rows sourced from docs/research/R5f-compliance-data-gaps.md also carry
+# `tag` ("V" verified on the primary source / "U" primary source not read),
+# `source_url` and `human_confirms_applicability = true`: legal
+# applicability is ALWAYS a qualified human's call, never Forge's. verify.py
+# fails (data.rows_sourced) if an R5f row lacks any of these.
+#
+# The [[market]], [[power_source]], [[radio]] and [[radio_family]] tables
+# are the only values verify.py accepts in the profile's target_markets,
+# power_source and radios fields (FAIL-0001, FAIL-0002, FAIL-0004): a value
+# outside them used to match nothing and pass silently.
 #
 # This file states which standards exist and why they might apply. It is
 # NOT a compliance determination -- see mapping-compliance/SKILL.md and
@@ -22,10 +41,13 @@ id = "iec-62368-1"
 name = "IEC/EN/UL 62368-1 -- audio/video, IT and communications equipment safety"
 edition = "IEC Ed. 4.0 (2023-05-26); EN IEC 62368-1:2024+A11:2024 (EU); UL 62368-1 Ed. 4 (2025-07-31, US/Canada)"
 body = "IEC TC 108 / CENELEC / UL Standards & Engagement / CSA"
-source_file = "R5b"
-trigger = "Any mains- or battery-powered AV/ICT product (chargers, PSUs, routers, sensors with a mains adapter)."
-applies_if = [ { field = "power_source", op = "in", value = "mains" } ]
-needs_human = "A test lab or certification body (NRTL, IECEE CB Scheme). In the EU, note the 2024 edition's OJ-harmonisation status is unresolved (R5b) -- ask a qualified human which edition to certify against."
+source_file = ["R5b", "R5f"]
+source_url = "https://webstore.iec.ch/en/publication/69308 (Ed. 4.0 metadata); https://webstore.iec.ch/en/publication/27412 (scope sentence, Ed. 3.0 page)"
+tag = "V"
+human_confirms_applicability = true
+trigger = "Any mains- or battery-powered AV/ICT product (chargers, PSUs, routers, sensors with a mains adapter) (R5b). Scope per the IEC abstract: AV, ICT and business/office equipment with a rated voltage not exceeding 600 V -- it names no power-source condition, so adapter-, USB- and battery-powered ICT equipment is a candidate too (R5f, FAIL-0004)."
+applies_if = [ { field = "power_source", op = "any_in", value = ["mains", "external_adapter", "usb", "battery"] }, { field = "category", op = "not_one_of", value = ["medical", "automotive"] } ]
+needs_human = "Confirm the product is AV/ICT equipment within scope (legal applicability). A test lab or certification body (NRTL, IECEE CB Scheme). In the EU, note the 2024 edition's OJ-harmonisation status is unresolved (R5b) -- ask a qualified human which edition to certify against. The external adapter itself needs its own evidence."
 
 [[standard]]
 id = "iec-60601-1"
@@ -129,8 +151,8 @@ needs_human = "FCC-recognised accredited test lab; TCB grant for Subpart C; the 
 
 [[standard]]
 id = "ised-rss"
-name = "ISED RSS-Gen + RSS-247 -- Canadian radio equipment certification"
-edition = "RSS-Gen Issue 6 (2026-07-30, Amendment 1 2026-09-15); RSS-247 Issue 4 (2025-07-24)"
+name = "ISED RSS-Gen -- general requirements for Canadian radio apparatus (RSS-247 / RSS-210 are separate rows per radio)"
+edition = "RSS-Gen Issue 6 (2026-07-30, Amendment 1 2026-09-15)"
 body = "ISED Canada"
 source_file = "R5e"
 trigger = "Any licence-exempt radio sold in Canada (DTS/FHSS/LE-LAN or general Category I device)."
@@ -196,3 +218,312 @@ source_file = "R5e"
 trigger = "Any companion app, cloud API or web service shipped with the product."
 applies_if = [ { field = "has_web_or_app_ui", op = "true", value = true } ]
 needs_human = "None strictly -- voluntary checklist; useful as a code-review gate."
+
+# ===========================================================================
+# Rows below: docs/research/R5f-compliance-data-gaps.md (read 2026-09-25).
+# Every one is a CANDIDATE; a qualified human confirms legal applicability.
+# ===========================================================================
+
+[[standard]]
+id = "uk-ukca-route"
+name = "UKCA / CE marking route for Great Britain"
+edition = "gov.uk 'Using the UKCA marking', last updated 2026-08-21: UKCA in GB; CE still accepted in GB for RER 2017 and EMC Regs 2016 (Product Safety and Metrology (Amendment) Regulations 2024); Northern Ireland follows separate rules"
+body = "UK Department for Business and Trade / OPSS"
+source_file = "R5f"
+source_url = "https://www.gov.uk/guidance/using-the-ukca-marking"
+tag = "V"
+human_confirms_applicability = true
+trigger = "Any product placed on the Great Britain market under a UK product regime that uses UK marking (radio, EMC, electrical safety)."
+applies_if = [ { field = "target_markets", op = "in", value = "UK" } ]
+needs_human = "Legal applicability; choice of UKCA or CE route per regime; Northern Ireland route; UK importer and labelling duties; signing the UK declaration of conformity."
+
+[[standard]]
+id = "uk-rer-2017"
+name = "UK Radio Equipment Regulations 2017 (SI 2017/1206) -- essential requirements, reg 6"
+edition = "SI 2017/1206, in force 2017-12-26; reg 6(1)(a) health and safety, 6(1)(b) EMC, 6(2) spectrum; GB designated-standards consolidated list v10 (2026-01-21)"
+body = "UK Parliament / Department for Business and Trade"
+source_file = "R5f"
+source_url = "https://www.legislation.gov.uk/uksi/2017/1206/contents ; https://www.gov.uk/government/publications/designated-standards-radio-equipment"
+tag = "V"
+human_confirms_applicability = true
+trigger = "Radio equipment placed on the Great Britain market."
+applies_if = [ { field = "has_radio", op = "true", value = true }, { field = "target_markets", op = "in", value = "UK" } ]
+needs_human = "Legal applicability; which designated standards (and their restrictions) give presumption of conformity; conformity-assessment route; UK approved body if no designated standard covers a requirement."
+
+[[standard]]
+id = "uk-emc-2016"
+name = "UK Electromagnetic Compatibility Regulations 2016 (SI 2016/1091)"
+edition = "SI 2016/1091, in force 2016-12-21; reg 3(2)(a): does not apply to equipment covered by the Radio Equipment Regulations 2017"
+body = "UK Parliament / Department for Business and Trade"
+source_file = "R5f"
+source_url = "https://www.legislation.gov.uk/uksi/2016/1091/contents ; https://www.legislation.gov.uk/uksi/2016/1091/regulation/3"
+tag = "V"
+human_confirms_applicability = true
+trigger = "Electronic apparatus without a radio placed on the Great Britain market (radio equipment takes EMC from RER 2017 reg 6(1)(b) instead)."
+applies_if = [ { field = "has_pcb", op = "true", value = true }, { field = "has_radio", op = "false", value = false }, { field = "target_markets", op = "in", value = "UK" } ]
+needs_human = "Legal applicability and scope exclusions; designated EMC standards; UK declaration of conformity."
+
+[[standard]]
+id = "uk-psti"
+name = "UK PSTI product security regime (PSTI Act 2022 Part 1 + SI 2023/1007)"
+edition = "Act 2022 c. 46, Royal Assent 2022-12-06; security requirements Regulations SI 2023/1007 in force 2024-04-29 (Schedule 1: passwords; how to report security issues; minimum security update periods)"
+body = "UK Parliament / DSIT"
+source_file = "R5f"
+source_url = "https://www.legislation.gov.uk/ukpga/2022/46/contents ; https://www.legislation.gov.uk/uksi/2023/1007/contents"
+tag = "V"
+human_confirms_applicability = true
+trigger = "Relevant connectable products (internet- or network-connectable, not an excepted product) made available to UK consumers."
+applies_if = [ { field = "connects_to_internet", op = "true", value = true }, { field = "target_markets", op = "in", value = "UK" } ]
+needs_human = "Legal applicability (consumer product? excepted product?); password, vulnerability-reporting and support-period statements; statement of compliance."
+
+[[standard]]
+id = "eu-red-3-1-a"
+name = "EU RED Art. 3(1)(a) -- health and safety of radio equipment (LVD objectives, no voltage limit)"
+edition = "Directive 2014/53/EU (adopted 2014-04-16), Article 3(1)(a); text read on legislation.gov.uk's copy (EUR-Lex blocked)"
+body = "European Parliament & Council"
+source_file = "R5f"
+source_url = "https://www.legislation.gov.uk/eudr/2014/53/article/3"
+tag = "V"
+human_confirms_applicability = true
+trigger = "Radio equipment placed on the EU market: safety objectives of Directive 2014/35/EU apply with no voltage limit."
+applies_if = [ { field = "has_radio", op = "true", value = true }, { field = "target_markets", op = "in", value = "EU" } ]
+needs_human = "Legal applicability; choice of safety standard (e.g. EN IEC 62368-1) and RF-exposure assessment (not researched, R5f gaps); signing the EU DoC."
+
+[[standard]]
+id = "eu-red-3-1-b"
+name = "EU RED Art. 3(1)(b) -- electromagnetic compatibility of radio equipment"
+edition = "Directive 2014/53/EU, Article 3(1)(b) (EMC level as in Directive 2014/30/EU)"
+body = "European Parliament & Council"
+source_file = "R5f"
+source_url = "https://www.legislation.gov.uk/eudr/2014/53/article/3"
+tag = "V"
+human_confirms_applicability = true
+trigger = "Radio equipment placed on the EU market."
+applies_if = [ { field = "has_radio", op = "true", value = true }, { field = "target_markets", op = "in", value = "EU" } ]
+needs_human = "Legal applicability; which EN 301 489 parts apply and their OJ citation status (EUR-Lex not read, R5f)."
+
+[[standard]]
+id = "eu-red-3-2"
+name = "EU RED Art. 3(2) -- effective and efficient use of radio spectrum"
+edition = "Directive 2014/53/EU, Article 3(2)"
+body = "European Parliament & Council"
+source_file = "R5f"
+source_url = "https://www.legislation.gov.uk/eudr/2014/53/article/3"
+tag = "V"
+human_confirms_applicability = true
+trigger = "Radio equipment placed on the EU market."
+applies_if = [ { field = "has_radio", op = "true", value = true }, { field = "target_markets", op = "in", value = "EU" } ]
+needs_human = "Legal applicability; the harmonised spectrum standard per radio and its OJ citation status; notified-body route where none is cited."
+
+[[standard]]
+id = "en-301-489-1"
+name = "ETSI EN 301 489-1 -- EMC for radio equipment, common technical requirements"
+edition = "V2.2.3 (2019-11) [V, ETSI]; EU OJ citation under RED not read (EUR-Lex blocked) [U]; not a separate row in the GB designated list v10 (cited inside part-specific rows)"
+body = "ETSI TC ERM"
+source_file = "R5f"
+source_url = "https://www.etsi.org/deliver/etsi_en/301400_301499/30148901/02.02.03_60/en_30148901v020203p.pdf"
+tag = "V"
+human_confirms_applicability = true
+trigger = "Radio equipment and ancillary equipment, EMC (scope names RED art. 3.1(b)); used together with the radio-specific EN 301 489 part."
+applies_if = [ { field = "has_radio", op = "true", value = true }, { field = "target_markets", op = "any_in", value = ["EU", "UK"] } ]
+needs_human = "Legal applicability; confirm the currently cited version in the EU OJ and the GB designated list; accredited EMC lab."
+
+[[standard]]
+id = "en-301-489-17"
+name = "ETSI EN 301 489-17 -- EMC, broadband and wideband data transmission systems (2.4 GHz Wi-Fi/BLE/802.15.4)"
+edition = "V3.3.1 (2024-09) [V, ETSI]; GB designated from 2025-07-19 with 2 restrictions [V]; EU OJ citation [U]"
+body = "ETSI TC ERM"
+source_file = "R5f"
+source_url = "https://www.etsi.org/deliver/etsi_en/301400_301499/30148917/03.03.01_60/en_30148917v030301p.pdf"
+tag = "V"
+human_confirms_applicability = true
+trigger = "Wideband data equipment in the 2.4 GHz band covered by EN 300 328 (its scope table lists EN 300 328 equipment)."
+applies_if = [ { field = "radios", op = "any_in", value = ["wifi_2g4", "ble", "ieee802154_2g4"] }, { field = "target_markets", op = "any_in", value = ["EU", "UK"] } ]
+needs_human = "Legal applicability; GB restriction 2 (no presumption for reg 6(2) if clause 6 is applied); EU OJ status; accredited EMC lab."
+
+[[standard]]
+id = "en-301-489-3"
+name = "ETSI EN 301 489-3 -- EMC, short range devices 9 kHz to 246 GHz (60 GHz radar)"
+edition = "V2.3.2 (2023-01) [V, ETSI]; GB designated from 2025-07-19 [V]; EU OJ citation [U]"
+body = "ETSI TC ERM"
+source_file = "R5f"
+source_url = "https://www.etsi.org/deliver/etsi_en/301400_301499/30148903/02.03.02_60/en_30148903v020302p.pdf"
+tag = "V"
+human_confirms_applicability = true
+trigger = "Short range devices, including radiodetermination SRDs such as a 60 GHz presence radar (EN 301 489-17's scope table does not include 60 GHz radar)."
+applies_if = [ { field = "radios", op = "any_in", value = ["radar_60ghz"] }, { field = "target_markets", op = "any_in", value = ["EU", "UK"] } ]
+needs_human = "Legal applicability; SRD category per its Table 1; EU OJ status; accredited EMC lab."
+
+[[standard]]
+id = "en-300-328"
+name = "ETSI EN 300 328 -- 2.4 GHz wideband data transmission (Wi-Fi, BLE, IEEE 802.15.4), spectrum"
+edition = "V2.2.2 (2019-07) [V, ETSI]; GB designated from 2021-01-01 [V]; EU OJ citation [U]"
+body = "ETSI TC ERM"
+source_file = "R5f"
+source_url = "https://www.etsi.org/deliver/etsi_en/300300_300399/300328/02.02.02_60/en_300328v020202p.pdf"
+tag = "V"
+human_confirms_applicability = true
+trigger = "Wideband data transmission equipment transmitting in 2400-2483.5 MHz (scope names RED art. 3.2)."
+applies_if = [ { field = "radios", op = "any_in", value = ["wifi_2g4", "ble", "ieee802154_2g4"] }, { field = "target_markets", op = "any_in", value = ["EU", "UK"] } ]
+needs_human = "Legal applicability; adaptive/non-adaptive classification; EU OJ status; whether a pre-certified module's reports cover the integrated product; accredited radio lab."
+
+[[standard]]
+id = "en-305-550-radar-60ghz"
+name = "ETSI EN 305 550 series -- 60 GHz (57-64 GHz) radiodetermination SRD, spectrum"
+edition = "Part 3 'Radiodetermination for consumer applications within 57 GHz to 64 GHz, ...' is planned (EN 305 550-6 V1.2.1 foreword) but NO published EN 305 550-3 found at ETSI on 2026-09-25 [U edition]; EN 305 550-2 V1.2.1 (2014, R&TTE-era, 40-246 GHz) GB designated from 2021-01-01 with a receiver restriction [V]; its EU status under RED [U]"
+body = "ETSI TC ERM"
+source_file = "R5f"
+source_url = "https://www.etsi.org/deliver/etsi_en/305500_305599/30555006/01.02.01_60/en_30555006v010201p.pdf ; https://www.etsi.org/deliver/etsi_en/305500_305599/"
+tag = "U"
+human_confirms_applicability = true
+trigger = "A radar / field-disturbance sensor transmitting in 57-64 GHz placed on the EU or GB market."
+applies_if = [ { field = "radios", op = "any_in", value = ["radar_60ghz"] }, { field = "target_markets", op = "any_in", value = ["EU", "UK"] } ]
+needs_human = "Legal applicability AND the edition: with no published consumer-radar part, a qualified human decides the EU conformity-assessment route (notified body?) and whether EN 305 550-2 V1.2.1 still gives presumption in GB for this use."
+
+[[standard]]
+id = "fcc-15-247"
+name = "FCC 47 CFR 15.247 -- 902-928 MHz, 2400-2483.5 MHz, 5725-5850 MHz (DTS / FHSS)"
+edition = "eCFR issue 2026-09-23; last amended 85 FR 18149 (2020-04-01)"
+body = "FCC"
+source_file = "R5f"
+source_url = "https://www.ecfr.gov/api/versioner/v1/full/2026-09-23/title-47.xml?part=15&section=15.247"
+tag = "V"
+human_confirms_applicability = true
+trigger = "Frequency-hopping or digitally modulated intentional radiators in the 2.4 GHz band (Wi-Fi, BLE, IEEE 802.15.4) sold in the US."
+applies_if = [ { field = "radios", op = "any_in", value = ["wifi_2g4", "ble", "ieee802154_2g4"] }, { field = "target_markets", op = "in", value = "US" } ]
+needs_human = "Legal applicability; whether a modular grant covers the integrated product (co-location, 15.21-type statements); TCB certification; accredited lab."
+
+[[standard]]
+id = "fcc-15-255"
+name = "FCC 47 CFR 15.255 -- operation within 57-71 GHz (incl. field disturbance sensors/radars)"
+edition = "eCFR issue 2026-09-23; last amended 88 FR 47394 (2023-07-24)"
+body = "FCC"
+source_file = "R5f"
+source_url = "https://www.ecfr.gov/api/versioner/v1/full/2026-09-23/title-47.xml?part=15&section=15.255"
+tag = "V"
+human_confirms_applicability = true
+trigger = "A radar / field disturbance sensor transmitting in 57-71 GHz sold in the US."
+applies_if = [ { field = "radios", op = "any_in", value = ["radar_60ghz"] }, { field = "target_markets", op = "in", value = "US" } ]
+needs_human = "Legal applicability; compare the radar's peak EIRP and conducted power with 15.255(c)(2)-(3) (field-disturbance-sensor limits); TCB certification; accredited lab."
+
+[[standard]]
+id = "ised-rss-247"
+name = "ISED RSS-247 -- DTS, FHSS and LE-LAN devices (2.4 GHz Wi-Fi/BLE/802.15.4)"
+edition = "Issue 4 (2025-07-24)"
+body = "ISED Canada"
+source_file = ["R5e", "R5f"]
+source_url = "https://ised-isde.canada.ca/site/spectrum-management-telecommunications/en/devices-and-equipment/radio-equipment-standards/radio-standards-specifications-rss/rss-247-digital-transmission-systems-dtss-frequency-hopping-systems-fhss-and-licence-exempt-local"
+tag = "V"
+human_confirms_applicability = true
+trigger = "Licence-exempt DTS/FHSS radios in 902-928 MHz, 2.4 GHz or 5 GHz sold in Canada."
+applies_if = [ { field = "radios", op = "any_in", value = ["wifi_2g4", "ble", "ieee802154_2g4"] }, { field = "target_markets", op = "in", value = "CA" } ]
+needs_human = "Legal applicability; ISED certification of the integrated product or module; accredited lab."
+
+[[standard]]
+id = "ised-rss-210"
+name = "ISED RSS-210 Annex J -- licence-exempt devices in 57-71 GHz (incl. field disturbance sensors/radars)"
+edition = "Issue 11 (2024-06-25); six-month transition from publication"
+body = "ISED Canada"
+source_file = "R5f"
+source_url = "https://ised-isde.canada.ca/site/spectrum-management-telecommunications/en/devices-and-equipment/radio-equipment-standards/radio-standards-specifications-rss/rss-210-licence-exempt-radio-apparatus-category-i-equipment"
+tag = "V"
+human_confirms_applicability = true
+trigger = "A radar / field disturbance sensor transmitting in 57-71 GHz sold in Canada."
+applies_if = [ { field = "radios", op = "any_in", value = ["radar_60ghz"] }, { field = "target_markets", op = "in", value = "CA" } ]
+needs_human = "Legal applicability; Annex J limits for the radar; ISED certification; accredited lab."
+
+# ---------------------------------------------------------------------------
+# Profile vocabularies (FAIL-0001, FAIL-0002, FAIL-0004). verify.py rejects
+# any profile value not listed here, naming the valid ones.
+# ---------------------------------------------------------------------------
+
+# target_markets. Codes per ISO 3166-1 alpha-2 (US, CA assigned; EU and UK
+# "exceptionally reserved"; GB is the assigned code for the UK, accepted as
+# an alias) -- R5f [R], iso.org returned 403. Adding a market means adding
+# sourced rows for it first.
+[[market]]
+code = "US"
+name = "United States"
+source_file = "R5f"
+
+[[market]]
+code = "CA"
+name = "Canada"
+source_file = "R5f"
+
+[[market]]
+code = "EU"
+name = "European Union (single market)"
+source_file = "R5f"
+
+[[market]]
+code = "UK"
+name = "United Kingdom (GB rows; Northern Ireland follows separate rules)"
+aliases = ["GB"]
+source_file = "R5f"
+
+# power_source values (a list; a legacy string such as "battery_and_mains"
+# is split on "_and_").
+[[power_source]]
+id = "mains"
+name = "connected directly to AC mains"
+
+[[power_source]]
+id = "external_adapter"
+name = "powered from a separate external power supply / wall adapter"
+
+[[power_source]]
+id = "usb"
+name = "powered over a USB connector (from a host or a USB wall adapter)"
+
+[[power_source]]
+id = "battery"
+name = "internal battery (primary or rechargeable)"
+
+# radios: Forge ids for the radio technologies the data file has rows for.
+# A radio outside this list (5 GHz Wi-Fi, LTE, NFC, sub-GHz, ...) fails the
+# check until sourced rows and an id are added here.
+[[radio]]
+id = "wifi_2g4"
+family = "wifi"
+name = "IEEE 802.11 Wi-Fi transmitting in 2400-2483.5 MHz"
+
+[[radio]]
+id = "ble"
+family = "bluetooth"
+name = "Bluetooth / Bluetooth LE (2.4 GHz)"
+
+[[radio]]
+id = "ieee802154_2g4"
+family = "ieee802154"
+name = "IEEE 802.15.4 (Thread, Zigbee) in the 2.4 GHz band"
+
+[[radio]]
+id = "radar_60ghz"
+family = "radar"
+name = "radar / field disturbance sensor in 57-64 GHz"
+
+# radio_family: the requirements/params cross-check (FAIL-0002). A family
+# is "named by the project" when ANY pattern (Python regex) matches the text
+# of requirements/*.md or params/params.toml. The profile must then list a
+# radio of that family in `radios`, or explain its absence in
+# [radios_excluded] (e.g. a requirement that says the product shall NOT
+# use Bluetooth). Patterns are deliberately narrow: "BLE" is upper-case
+# whole-word only (so "table", "cable" never match), "Thread" is NOT matched
+# (screw threads), and radar needs "radar", "mmWave", "FMCW" or a 57-64 GHz
+# frequency.
+[[radio_family]]
+id = "wifi"
+patterns = ['(?i)\bwi-?fi\b', '(?i)\b802\.11(?:[a-z]{1,2})?\b', '\bWLAN\b']
+
+[[radio_family]]
+id = "bluetooth"
+patterns = ['(?i)\bbluetooth\b', '\bBLE\b']
+
+[[radio_family]]
+id = "ieee802154"
+patterns = ['\b802\.15\.4\b', '(?i)\bzigbee\b']
+
+[[radio_family]]
+id = "radar"
+patterns = ['(?i)\bradar\b', '(?i)\bmm-?wave\b', '\bFMCW\b', '(?i)\b(?:5[7-9]|6[0-4])(?:[.,]\d+)?\s?GHz\b']

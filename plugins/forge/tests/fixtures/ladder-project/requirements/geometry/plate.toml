@@ -1,0 +1,39 @@
+# Ladder fixture: numeric geometry checks on cad/plate.py (REQ text in
+# ../requirements.md). Limits come from params/params.toml where they can.
+[part]
+name = "plate"
+module = "cad/plate.py"
+
+[[check]]
+family = "geometry.validity"
+requirement = "REQ-MECH-001"
+
+[[check]]
+family = "geometry.watertight"
+requirement = "REQ-MECH-001"
+
+[[check]]
+family = "geometry.bbox"
+requirement = "REQ-MECH-001"
+axis = "x"
+min_mm = 59.9
+max_mm = 60.1
+
+[[check]]
+family = "geometry.bbox"
+requirement = "REQ-MECH-001"
+axis = "y"
+min_mm = 39.9
+max_mm = 40.1
+
+[[check]]
+family = "geometry.min_wall"
+requirement = "REQ-MECH-002"
+min_mm_param = "plate.min_thickness"
+sample_count = 600
+
+[[check]]
+family = "geometry.hole_edge"
+requirement = "REQ-MECH-003"
+boundary_face = "bottom"
+min_mm = 3.0

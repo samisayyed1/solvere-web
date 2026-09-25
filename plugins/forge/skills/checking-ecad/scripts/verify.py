@@ -138,6 +138,33 @@ def run_kicad_cli(argv: list[str], *, timeout: int = 120) -> subprocess.Complete
     return subprocess.run(argv, capture_output=True, text=True, timeout=timeout)
 
 
+# `--exit-code-violations` makes kicad-cli exit 5 when violations were found and 0
+# when none were; any other code (3 = failed to load the file, etc.) means the
+# tool never produced a real report at all. Trusting an empty/absent report as
+# "0 violations" turns a load failure into a silent PASS (S1, review-2 addendum:
+# a garbage .kicad_sch loaded as "0 errors" -- kicad-cli's own stderr was
+# "Failed to load schematic", rc=3, and nothing was ever written to the report
+# path).
+_ERC_DRC_OK_RETURNCODES = (0, 5)
+
+
+def _run_erc_drc_pass(kicad_cli: str, subcmd: list[str], report_json: Path, input_path: Path,
+                       *, kind: str) -> dict[str, Any]:
+    """Runs an ERC/DRC pass and returns its parsed report, or raises EcadCheckError
+    (never returns ``{}`` in place of a report kicad-cli failed to produce)."""
+    proc = run_kicad_cli([kicad_cli, *subcmd, "--format", "json", "--exit-code-violations",
+                          "-o", str(report_json), str(input_path)])
+    if proc.returncode not in _ERC_DRC_OK_RETURNCODES or not report_json.exists():
+        detail = (proc.stderr or proc.stdout or "").strip() or "no output"
+        raise EcadCheckError(
+            f"kicad-cli {kind} on {input_path} exited {proc.returncode} (expected 0 = clean or "
+            f"5 = violations found) and {'wrote no report' if not report_json.exists() else 'wrote a report anyway'}: "
+            f"{detail!r}. The file likely failed to load (corrupt or non-KiCad content) -- open it in KiCad to "
+            "confirm it's valid, or regenerate it, then re-run this check."
+        )
+    return json.loads(report_json.read_text())
+
+
 def _flatten_violations(report: dict[str, Any]) -> list[dict[str, Any]]:
     """Normalises both the ERC shape (``sheets[].violations[]``) and the DRC shape
     (top-level ``violations``/``unconnected_items``/``schematic_parity``) into one flat list."""
@@ -176,9 +203,7 @@ def check_erc_drc(chk: Check, board_paths: dict[str, Path], project: Path, out_d
                    waivers: list[dict[str, Any]], kicad_cli: str) -> None:
     if "sch" in board_paths:
         erc_json = out_dir / f"erc.{board_paths['sch'].stem}.json"
-        run_kicad_cli([kicad_cli, "sch", "erc", "--format", "json", "--exit-code-violations",
-                      "-o", str(erc_json), str(board_paths["sch"])])
-        report = json.loads(erc_json.read_text()) if erc_json.exists() else {}
+        report = _run_erc_drc_pass(kicad_cli, ["sch", "erc"], erc_json, board_paths["sch"], kind="sch erc")
         violations = _flatten_violations(report)
         unwaived, waived = apply_waivers(violations, waivers)
         errors = sum(1 for v in unwaived if v.get("severity") == "error")
@@ -195,9 +220,8 @@ def check_erc_drc(chk: Check, board_paths: dict[str, Path], project: Path, out_d
 
     if "pcb" in board_paths:
         drc_json = out_dir / f"drc.{board_paths['pcb'].stem}.json"
-        run_kicad_cli([kicad_cli, "pcb", "drc", "--format", "json", "--exit-code-violations",
-                      "-o", str(drc_json), str(board_paths["pcb"])])  # never --save-board
-        report = json.loads(drc_json.read_text()) if drc_json.exists() else {}
+        # never --save-board
+        report = _run_erc_drc_pass(kicad_cli, ["pcb", "drc"], drc_json, board_paths["pcb"], kind="pcb drc")
         violations = _flatten_violations(report)
         unwaived, waived = apply_waivers(violations, waivers)
         errors = sum(1 for v in unwaived if v.get("severity") == "error")

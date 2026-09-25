@@ -1,0 +1,36 @@
+lambda/2 free space = 2.4983 mm (MDS rounds to 2.5 mm)
+
+Radome thickness T = N * lambda/2 / sqrt(er)  [mm]
+  PC        er= 2.9: N=1: 1.47, N=2: 2.93, N=3: 4.40
+  ABS low   er= 2.0: N=1: 1.77, N=2: 3.53, N=3: 5.30
+  ABS high  er= 3.5: N=1: 1.34, N=2: 2.67, N=3: 4.01
+  PMMA      er= 2.6: N=1: 1.55, N=2: 3.10, N=3: 4.65
+  PE        er= 2.3: N=1: 1.65, N=2: 3.29, N=3: 4.94
+  PBT high  er= 4.0: N=1: 1.25, N=2: 2.50, N=3: 3.75
+
+Largest er for which T(N) >= process minimum wall
+  FDM                min 1.2 mm: N=1: er<=4.33, N=2: er<=17.34, N=3: er<=39.01
+  SLA (unsupported)  min 1.0 mm: N=1: er<=6.24, N=2: er<=24.97, N=3: er<=56.17
+  MJF (PN)           min 2.5 mm: N=1: er<=1.00, N=2: er<=3.99, N=3: er<=8.99
+
+Conservative antenna half-aperture (module half-diagonal) a = 20.11 mm
+  d = 2.5 mm (N=1): keep-out radius at radome inner face = 24.44 mm, dia 48.9 mm
+  d = 5.0 mm (N=2): keep-out radius at radome inner face = 28.77 mm, dia 57.5 mm
+  d = 7.5 mm (N=3): keep-out radius at radome inner face = 33.10 mm, dia 66.2 mm
+
+Slant path through a flat radome at the cone edge = T / cos(60 deg) (no refraction: upper bound only, see refraction-corrected figures below) = 2.00 x T
+
+Band-edge phase error of the half-wave conditions (fractional offset 0.0333):
+  N=1: gap round-trip error 12 deg, radome one-way error 6 deg
+  N=2: gap round-trip error 24 deg, radome one-way error 12 deg
+  N=3: gap round-trip error 36 deg, radome one-way error 18 deg
+  PETG (Gregory 2022, 75-110 GHz): T N=1 1.527 mm, N=2 3.055 mm
+  Formlabs FR resin (TDS, 1 MHz only): T N=1 1.277 mm, N=2 2.553 mm
+  incidence 35 deg in air -> 20.5 deg inside er=2.675: path factor 1.068
+  incidence 44 deg in air -> 25.1 deg inside er=2.675: path factor 1.105
+  incidence 60 deg in air -> 32.0 deg inside er=2.675: path factor 1.179
+  3x3 m corner at h=2.2 m: 44.0 deg off boresight
+  3x3 m corner at h=3.0 m: 35.3 deg off boresight
+  FR resin HB 1.5 mm, N=1: needs er <= 2.77
+  FR resin V-1 2.5 mm, N=2: needs er <= 3.99
+  FR resin V-0 3.0 mm, N=2: needs er <= 2.77
