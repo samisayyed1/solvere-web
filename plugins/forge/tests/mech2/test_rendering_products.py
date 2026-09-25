@@ -15,7 +15,9 @@ SCRIPTS_DIR = SKILL_DIR / "scripts"
 VERIFY_PY = SCRIPTS_DIR / "verify.py"
 FORGE_PYTHON = Path.home() / ".forge" / "bin" / "forge-python"
 PY = str(FORGE_PYTHON) if FORGE_PYTHON.exists() else sys.executable
-BLENDER = Path("/Applications/Blender.app/Contents/MacOS/Blender")
+BLENDER = next((p for p in (Path("/Applications/Blender.app/Contents/MacOS/Blender"),
+                            Path.home() / ".forge" / "opt" / "blender" / "blender") if p.exists()),
+               Path("/Applications/Blender.app/Contents/MacOS/Blender"))
 
 SPEC = """
 [pack]

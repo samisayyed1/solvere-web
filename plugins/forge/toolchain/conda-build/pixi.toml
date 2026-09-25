@@ -1,0 +1,19 @@
+# Linux only (ADR-001 §8.L): the build toolchain for ngspice 47, built from the official
+# git tag (conda-forge stops at ngspice 41). Installed to ~/.forge/envs/build.
+[workspace]
+name = "forge-build-env"
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[dependencies]
+c-compiler = "*"
+cxx-compiler = "*"
+make = "*"
+autoconf = "*"
+automake = "*"
+libtool = "*"
+bison = "*"
+flex = "*"
+readline = "*"
+ncurses = "*"
+pkg-config = "*"

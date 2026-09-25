@@ -1,0 +1,17 @@
+# Linux only (ADR-001 §8.L): the core CLI tools the macOS path takes as preinstalled or from
+# brew (git, gh, uv, node), at the same pinned versions, from conda-forge. Installed to
+# ~/.forge/envs/core and linked into ~/.forge/bin, which forge doctor puts first on PATH.
+[workspace]
+name = "forge-core-env"
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[dependencies]
+git = "==2.52.0"
+gh = "==2.95.0"
+uv = "==0.11.17"
+nodejs = "==24.19.0"
+# srt's Linux backend: bubblewrap for the filesystem/namespace sandbox, socat for its
+# network proxy bridge. macOS uses Seatbelt and needs neither.
+bubblewrap = "==0.13.0"
+socat = "==1.8.1.3"

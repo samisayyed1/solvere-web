@@ -32,7 +32,11 @@ from forge.checkresult import Check, CheckContractError  # noqa: E402
 from render_pack import render_pack  # noqa: E402
 
 _SAFE = re.compile(r"[^a-z0-9_]+")
-BLENDER_REAL_PATH = Path("/Applications/Blender.app/Contents/MacOS/Blender")
+# Real executable paths per platform (install.sh): the macOS cask, then the Linux tarball.
+BLENDER_REAL_PATHS = (
+    Path("/Applications/Blender.app/Contents/MacOS/Blender"),
+    Path.home() / ".forge" / "opt" / "blender" / "blender",
+)
 BLENDER_RENDER_PY = Path(__file__).resolve().parent / "blender_render.py"
 
 
@@ -44,8 +48,9 @@ def _safe_name(name: str) -> str:
 def _resolve_blender() -> Path | None:
     """Resolve the REAL Blender executable path -- invoking it through the
     ~/.forge/bin/blender symlink was found to crash headlessly (see blender_render.py)."""
-    if BLENDER_REAL_PATH.exists():
-        return BLENDER_REAL_PATH
+    for real in BLENDER_REAL_PATHS:
+        if real.exists():
+            return real
     link = Path.home() / ".forge" / "bin" / "blender"
     if link.exists():
         return link.resolve()

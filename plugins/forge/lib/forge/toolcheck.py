@@ -15,6 +15,8 @@ and not an internal error.
 from __future__ import annotations
 
 import json
+import os
+import platform
 import re
 import subprocess
 from pathlib import Path
@@ -22,7 +24,49 @@ from typing import Any
 
 from .checks import CheckResult
 
-__all__ = ["ManifestError", "load_manifest", "check_tool_entry", "run_tool_checks"]
+__all__ = [
+    "ManifestError",
+    "load_manifest",
+    "check_tool_entry",
+    "run_tool_checks",
+    "platform_key",
+    "resolve_entry",
+]
+
+
+def platform_key() -> str:
+    """``darwin-arm64`` or ``linux-x86_64``: the key of a manifest entry's ``platforms`` map."""
+    return f"{platform.system().lower()}-{platform.machine().lower()}"
+
+
+def forge_home() -> Path:
+    return Path(os.environ.get("FORGE_HOME") or Path.home() / ".forge")
+
+
+def _expand(arg: str) -> str:
+    """Expand the portable prefixes the manifest uses: ``~/`` and ``$FORGE_HOME``."""
+    if arg.startswith("$FORGE_HOME"):
+        return str(forge_home()) + arg[len("$FORGE_HOME"):]
+    if arg.startswith("~/.forge"):
+        return str(forge_home()) + arg[len("~/.forge"):]
+    return os.path.expanduser(arg) if arg.startswith("~") else arg
+
+
+def resolve_entry(entry: dict[str, Any], plat: str | None = None) -> dict[str, Any]:
+    """Merge the entry's per-platform override (``platforms[<key>]``) over its base fields.
+
+    The same pinned ``version`` must hold on every platform: an override may change how a
+    tool is installed and found (``install``, ``path``, ``version_cmd``, ``version_regex``,
+    ``artifact_sha256``) but never what version it is, so an override that sets a different
+    ``version`` is rejected by :func:`check_tool_entry`.
+    """
+    plat = plat or platform_key()
+    merged = {k: v for k, v in entry.items() if k != "platforms"}
+    override = (entry.get("platforms") or {}).get(plat)
+    if isinstance(override, dict):
+        merged.update(override)
+        merged["_platform"] = plat
+    return merged
 
 
 class ManifestError(Exception):
@@ -48,10 +92,24 @@ def load_manifest(path: Path) -> dict[str, Any] | None:
     return data
 
 
-def check_tool_entry(entry: dict[str, Any], *, timeout: float = 20.0) -> CheckResult:
+def check_tool_entry(
+    entry: dict[str, Any], *, timeout: float = 20.0, plat: str | None = None
+) -> CheckResult:
+    base_version = entry.get("version")
+    entry = resolve_entry(entry, plat)
     tool_id = entry.get("id") or "<missing id>"
     check_id = f"tool:{tool_id}"
     version = entry.get("version")
+
+    if base_version and version != base_version:
+        return CheckResult(
+            id=check_id,
+            status="fail",
+            rule="A platform override may change how a tool is installed, never its pinned version (ADR-001 §8.L).",
+            measured=version,
+            expected=base_version,
+            fix=f"remove `version` from {tool_id!r}'s `platforms` override, or re-pin every platform via ADR.",
+        )
 
     if not version:
         return CheckResult(
@@ -97,9 +155,14 @@ def check_tool_entry(entry: dict[str, Any], *, timeout: float = 20.0) -> CheckRe
             fix=f"fix the `version_regex` for tool {tool_id!r}: {exc}",
         )
 
+    version_cmd = [_expand(str(a)) for a in version_cmd]
     rule = f"`{' '.join(version_cmd)}` output must match /{version_regex}/ and equal pinned version {version!r}."
+    # Bare tool names resolve from $FORGE_HOME/bin first: that is where the installer links
+    # the pinned builds, ahead of whatever the host has on PATH.
+    env = dict(os.environ)
+    env["PATH"] = str(forge_home() / "bin") + os.pathsep + env.get("PATH", "")
     try:
-        proc = subprocess.run(version_cmd, capture_output=True, text=True, timeout=timeout)
+        proc = subprocess.run(version_cmd, capture_output=True, text=True, timeout=timeout, env=env)
     except FileNotFoundError:
         return CheckResult(
             id=check_id,

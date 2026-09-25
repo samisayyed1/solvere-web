@@ -17,7 +17,12 @@
       "version_regex": "git version 2\\.52\\.0",
       "artifact_sha256": null,
       "smoke": "version check",
-      "smoke_result": "pass"
+      "smoke_result": "pass",
+      "platforms": {
+        "linux-x86_64": {
+          "install": "conda-forge git==2.52.0 via conda-core/pixi.lock (~/.forge/envs/core)"
+        }
+      }
     },
     {
       "id": "gh",
@@ -32,7 +37,12 @@
       "version_regex": "gh version 2\\.95\\.0",
       "artifact_sha256": null,
       "smoke": "version check",
-      "smoke_result": "pass"
+      "smoke_result": "pass",
+      "platforms": {
+        "linux-x86_64": {
+          "install": "conda-forge gh==2.95.0 via conda-core/pixi.lock (~/.forge/envs/core)"
+        }
+      }
     },
     {
       "id": "uv",
@@ -47,7 +57,12 @@
       "version_regex": "uv 0\\.11\\.17",
       "artifact_sha256": null,
       "smoke": "version check",
-      "smoke_result": "pass"
+      "smoke_result": "pass",
+      "platforms": {
+        "linux-x86_64": {
+          "install": "conda-forge uv==0.11.17 via conda-core/pixi.lock (~/.forge/envs/core)"
+        }
+      }
     },
     {
       "id": "node",
@@ -62,7 +77,12 @@
       "version_regex": "v24\\.19\\.0",
       "artifact_sha256": null,
       "smoke": "version check",
-      "smoke_result": "pass"
+      "smoke_result": "pass",
+      "platforms": {
+        "linux-x86_64": {
+          "install": "conda-forge nodejs==24.19.0 via conda-core/pixi.lock (~/.forge/envs/core)"
+        }
+      }
     },
     {
       "id": "pixi",
@@ -77,211 +97,283 @@
       "version_regex": "pixi 0\\.81\\.0",
       "artifact_sha256": null,
       "smoke": "version check",
-      "smoke_result": "pass"
+      "smoke_result": "pass",
+      "platforms": {
+        "linux-x86_64": {
+          "install": "conda-forge pixi-0.81.0-hf01adef_0.conda (linux-64), sha256-verified, unpacked to ~/.forge/bin/pixi",
+          "artifact_sha256": "691c4f465b27b9ed0aeee0849c5a1f8b234f1ef02d4c7d7572855bcca84d3e10"
+        }
+      }
     },
     {
       "id": "sandbox-runtime",
       "tier": "core",
       "version": "0.0.77",
       "install": "npm @anthropic-ai/sandbox-runtime (lockfile, --ignore-scripts)",
-      "path": "/Users/samisayyed/.forge/bin/srt",
+      "path": "~/.forge/bin/srt",
       "version_cmd": [
         "node",
         "-p",
-        "require('/Users/samisayyed/.forge/envs/node/node_modules/@anthropic-ai/sandbox-runtime/package.json').version"
+        "require(require('os').homedir()+'/.forge/envs/node/node_modules/@anthropic-ai/sandbox-runtime/package.json').version"
       ],
       "version_regex": "^0\\.0\\.77$",
       "artifact_sha256": null,
       "smoke": "version check",
-      "smoke_result": "pass"
+      "smoke_result": "pass",
+      "platforms": {
+        "linux-x86_64": {
+          "install": "npm @anthropic-ai/sandbox-runtime (lockfile, --ignore-scripts) (same lockfile, linux wheels/packages)"
+        }
+      }
     },
     {
       "id": "python-cad",
       "tier": "mech",
       "version": "3.12",
       "install": "uv python + uv.lock",
-      "path": "/Users/samisayyed/.forge/envs/cad/bin/python",
+      "path": "~/.forge/envs/cad/bin/python",
       "version_cmd": [
-        "/Users/samisayyed/.forge/envs/cad/bin/python",
+        "~/.forge/envs/cad/bin/python",
         "--version"
       ],
       "version_regex": "Python 3\\.12\\.",
       "artifact_sha256": null,
       "smoke": "version check",
-      "smoke_result": "pass"
+      "smoke_result": "pass",
+      "platforms": {
+        "linux-x86_64": {
+          "install": "uv python + uv.lock (same lockfile, linux wheels/packages)"
+        }
+      }
     },
     {
       "id": "build123d",
       "tier": "mech",
       "version": "0.11.1",
       "install": "uv.lock (python/cad)",
-      "path": "/Users/samisayyed/.forge/envs/cad/bin/python",
+      "path": "~/.forge/envs/cad/bin/python",
       "version_cmd": [
-        "/Users/samisayyed/.forge/envs/cad/bin/python",
+        "~/.forge/envs/cad/bin/python",
         "-c",
         "import importlib.metadata as m;print(m.version('build123d'))"
       ],
       "version_regex": "^0\\.11\\.1$",
       "artifact_sha256": null,
       "smoke": "smoke_cad.py: 20x10x5 mm box, 3 mm hole; volume vs hand calc; STEP/STL export; offscreen PNG",
-      "smoke_result": "pass: volume 964.6571 mm3, rel_err 2.4e-16"
+      "smoke_result": "pass: volume 964.6571 mm3, rel_err 2.4e-16",
+      "platforms": {
+        "linux-x86_64": {
+          "install": "uv.lock (python/cad) (same lockfile, linux wheels/packages)"
+        }
+      }
     },
     {
       "id": "cadquery-ocp-novtk",
       "tier": "mech",
       "version": "7.9.3.1",
       "install": "uv.lock (python/cad)",
-      "path": "/Users/samisayyed/.forge/envs/cad/bin/python",
+      "path": "~/.forge/envs/cad/bin/python",
       "version_cmd": [
-        "/Users/samisayyed/.forge/envs/cad/bin/python",
+        "~/.forge/envs/cad/bin/python",
         "-c",
         "import importlib.metadata as m;print(m.version('cadquery-ocp-novtk'))"
       ],
       "version_regex": "^7\\.9\\.3\\.1$",
       "artifact_sha256": null,
       "smoke": "version check",
-      "smoke_result": "pass"
+      "smoke_result": "pass",
+      "platforms": {
+        "linux-x86_64": {
+          "install": "uv.lock (python/cad) (same lockfile, linux wheels/packages)"
+        }
+      }
     },
     {
       "id": "trimesh",
       "tier": "mech",
       "version": "5.1.0",
       "install": "uv.lock (python/cad)",
-      "path": "/Users/samisayyed/.forge/envs/cad/bin/python",
+      "path": "~/.forge/envs/cad/bin/python",
       "version_cmd": [
-        "/Users/samisayyed/.forge/envs/cad/bin/python",
+        "~/.forge/envs/cad/bin/python",
         "-c",
         "import importlib.metadata as m;print(m.version('trimesh'))"
       ],
       "version_regex": "^5\\.1\\.0$",
       "artifact_sha256": null,
       "smoke": "version check",
-      "smoke_result": "pass"
+      "smoke_result": "pass",
+      "platforms": {
+        "linux-x86_64": {
+          "install": "uv.lock (python/cad) (same lockfile, linux wheels/packages)"
+        }
+      }
     },
     {
       "id": "pyvista",
       "tier": "mech",
       "version": "0.49.0",
       "install": "uv.lock (python/cad)",
-      "path": "/Users/samisayyed/.forge/envs/cad/bin/python",
+      "path": "~/.forge/envs/cad/bin/python",
       "version_cmd": [
-        "/Users/samisayyed/.forge/envs/cad/bin/python",
+        "~/.forge/envs/cad/bin/python",
         "-c",
         "import importlib.metadata as m;print(m.version('pyvista'))"
       ],
       "version_regex": "^0\\.49\\.0$",
       "artifact_sha256": null,
       "smoke": "version check",
-      "smoke_result": "pass"
+      "smoke_result": "pass",
+      "platforms": {
+        "linux-x86_64": {
+          "install": "uv.lock (python/cad) (same lockfile, linux wheels/packages)"
+        }
+      }
     },
     {
       "id": "vtk",
       "tier": "mech",
       "version": "9.7.0",
       "install": "uv.lock (python/cad)",
-      "path": "/Users/samisayyed/.forge/envs/cad/bin/python",
+      "path": "~/.forge/envs/cad/bin/python",
       "version_cmd": [
-        "/Users/samisayyed/.forge/envs/cad/bin/python",
+        "~/.forge/envs/cad/bin/python",
         "-c",
         "import importlib.metadata as m;print(m.version('vtk'))"
       ],
       "version_regex": "^9\\.7\\.0$",
       "artifact_sha256": null,
       "smoke": "version check",
-      "smoke_result": "pass"
+      "smoke_result": "pass",
+      "platforms": {
+        "linux-x86_64": {
+          "install": "uv.lock (python/cad) (same lockfile, linux wheels/packages)"
+        }
+      }
     },
     {
       "id": "gmsh",
       "tier": "mech",
       "version": "4.15.2",
       "install": "uv.lock (python/cad)",
-      "path": "/Users/samisayyed/.forge/envs/cad/bin/python",
+      "path": "~/.forge/envs/cad/bin/python",
       "version_cmd": [
-        "/Users/samisayyed/.forge/envs/cad/bin/python",
+        "~/.forge/envs/cad/bin/python",
         "-c",
         "import importlib.metadata as m;print(m.version('gmsh'))"
       ],
       "version_regex": "^4\\.15\\.2$",
       "artifact_sha256": null,
       "smoke": "version check",
-      "smoke_result": "pass"
+      "smoke_result": "pass",
+      "platforms": {
+        "linux-x86_64": {
+          "install": "uv.lock (python/cad) (same lockfile, linux wheels/packages)"
+        }
+      }
     },
     {
       "id": "skidl",
       "tier": "elec",
       "version": "2.3.0",
       "install": "uv.lock (python/cad)",
-      "path": "/Users/samisayyed/.forge/envs/cad/bin/python",
+      "path": "~/.forge/envs/cad/bin/python",
       "version_cmd": [
-        "/Users/samisayyed/.forge/envs/cad/bin/python",
+        "~/.forge/envs/cad/bin/python",
         "-c",
         "import importlib.metadata as m;print(m.version('skidl'))"
       ],
       "version_regex": "^2\\.3\\.0$",
       "artifact_sha256": null,
       "smoke": "version check",
-      "smoke_result": "pass"
+      "smoke_result": "pass",
+      "platforms": {
+        "linux-x86_64": {
+          "install": "uv.lock (python/cad) (same lockfile, linux wheels/packages)"
+        }
+      }
     },
     {
       "id": "ezdxf",
       "tier": "mech",
       "version": "1.4.4",
       "install": "uv.lock (python/cad)",
-      "path": "/Users/samisayyed/.forge/envs/cad/bin/python",
+      "path": "~/.forge/envs/cad/bin/python",
       "version_cmd": [
-        "/Users/samisayyed/.forge/envs/cad/bin/python",
+        "~/.forge/envs/cad/bin/python",
         "-c",
         "import importlib.metadata as m;print(m.version('ezdxf'))"
       ],
       "version_regex": "^1\\.4\\.4$",
       "artifact_sha256": null,
       "smoke": "version check",
-      "smoke_result": "pass"
+      "smoke_result": "pass",
+      "platforms": {
+        "linux-x86_64": {
+          "install": "uv.lock (python/cad) (same lockfile, linux wheels/packages)"
+        }
+      }
     },
     {
       "id": "build123d-mcp",
       "tier": "mech",
       "version": "0.3.87",
       "install": "uv.lock (python/build123d-mcp); launched only via forge-mcp-guard",
-      "path": "/Users/samisayyed/.forge/bin/build123d-mcp",
+      "path": "~/.forge/bin/build123d-mcp",
       "version_cmd": [
-        "/Users/samisayyed/.forge/bin/build123d-mcp",
+        "~/.forge/bin/build123d-mcp",
         "--version"
       ],
       "version_regex": "0\\.3\\.87",
       "artifact_sha256": null,
       "smoke": "--help lists --tools, --memory-limit-mb, --cpu-limit-s, --exec-timeout",
-      "smoke_result": "pass"
+      "smoke_result": "pass",
+      "platforms": {
+        "linux-x86_64": {
+          "install": "uv.lock (python/build123d-mcp); launched only via forge-mcp-guard (same lockfile, linux wheels/packages)"
+        }
+      }
     },
     {
       "id": "freecad",
       "tier": "mech",
       "version": "1.1.3",
       "install": "brew cask freecad",
-      "path": "/Users/samisayyed/.forge/bin/freecadcmd",
+      "path": "~/.forge/bin/freecadcmd",
       "version_cmd": [
-        "/Users/samisayyed/.forge/bin/freecadcmd",
+        "~/.forge/bin/freecadcmd",
         "--version"
       ],
       "version_regex": "FreeCAD 1\\.1\\.3",
       "artifact_sha256": null,
       "smoke": "version check",
-      "smoke_result": "pass"
+      "smoke_result": "pass",
+      "platforms": {
+        "linux-x86_64": {
+          "install": "conda-forge freecad==1.1.3 via conda-freecad/pixi.lock (~/.forge/envs/freecad)"
+        }
+      }
     },
     {
       "id": "kicad-cli",
       "tier": "elec",
       "version": "10.0.6",
       "install": "official DMG (cask URL), sha256-verified; suite in /Applications/KiCad",
-      "path": "/Users/samisayyed/.forge/bin/kicad-cli",
+      "path": "~/.forge/bin/kicad-cli",
       "version_cmd": [
-        "/Users/samisayyed/.forge/bin/kicad-cli",
+        "~/.forge/bin/kicad-cli",
         "version"
       ],
       "version_regex": "^10\\.0\\.6",
       "artifact_sha256": "ef4dcd4278c46d3efcd28c8db273d5957d68efda028f6bf79b4811fc5302dc68",
       "smoke": "sch erc --format json --exit-code-violations on demo 'sonde xilinx'",
-      "smoke_result": "pass: exit 5 with 31 violations (check can fail)"
+      "smoke_result": "pass: exit 5 with 31 violations (check can fail)",
+      "platforms": {
+        "linux-x86_64": {
+          "install": "kicad-10.0-releases PPA .deb + deps from Ubuntu snapshot 20260925T000000Z, gpgv + sha256 per linux/debs.lock.json, unpacked (no root) to ~/.forge/opt/kicad",
+          "artifact_sha256": "a4920d3fc7b5719b8d5efa4ee24603a4313b50a53409bb5417f50770ce73926d"
+        }
+      }
     },
     {
       "id": "ngspice",
@@ -296,124 +388,168 @@
       "version_regex": "ngspice-47",
       "artifact_sha256": null,
       "smoke": "smoke/rc.cir batch -b -n: v(out) at tau vs 1-e^-1",
-      "smoke_result": "pass: 0.632120 V vs 0.632121 V"
+      "smoke_result": "pass: 0.632120 V vs 0.632121 V",
+      "platforms": {
+        "linux-x86_64": {
+          "install": "built from official git tag ngspice-47 (git.code.sf.net/p/ngspice/ngspice), commit a80f6e3e95d51534905b1f23410a951802666656 verified, toolchain conda-build/pixi.lock; prefix ~/.forge/opt/ngspice-47",
+          "artifact_sha256": null,
+          "source_commit": "a80f6e3e95d51534905b1f23410a951802666656"
+        }
+      }
     },
     {
       "id": "tscircuit",
       "tier": "elec",
       "version": "0.0.2646",
       "install": "npm lockfile, TSCI_TELEMETRY_DISABLED=1 wrapper",
-      "path": "/Users/samisayyed/.forge/bin/tsci",
+      "path": "~/.forge/bin/tsci",
       "version_cmd": [
-        "/Users/samisayyed/.forge/bin/tsci",
+        "~/.forge/bin/tsci",
         "--version"
       ],
       "version_regex": "0\\.0\\.2646",
       "artifact_sha256": null,
       "smoke": "version check",
-      "smoke_result": "pass"
+      "smoke_result": "pass",
+      "platforms": {
+        "linux-x86_64": {
+          "install": "npm lockfile, TSCI_TELEMETRY_DISABLED=1 wrapper (same lockfile, linux wheels/packages)"
+        }
+      }
     },
     {
       "id": "tscircuit-cli",
       "tier": "elec",
       "version": "0.1.2152",
       "install": "npm lockfile",
-      "path": "/Users/samisayyed/.forge/envs/node/node_modules/.bin/tscircuit-cli",
+      "path": "~/.forge/envs/node/node_modules/.bin/tscircuit-cli",
       "version_cmd": [
         "node",
         "-p",
-        "require('/Users/samisayyed/.forge/envs/node/node_modules/@tscircuit/cli/package.json').version"
+        "require(require('os').homedir()+'/.forge/envs/node/node_modules/@tscircuit/cli/package.json').version"
       ],
       "version_regex": "^0\\.1\\.2152$",
       "artifact_sha256": null,
       "smoke": "version check",
-      "smoke_result": "pass"
+      "smoke_result": "pass",
+      "platforms": {
+        "linux-x86_64": {
+          "install": "npm lockfile (same lockfile, linux wheels/packages)"
+        }
+      }
     },
     {
       "id": "kicad-mcp-pro",
       "tier": "elec",
       "version": "3.35.0",
       "install": "uv.lock (python/kicad-mcp-pro, py3.13); review/readonly profile via forge-mcp-guard",
-      "path": "/Users/samisayyed/.forge/envs/kicad-mcp-pro/bin/kicad-mcp-pro",
+      "path": "~/.forge/envs/kicad-mcp-pro/bin/kicad-mcp-pro",
       "version_cmd": [
-        "/Users/samisayyed/.forge/envs/kicad-mcp-pro/bin/python",
+        "~/.forge/envs/kicad-mcp-pro/bin/python",
         "-c",
         "import importlib.metadata as m;print(m.version('kicad-mcp-pro'))"
       ],
       "version_regex": "^3\\.35\\.0$",
       "artifact_sha256": "b2297186a61dfbf5fe57fce26a6b8d7fc5b0877514444a26d5b5786f50e017a0",
       "smoke": "version check",
-      "smoke_result": "pass"
+      "smoke_result": "pass",
+      "platforms": {
+        "linux-x86_64": {
+          "install": "uv.lock (python/kicad-mcp-pro, py3.13); review/readonly profile via forge-mcp-guard (same lockfile, linux wheels/packages)"
+        }
+      }
     },
     {
       "id": "calculix",
       "tier": "sim",
       "version": "2.23",
       "install": "conda-forge via pixi.lock",
-      "path": "/Users/samisayyed/.forge/bin/ccx",
+      "path": "~/.forge/bin/ccx",
       "version_cmd": [
-        "/Users/samisayyed/.forge/bin/ccx",
+        "~/.forge/bin/ccx",
         "-v"
       ],
       "version_regex": "Version 2\\.23",
       "artifact_sha256": null,
       "smoke": "smoke_ccx.py: C3D8I cantilever tip deflection vs Euler-Bernoulli",
-      "smoke_result": "pass: 0.19012 mm vs 0.19048 mm (-0.19 %)"
+      "smoke_result": "pass: 0.19012 mm vs 0.19048 mm (-0.19 %)",
+      "platforms": {
+        "linux-x86_64": {
+          "install": "conda-forge via pixi.lock (linux-64 section)"
+        }
+      }
     },
     {
       "id": "openjdk",
       "tier": "systems",
       "version": "21",
       "install": "conda-forge via pixi.lock",
-      "path": "/Users/samisayyed/.forge/envs/conda/.pixi/envs/default/lib/jvm/bin/java",
+      "path": "~/.forge/envs/conda/.pixi/envs/default/lib/jvm/bin/java",
       "version_cmd": [
-        "/Users/samisayyed/.forge/envs/conda/.pixi/envs/default/lib/jvm/bin/java",
+        "~/.forge/envs/conda/.pixi/envs/default/lib/jvm/bin/java",
         "-version"
       ],
       "version_regex": "version \"21\\.",
       "artifact_sha256": null,
       "smoke": "version check",
-      "smoke_result": "pass"
+      "smoke_result": "pass",
+      "platforms": {
+        "linux-x86_64": {
+          "install": "conda-forge via pixi.lock (linux-64 section)"
+        }
+      }
     },
     {
       "id": "jupyter-sysml-kernel",
       "tier": "systems",
       "version": "0.62.0",
       "install": "conda-forge via pixi.lock",
-      "path": "/Users/samisayyed/.forge/envs/conda/.pixi/envs/default",
+      "path": "~/.forge/envs/conda/.pixi/envs/default",
       "version_cmd": [
         "/bin/sh",
         "-c",
-        "ls /Users/samisayyed/.forge/envs/conda/.pixi/envs/default/conda-meta"
+        "ls ~/.forge/envs/conda/.pixi/envs/default/conda-meta"
       ],
       "version_regex": "jupyter-sysml-kernel-0\\.62\\.0-",
       "artifact_sha256": null,
       "smoke": "kernelspec list shows 'sysml'",
-      "smoke_result": "pass"
+      "smoke_result": "pass",
+      "platforms": {
+        "linux-x86_64": {
+          "install": "conda-forge via pixi.lock (linux-64 section)"
+        }
+      }
     },
     {
       "id": "spec42",
       "tier": "systems",
       "version": "0.53.1",
       "install": "GitHub release, sha256-verified",
-      "path": "/Users/samisayyed/.forge/bin/spec42",
+      "path": "~/.forge/bin/spec42",
       "version_cmd": [
-        "/Users/samisayyed/.forge/bin/spec42",
+        "~/.forge/bin/spec42",
         "--version"
       ],
       "version_regex": "spec42 0\\.53\\.1",
       "artifact_sha256": "33100ed09d33cd6263ce62742b1721d52df83054ba524033f9a0980eb83f7228",
       "smoke": "check: valid model exit 0; missing-brace model exit 1",
-      "smoke_result": "pass"
+      "smoke_result": "pass",
+      "platforms": {
+        "linux-x86_64": {
+          "install": "built with cargo --locked from git tag v0.53.1 (github.com/elan8/spec42), commit f0d268fcd84dbaa3626b0616e34b0610957d61c8 verified; rust 1.97.1 per rust-toolchain.toml",
+          "artifact_sha256": null,
+          "source_commit": "f0d268fcd84dbaa3626b0616e34b0610957d61c8"
+        }
+      }
     },
     {
       "id": "blender",
       "tier": "render",
       "version": "5.2.2",
       "install": "brew cask blender",
-      "path": "/Users/samisayyed/.forge/bin/blender",
+      "path": "~/.forge/bin/blender",
       "version_cmd": [
-        "/Users/samisayyed/.forge/bin/blender",
+        "~/.forge/bin/blender",
         "-b",
         "--factory-startup",
         "--version"
@@ -421,22 +557,38 @@
       "version_regex": "Blender 5\\.2\\.2",
       "artifact_sha256": null,
       "smoke": "version check",
-      "smoke_result": "pass"
+      "smoke_result": "pass",
+      "platforms": {
+        "linux-x86_64": {
+          "install": "official tarball download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz, sha256 = published blender-5.2.2.sha256",
+          "artifact_sha256": "84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168"
+        }
+      }
     },
     {
       "id": "renode",
       "tier": "embedded-sim",
       "version": "1.17.0",
       "install": "GitHub release DMG, sha256-verified",
-      "path": "/Users/samisayyed/.forge/bin/renode",
+      "path": "~/.forge/bin/renode",
       "version_cmd": [
-        "/Users/samisayyed/.forge/bin/renode",
+        "~/.forge/bin/renode",
         "--version"
       ],
       "version_regex": "v1\\.17\\.0",
       "artifact_sha256": "63b1fb691207f503cea937e4ec8fad3e068a517d0abac3c24c0206c62f6c4d12",
       "smoke": "version check",
-      "smoke_result": "pass"
+      "smoke_result": "pass",
+      "platforms": {
+        "linux-x86_64": {
+          "install": "official builds.renode.io/renode-1.17.0.linux-portable.tar.gz, sha256-verified (same server serves the osx-arm64 DMG byte-identical to the GitHub release pin)",
+          "artifact_sha256": "92a33d6aa79d3c8bf74c0d934447a048dbc76102def675d2e53de901acf300eb"
+        }
+      }
     }
+  ],
+  "platforms_supported": [
+    "darwin-arm64",
+    "linux-x86_64"
   ]
 }

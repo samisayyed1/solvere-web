@@ -2,7 +2,7 @@
 [workspace]
 name = "forge-conda-env"
 channels = ["conda-forge"]
-platforms = ["osx-arm64"]
+platforms = ["osx-arm64", "linux-64"]
 
 [dependencies]
 calculix = "==2.23"
@@ -10,3 +10,23 @@ jupyter-sysml-kernel = "==0.62.0"
 openjdk = "21.*"
 jupyter_client = "*"
 jupyter_core = "*"
+
+# Linux only (ADR-001 §8.L): the X11/GL runtime libraries that gmsh, VTK and OCP load with
+# dlopen. macOS ships these as system frameworks. They are installed here, in user space,
+# so the Linux path needs no root or apt.
+[target.linux-64.dependencies]
+libglu = "*"
+libgl = "*"
+libegl = "*"
+xorg-libxrender = "*"
+xorg-libxcursor = "*"
+xorg-libxft = "*"
+xorg-libxinerama = "*"
+xorg-libxi = "*"
+xorg-libsm = "*"
+xorg-libice = "*"
+libxkbcommon = "*"
+fontconfig = "*"
+# VTK offscreen rendering on a headless host (no X server, no GPU): Mesa llvmpipe behind
+# surfaceless EGL (Mesa 26 no longer ships OSMesa).
+mesalib = "*"

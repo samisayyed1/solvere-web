@@ -29,10 +29,9 @@ import sys
 import tomllib
 from pathlib import Path
 
-TEMPLATE = (
-    "/Applications/FreeCAD.app/Contents/Resources/share/Mod/TechDraw/Templates/"
-    "ASME/ANSIA_Landscape.svg"
-)
+# Relative to FreeCAD's resource dir, which differs per platform (the macOS app bundle vs
+# the Linux conda env), so it is resolved inside freecadcmd with FreeCAD.getResourceDir().
+TEMPLATE_REL = "Mod/TechDraw/Templates/ASME/ANSIA_Landscape.svg"
 MATCH_ABS_MM = 0.05
 MATCH_REL = 0.01
 
@@ -100,7 +99,7 @@ def main() -> int:
 
     page = doc.addObject("TechDraw::DrawPage", "Page")
     tmpl = doc.addObject("TechDraw::DrawSVGTemplate", "Template")
-    tmpl.Template = TEMPLATE
+    tmpl.Template = os.path.join(FreeCAD.getResourceDir(), TEMPLATE_REL)
     page.Template = tmpl
     doc.recompute()
 

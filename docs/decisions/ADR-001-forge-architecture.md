@@ -223,6 +223,31 @@ The smoke tests compare measured values with hand calculations:
 - **Syside:** CI support is paid.
 - **Quilter / Flux:** noted only.
 
+### 8.L Linux x86_64 path (added 2026-09-25, for the cloud build machine)
+
+The cloud machine is Ubuntu 24.04 on x86_64, with no brew, no root package installs and GitHub release downloads blocked by the network policy (github.com HTTPS is scoped per repository; git clones of public repositories work). `install.sh` detects the platform and sources `toolchain/linux/tiers.sh`. **Every version is the same as the macOS pin.** Only the artifact and its integrity anchor differ:
+
+| Component | Pin | Linux artifact | Integrity anchor |
+|---|---|---|---|
+| pixi | 0.81.0 | conda-forge `linux-64/pixi-0.81.0-hf01adef_0.conda` | sha256 `691c4f46…3e10` |
+| git, gh, uv, Node | 2.52.0, 2.95.0, 0.11.17, 24.19.0 | conda-forge, `conda-core/pixi.lock` | pixi lock (sha256 per package) |
+| CAD env, build123d-mcp, kicad-mcp-pro | as T1/T2 | the same universal `uv.lock` files (manylinux wheels) | uv lock hashes |
+| X11/GL runtime libs for gmsh/OCP | — | conda-forge in `conda/pixi.lock` (`[target.linux-64]`); only libGLU, libXft and libOpenGL are exposed on the private path `~/.forge/lib` | pixi lock |
+| CalculiX, SysML kernel, Java 21 | 2.23, 0.62.0, 21 | the same `conda/pixi.lock`, with a linux-64 section added (the osx-arm64 entries are byte-identical: 87 URLs before and after) | pixi lock |
+| FreeCAD | 1.1.3 | conda-forge `freecad==1.1.3`, `conda-freecad/pixi.lock` (the official Linux AppImage is a GitHub release asset) | pixi lock |
+| KiCad | 10.0.6 | the official `kicad-10.0-releases` PPA `.deb` plus its dependency closure from the Ubuntu snapshot `20260925T000000Z`, unpacked in user space by `linux/debfetch.py` (no root, no dpkg database) | PPA key fingerprint `FDA854F6…FAD7A805`, gpgv on every InRelease, Packages sha256 from InRelease, `.deb` sha256 from Packages, all 118 recorded in `linux/debs.lock.json`; kicad `.deb` `a4920d3f…926d` |
+| ngspice | 47 | built from the official git tag `ngspice-47` (conda-forge stops at 41, Ubuntu at 42), toolchain `conda-build/pixi.lock` | tag commit `a80f6e3e95d51534905b1f23410a951802666656`, checked before building |
+| spec42 | 0.53.1 | `cargo build --locked` from git tag `v0.53.1` (Rust 1.97.1 per its `rust-toolchain.toml`), embedding the OMG SysML stdlib KPARs (`Systems-Modeling/SysML-v2-Release` tag `2026-04`) and the elan8 domain (v0.3.0) and method (v0.2.0) libraries, which its release CI fetches as GitHub release assets | commits: spec42 `f0d268fc…61c8`, stdlib `9baca590…ea8f`, domain `e91156d4…7c03`, method `00e21183…d9e1`; `Cargo.lock` |
+| Blender | 5.2.2 | official `download.blender.org/.../blender-5.2.2-linux-x64.tar.xz` | sha256 `84098912…a168`, equal to Blender's published `blender-5.2.2.sha256` |
+| Renode | 1.17.0 | official `builds.renode.io/renode-1.17.0.linux-portable.tar.gz` | sha256 `92a33d6a…00eb`. The same server's `osx-arm64-portable.dmg` hashes to the GitHub-release pin `63b1fb69…4c12`, so it serves the same release. |
+| srt, tscircuit | as T0/T2 | the same `package-lock.json` | npm integrity hashes |
+
+`forge doctor` reads the same `manifest.json`. Each entry keeps one `version` and adds a `platforms["linux-x86_64"]` override for `install` and `artifact_sha256`. `toolcheck.resolve_entry` rejects any override that changes the version. Paths are written `~/.forge/...` and expanded per machine.
+
+Disk: `all` takes about 16 GiB on Linux (3.3 GiB of it is KiCad 3D models), so the Linux floor is 20 GiB free to start and 5 GiB free after (macOS stays at 25/25).
+
+Network: nothing had to be allowed. conda.anaconda.org, snapshot.ubuntu.com, ppa.launchpadcontent.net, keyserver.ubuntu.com, download.blender.org, builds.renode.io, pypi.org, crates.io and git clones of github.com/git.code.sf.net are all reachable under the "Trusted" policy. If the owner wants the GitHub release archives themselves (the macOS artifacts), **github.com release downloads** (`github.com/<owner>/<repo>/releases/download/...` and its `release-assets.githubusercontent.com` redirect) would have to be allowed for elan8/spec42, renode/renode and FreeCAD/FreeCAD.
+
 **Software side** (optional, owner approval — brief §2):
 - Keep gstack 1.58.5.0 pinned (upstream is 1.89.0.0; review the changelog before upgrading; no auto-upgrade; don't let `setup` add hooks).
 - Keep `claude-security` and `security-guidance`, with `ENABLE_STOP_REVIEW=0` in multi-agent worktrees.

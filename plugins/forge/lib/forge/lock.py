@@ -221,6 +221,19 @@ def build_entry(config: ServerConfig, probe) -> dict[str, Any]:
     }
 
 
+_REPO_ROOT = Path(__file__).resolve().parents[4]
+
+
+def expand_argv(argv: list[str]) -> list[str]:
+    """Expand the two portable tokens a launch command may use: ``${FORGE_HOME}`` (default
+    ``~/.forge``) and ``${REPO_ROOT}`` (this checkout). The config and the lock store the
+    tokens unexpanded, so a lock approved on one machine means the same launch spec on
+    another; only the spawned process sees real paths."""
+    forge_home = os.environ.get("FORGE_HOME") or str(Path.home() / ".forge")
+    repo_root = os.environ.get("FORGE_REPO_ROOT") or str(_REPO_ROOT)
+    return [a.replace("${FORGE_HOME}", forge_home).replace("${REPO_ROOT}", repo_root) for a in argv]
+
+
 def _prepare_env(names: list[str]) -> dict[str, str]:
     """Real env for launching a probed server: a safe base, plus any of the
     server's declared var *names* that happen to be set in this process's
@@ -239,7 +252,7 @@ def probe_and_build_entry(
     config: ServerConfig, *, timeout: float = 20.0, client_name: str = "forge-mcp-probe"
 ) -> dict[str, Any]:
     probe = probe_server(
-        config.command,
+        expand_argv(config.command),
         env=_prepare_env(config.env),
         cwd=config.cwd,
         timeout=timeout,

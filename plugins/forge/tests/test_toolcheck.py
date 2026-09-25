@@ -176,3 +176,63 @@ def test_check_result_with_fail_status_requires_a_fix_string():
 
     with pytest.raises(ValueError):
         CheckResult(id="x", status="fail", rule="something must hold")
+
+
+# ---- platform overrides and portable paths (ADR-001 §8.L) ------------------------------------
+
+
+def _entry(cmd: list[str], regex: str, **extra) -> dict:
+    return {"id": "t", "version": "1.2.3", "version_cmd": cmd, "version_regex": regex, **extra}
+
+
+def test_platform_override_changes_how_a_tool_is_found(tmp_path):
+    good = _fake_bin(tmp_path, "good", "tool 1.2.3")
+    bad = _fake_bin(tmp_path, "bad", "tool 9.9.9")
+    entry = _entry([str(bad)], r"tool 1\.2\.3",
+                   platforms={"linux-x86_64": {"version_cmd": [str(good)]}})
+    assert toolcheck.check_tool_entry(entry, plat="linux-x86_64").status == "pass"
+    # Seeded wrong: the same entry on a platform without the override runs the base
+    # command, which reports the wrong version, so the check must fail.
+    assert toolcheck.check_tool_entry(entry, plat="darwin-arm64").status == "fail"
+
+
+def test_platform_override_may_not_change_the_pinned_version(tmp_path):
+    good = _fake_bin(tmp_path, "good", "tool 2.0.0")
+    entry = _entry([str(good)], r"tool 2\.0\.0",
+                   platforms={"linux-x86_64": {"version": "2.0.0"}})
+    r = toolcheck.check_tool_entry(entry, plat="linux-x86_64")
+    assert r.status == "fail"
+    assert r.expected == "1.2.3" and r.measured == "2.0.0"
+
+
+def test_forge_home_prefix_is_expanded_per_machine(tmp_path, monkeypatch):
+    home = tmp_path / "fh"
+    (home / "bin").mkdir(parents=True)
+    _fake_bin(home / "bin", "tool", "tool 1.2.3")
+    monkeypatch.setenv("FORGE_HOME", str(home))
+    assert toolcheck.check_tool_entry(_entry(["~/.forge/bin/tool"], r"tool 1\.2\.3")).status == "pass"
+    assert toolcheck.check_tool_entry(_entry(["$FORGE_HOME/bin/tool"], r"tool 1\.2\.3")).status == "pass"
+    # Seeded wrong: a FORGE_HOME without the tool must fail, not fall back to something else.
+    monkeypatch.setenv("FORGE_HOME", str(tmp_path / "empty"))
+    assert toolcheck.check_tool_entry(_entry(["~/.forge/bin/tool"], r"tool 1\.2\.3")).status == "fail"
+
+
+def test_bare_names_resolve_from_forge_bin_before_host_path(tmp_path, monkeypatch):
+    home = tmp_path / "fh"
+    (home / "bin").mkdir(parents=True)
+    _fake_bin(home / "bin", "forge-probe-tool", "tool 1.2.3")
+    host = tmp_path / "host"
+    host.mkdir()
+    _fake_bin(host, "forge-probe-tool", "tool 0.0.1")
+    monkeypatch.setenv("FORGE_HOME", str(home))
+    monkeypatch.setenv("PATH", f"{host}:/usr/bin:/bin")
+    assert toolcheck.check_tool_entry(_entry(["forge-probe-tool"], r"tool 1\.2\.3")).status == "pass"
+
+
+def test_committed_manifest_has_no_machine_specific_paths_and_one_version_per_tool():
+    manifest = Path(__file__).resolve().parents[1] / "toolchain" / "manifest.json"
+    text = manifest.read_text()
+    assert "/Users/" not in text and "/root/" not in text and "/home/" not in text
+    for t in json.loads(text)["tools"]:
+        for plat, ov in (t.get("platforms") or {}).items():
+            assert "version" not in ov or ov["version"] == t["version"], (t["id"], plat)

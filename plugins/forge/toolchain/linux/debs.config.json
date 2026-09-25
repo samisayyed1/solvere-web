@@ -1,0 +1,57 @@
+{
+ "about": "KiCad 10.0.6 for Linux x86_64 (ADR-001 \u00a78.L). Ubuntu 24.04 snapshot 2026-09-25 + kicad-10.0-releases PPA.",
+ "ubuntu_keyring": "/usr/share/keyrings/ubuntu-archive-keyring.gpg",
+ "ppa_fingerprint": "FDA854F61C4D0D9572BB95E5245D5502FAD7A805",
+ "repos": [
+  {
+   "base": "https://snapshot.ubuntu.com/ubuntu/20260925T000000Z",
+   "suite": "noble",
+   "components": [
+    "main",
+    "universe"
+   ]
+  },
+  {
+   "base": "https://snapshot.ubuntu.com/ubuntu/20260925T000000Z",
+   "suite": "noble-updates",
+   "components": [
+    "main",
+    "universe"
+   ]
+  },
+  {
+   "base": "https://snapshot.ubuntu.com/ubuntu/20260925T000000Z",
+   "suite": "noble-security",
+   "components": [
+    "main",
+    "universe"
+   ]
+  },
+  {
+   "base": "https://ppa.launchpadcontent.net/kicad/kicad-10.0-releases/ubuntu",
+   "suite": "noble",
+   "components": [
+    "main"
+   ],
+   "keyring": "ppa"
+  }
+ ],
+ "roots": [
+  "kicad",
+  "kicad-symbols",
+  "kicad-footprints",
+  "kicad-packages3d",
+  "kicad-templates",
+  "kicad-demos"
+ ],
+ "exclude": [
+  "kicad-doc-en"
+ ],
+ "pins": [
+  {
+   "package": "kicad",
+   "version": "10.0.6~ubuntu24.04.1",
+   "sha256": "a4920d3fc7b5719b8d5efa4ee24603a4313b50a53409bb5417f50770ce73926d"
+  }
+ ]
+}
