@@ -1,0 +1,100 @@
+{
+ "schema": "forge.pugh/1",
+ "minimum_concepts": 3,
+ "top_n": 2,
+ "sensitivity_reviewed_by": "",
+ "source": "3 independent blind Opus judges (concepts/judging/J1..J3.md; B/C/D after Revision 1 re-gating, *-rev1.md); scores are the judges' mean; weights owner-agreed before scoring (concepts/criteria.json); all 4 concepts passed gates S1-S3 (A in round 1, B/C/D after one revision each)",
+ "criteria": [
+  {
+   "name": "radar_rf_performance",
+   "weight": 0.2
+  },
+  {
+   "name": "printability_manufacturability",
+   "weight": 0.2
+  },
+  {
+   "name": "appearance",
+   "weight": 0.15
+  },
+  {
+   "name": "install_and_removal",
+   "weight": 0.15
+  },
+  {
+   "name": "cost_vs_30usd_bom",
+   "weight": 0.15
+  },
+  {
+   "name": "cable_strain_and_thermal_robustness",
+   "weight": 0.1
+  },
+  {
+   "name": "bathroom_variant_readiness",
+   "weight": 0.05
+  }
+ ],
+ "concepts": [
+  {
+   "name": "datum-plain-puck",
+   "datum": true,
+   "scores": {
+    "radar_rf_performance": 0,
+    "printability_manufacturability": 0,
+    "appearance": 0,
+    "install_and_removal": 0,
+    "cost_vs_30usd_bom": 0,
+    "cable_strain_and_thermal_robustness": 0,
+    "bathroom_variant_readiness": 0
+   }
+  },
+  {
+   "name": "concept-A-min-parts",
+   "scores": {
+    "radar_rf_performance": 1,
+    "printability_manufacturability": 0,
+    "appearance": 0.667,
+    "install_and_removal": 1.333,
+    "cost_vs_30usd_bom": 0,
+    "cable_strain_and_thermal_robustness": 1,
+    "bathroom_variant_readiness": 1
+   }
+  },
+  {
+   "name": "concept-B-rf-first",
+   "scores": {
+    "radar_rf_performance": 2,
+    "printability_manufacturability": -1,
+    "appearance": -0.333,
+    "install_and_removal": 0.333,
+    "cost_vs_30usd_bom": -1,
+    "cable_strain_and_thermal_robustness": 0,
+    "bathroom_variant_readiness": 1
+   }
+  },
+  {
+   "name": "concept-C-install-first",
+   "scores": {
+    "radar_rf_performance": 1,
+    "printability_manufacturability": -1,
+    "appearance": 0.667,
+    "install_and_removal": 2,
+    "cost_vs_30usd_bom": -0.667,
+    "cable_strain_and_thermal_robustness": 1,
+    "bathroom_variant_readiness": 1.333
+   }
+  },
+  {
+   "name": "concept-D-cost-mfg",
+   "scores": {
+    "radar_rf_performance": 1,
+    "printability_manufacturability": 1,
+    "appearance": 0.667,
+    "install_and_removal": 1.333,
+    "cost_vs_30usd_bom": 0,
+    "cable_strain_and_thermal_robustness": 1,
+    "bathroom_variant_readiness": 1
+   }
+  }
+ ]
+}
