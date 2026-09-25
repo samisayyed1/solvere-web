@@ -16,7 +16,14 @@
       "Bash(git push --force*)",
       "Bash(git push -f*)",
       "Bash(rm -rf /*)",
-      "Bash(rm -rf ~*)"
+      "Bash(rm -rf ~*)",
+      "Edit(/evidence/**)",
+      "Edit(/out/verify/**)",
+      "Edit(/.forge/**)",
+      "Edit(/release/**)",
+      "Edit(/security/**)",
+      "Edit(/.claude/settings.json)",
+      "Edit(/.claude/settings.local.json)"
     ],
     "ask": [
       "Bash(git push *)",
@@ -38,28 +45,42 @@
       "mcp__agentic-hil__project_config_create",
       "mcp__agentic-hil__project_config_set",
       "mcp__agentic-hil__project_config_adopt_hardware",
-      "mcp__agentic-hil__server_upgrade"
+      "mcp__agentic-hil__server_upgrade",
+      "Bash(/home/user/solvere-web/plugins/forge/bin/forge params set *)",
+      "Bash(/home/user/solvere-web/plugins/forge/bin/forge evidence add *)",
+      "Bash(/home/user/solvere-web/plugins/forge/bin/forge evidence from-checks *)"
     ],
     "allow": [
       "Bash(uv run forge-check *)",
-      "Bash(/Users/samisayyed/solvere/.claude/worktrees/forge-product-engineering-55a284/plugins/forge/bin/forge doctor *)",
-      "Bash(/Users/samisayyed/solvere/.claude/worktrees/forge-product-engineering-55a284/plugins/forge/bin/forge lint *)",
-      "Bash(/Users/samisayyed/solvere/.claude/worktrees/forge-product-engineering-55a284/plugins/forge/bin/forge verify *)",
-      "Bash(/Users/samisayyed/solvere/.claude/worktrees/forge-product-engineering-55a284/plugins/forge/bin/forge evidence *)",
-      "Bash(/Users/samisayyed/solvere/.claude/worktrees/forge-product-engineering-55a284/plugins/forge/bin/forge params *)",
-      "Bash(/Users/samisayyed/solvere/.claude/worktrees/forge-product-engineering-55a284/plugins/forge/bin/forge trace *)",
-      "Bash(/Users/samisayyed/solvere/.claude/worktrees/forge-product-engineering-55a284/plugins/forge/bin/forge ears *)",
-      "Bash(~/.forge/bin/forge-python *)"
+      "Bash(/home/user/solvere-web/plugins/forge/bin/forge doctor *)",
+      "Bash(/home/user/solvere-web/plugins/forge/bin/forge lint *)",
+      "Bash(/home/user/solvere-web/plugins/forge/bin/forge verify *)",
+      "Bash(/home/user/solvere-web/plugins/forge/bin/forge evidence list*)",
+      "Bash(/home/user/solvere-web/plugins/forge/bin/forge evidence status*)",
+      "Bash(/home/user/solvere-web/plugins/forge/bin/forge params get *)",
+      "Bash(/home/user/solvere-web/plugins/forge/bin/forge params lint*)",
+      "Bash(/home/user/solvere-web/plugins/forge/bin/forge trace *)",
+      "Bash(/home/user/solvere-web/plugins/forge/bin/forge ears *)",
+      "Bash(~/.forge/bin/forge-python /home/user/solvere-web/plugins/forge/skills/*/scripts/*)"
     ]
   },
   "sandbox": {
     "enabled": true,
     "failIfUnavailable": true,
     "allowUnsandboxedCommands": false,
-    "excludedCommands": ["docker *"],
+    "excludedCommands": [
+      "docker *"
+    ],
     "filesystem": {
-      "allowWrite": ["~/.forge", "~/.cache/uv"],
-      "denyRead": ["~/.ssh", "~/.aws", "~/.config/gh"]
+      "allowWrite": [
+        "~/.forge",
+        "~/.cache/uv"
+      ],
+      "denyRead": [
+        "~/.ssh",
+        "~/.aws",
+        "~/.config/gh"
+      ]
     },
     "network": {
       "allowedDomains": [

@@ -17,7 +17,7 @@ A Forge product-engineering project. Forge's operating principle: **verification
 7. **Nothing below L4 is "validated," nothing below L5 is "certified" or "production-ready."** State the evidence level on every design claim (L0 claimed ... L5 certified -- see `plugins/forge/CONTRACTS.md` §4 in the Forge repo).
 8. **Ask when a requirement is ambiguous, conflicting, or missing a number.** Never guess a dimension, tolerance, rating or standard silently.
 9. **Safety, money and fabrication decisions need a human sign-off.** Fab/quote/flash commands are gated by `permissions.ask` in `.claude/settings.json` and by `release/APPROVAL.toml` for release-type actions.
-10. **MCP servers only via the guard.** `build123d-mcp` and `kicad-mcp-pro` run only through `/Users/samisayyed/solvere/.claude/worktrees/forge-product-engineering-55a284/plugins/forge/bin/forge-mcp-guard`, never launched directly -- see `.mcp.json`.
+10. **MCP servers only via the guard.** `build123d-mcp` and `kicad-mcp-pro` run only through `/home/user/solvere-web/plugins/forge/bin/forge-mcp-guard`, never launched directly -- see `.mcp.json`.
 
 ## Where things live
 

@@ -1,6 +1,6 @@
 .PHONY: verify doctor test lint evidence
 
-FORGE := /Users/samisayyed/solvere/.claude/worktrees/forge-product-engineering-55a284/plugins/forge/bin/forge
+FORGE := /home/user/solvere-web/plugins/forge/bin/forge
 
 # Run every automatable verification rung (CONTRACTS.md §9) and record evidence.
 verify:
