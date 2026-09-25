@@ -78,6 +78,47 @@
 - Desktop-bundled Claude Code is 2.1.280, which gives a doctor warning only.
 - Peer sessions "Fix conftest.py module-name collisions" and "Fix forge-python symlink" duplicate fixes that are already in this worktree. **Don't merge them.**
 
+## Evals: run on the owner's Mac (not in the cloud)
+
+The cloud host can't run Claude Code's sandboxed Bash as root, and `claude plugin eval` refuses `enableWeakerNestedSandbox` by design (details in ADR §10). So the evals run on the Mac, under the owner's plan limits or API key. Run each block in order and check the noted output before the next.
+
+**1. Update the worktree**
+```bash
+cd /Users/samisayyed/solvere/.claude/worktrees/forge-product-engineering-55a284
+git status --short                       # if anything prints, run the next line
+git stash push -u -m "pre-sync $(date +%F)"
+git fetch origin claude/epic-greider-a8740c-i7dhii
+git checkout -B claude/epic-greider-a8740c-i7dhii origin/claude/epic-greider-a8740c-i7dhii
+```
+
+**2. Toolchain check.** Expect 0 fail; the files_lock warning is a separate human step. `check` is free and must show $0.00.
+```bash
+claude update
+export PATH="$HOME/.forge/bin:$PATH"
+plugins/forge/bin/forge doctor | tail -5
+plugins/forge/evals/run.sh check
+```
+
+**3. Smoke tier.** 48 runs, about 2–3 h at concurrency 3, ceiling $70.
+```bash
+caffeinate -i plugins/forge/evals/run.sh smoke --max-cost-usd 70 --concurrency 3 2>&1 | tee /tmp/forge-smoke.log
+```
+
+**4. Full suite, after the smoke tier is analysed.** 26 cases × 3 runs × 2 arms, estimated $95–185, ceiling $190.
+```bash
+caffeinate -i plugins/forge/evals/run.sh full --max-cost-usd 190 --concurrency 3 2>&1 | tee /tmp/forge-full.log
+```
+
+**5. Push the results back for analysis** (`forge passk`, seeded recall and precision, `evals/BASELINE.md`)
+```bash
+git add -f plugins/forge/evals/results plugins/forge/evals/SPEND.md
+git commit -m "Eval results (Mac run)"
+git pull --rebase origin claude/epic-greider-a8740c-i7dhii
+git push origin claude/epic-greider-a8740c-i7dhii
+```
+
+**Billing:** the runs use whatever login the Mac's `claude` has. A subscription login uses plan limits (the `$` figures are estimates). An API key uses credits, capped by `--max-cost-usd`. Check with `/status` inside `claude`.
+
 ## Resume command
 
 In this worktree, tell Claude: "Resume from PROGRESS.md". Or run these checks first:
