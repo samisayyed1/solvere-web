@@ -38,8 +38,11 @@ after any of them changes.
 
 When TechDraw cannot attach a dimension at all (e.g. a diameter asked for on
 a view where the hole is hidden), the callout falls back to annotation text
-with a leader (`DIMTXT_<id>`). It is still verified against the model; it just
-has no independent TechDraw value (`dim_<id>_techdraw_vs_model` is absent).
+with a leader (`DIMTXT_<id>`). Its number is written from the build123d value,
+so comparing it with the model would be circular: it therefore fails unless
+the spec opts in with `allow_annotation = true`, and then the check verifies
+the leader lands on the feature and re-compares the value (catching stale or
+edited text), but there is no independent TechDraw value.
 
 ## Not supported (real work, not config)
 
@@ -54,8 +57,11 @@ has no independent TechDraw value (`dim_<id>_techdraw_vs_model` is absent).
 - Automatic collision avoidance beyond stacking: dense views can overlap text;
   use `side`, `angle`, `offset` and `cell`, or split views over sheets.
 - ISO 3098 lettering: text is ezdxf's default font.
-- `count` counts coaxial-distinct cylinders of the same radius and direction;
-  a fillet of the same radius would be counted too.
+- `count` counts coaxial-distinct cylinders of the same radius and direction
+  that close through 360 degrees (fillets excluded); a full boss and a hole of
+  the same radius and direction are both counted.
+- `view_<id>_orientation` needs an asymmetric part to tell a view from its
+  mirror image; for a symmetric part the two are the same drawing.
 
 ## Standards, and what is not claimed
 

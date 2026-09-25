@@ -143,6 +143,8 @@ def test_verify_py_skips_cleanly_with_no_cases(tmp_path):
 
 def test_hand_calc_formula_matches_textbook_cantilever():
     """Pure hand-calc unit test, independent of CalculiX: F L^3/(3EI) and F L (H/2)/I."""
+    pytest.importorskip("build123d")  # CAD-env only; runs under ~/.forge/bin/forge-python
+    pytest.importorskip("gmsh")
     sys.path.insert(0, str(SCRIPTS_DIR))
     import mesh_and_solve as m
 

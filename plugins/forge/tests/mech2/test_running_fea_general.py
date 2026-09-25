@@ -21,6 +21,9 @@ from pathlib import Path
 
 import pytest
 
+pytest.importorskip("numpy")  # CAD-env only; canonical runner is ~/.forge/bin/forge-python
+pytest.importorskip("build123d")
+
 SKILL_DIR = Path(__file__).resolve().parents[2] / "skills" / "running-fea"
 VERIFY_PY = SKILL_DIR / "scripts" / "verify.py"
 FORGE_PYTHON = Path.home() / ".forge" / "bin" / "forge-python"

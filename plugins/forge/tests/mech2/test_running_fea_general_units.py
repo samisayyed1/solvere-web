@@ -10,8 +10,10 @@ import math
 import sys
 from pathlib import Path
 
-import numpy as np
 import pytest
+
+np = pytest.importorskip("numpy")  # CAD-env only; canonical runner is ~/.forge/bin/forge-python
+pytest.importorskip("build123d")
 
 SCRIPTS_DIR = Path(__file__).resolve().parents[2] / "skills" / "running-fea" / "scripts"
 sys.path.insert(0, str(SCRIPTS_DIR))

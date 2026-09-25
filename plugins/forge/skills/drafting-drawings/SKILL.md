@@ -72,7 +72,9 @@ allowed-tools: Read, Write, Edit, Grep, Glob, Bash(forge-python ${CLAUDE_SKILL_D
 `--recheck` verifies the DXF/PDF already in `out/drawings/<name>/` without
 rewriting them (the reproducibility run still happens) -- use it when a
 drawing was touched outside Forge. No `cad/drawings/*.toml` means `[SKIP]`,
-exit 0. Exit 1 = a drawing failed; exit 2 = bad spec, missing tool or a
+exit 0. `--changed` also picks up every drawing whose `[model]` module, STEP
+or params file is among the changed paths (a model change makes a drawing
+stale). Exit 1 = a drawing failed; exit 2 = bad spec, missing tool or a
 generator crash (never a pass).
 
 ## Minimal spec
@@ -141,15 +143,16 @@ datums, feature control frames, notes, sides/angles and grid cells.
 
 | Measurement | Fails when |
 |---|---|
-| `dim_<id>_present` | The callout is missing, unparseable, or has the wrong symbol / count prefix. |
+| `dim_<id>_present` | The callout is missing, unparseable, duplicated, or has the wrong symbol / count prefix. |
 | `dim_<id>_drawing_vs_model` | Drawn nominal differs from the build123d measurement by > 0.01 mm. |
-| `dim_<id>_techdraw_vs_model` | TechDraw's measured value differs from build123d by > 0.01 mm (dimension attached to the wrong geometry). |
+| `dim_<id>_techdraw_vs_model`, `_dxf_geometry_vs_model` | TechDraw's value (from `layout.json`, and re-read from the DXF extension-line origins / view scale) differs from build123d by > 0.01 mm -- attached to the wrong geometry, or the DXF was edited. |
+| `dim_<id>_annotation_fallback` | TechDraw could not attach it and the spec did not opt in with `allow_annotation = true`, or the leader does not touch the feature. |
 | `dim_<id>_params_vs_model` | The model does not match its params nominal (model not built from params, or wrong key bound). |
 | `dim_<id>_tolerance`, `_tolerance_vs_params` | Tolerance missing/wrong on the sheet, or differs from params `tol`. |
 | `dim_<id>_feature_count`, `_resolved`, `_in_pdf` | "NX" count wrong; selector matches no feature; value missing from the PDF text. |
-| `view_<id>_present`, `_extent_error`, `_markers` | View not drawn; outline != model extents x scale (wrong scale, orientation, or section side); section line / detail circle / label / hatch missing. |
+| `view_<id>_present`, `_extent_error`, `_orientation`, `_markers` | View not drawn; outline != model extents x scale (wrong scale or section side); line ends off the model's edges projected in the declared direction (mirrored / wrong view); section line / detail circle / label / hatch missing. |
 | `sheet<N>_title_block_fields`, `_projection_symbol`, `_view_arrangement` | A title-block field missing; symbol missing or its geometry contradicts the declared method; principal views on the wrong side or misaligned. |
-| `sheet<N>_reproducible`, `_layout_overflow`, `_pdf_*` | Regenerated DXF entity set differs; views do not fit the sheet; PDF missing or lacks the text. |
+| `sheet<N>_reproducible`, `_layout_overflow`, `_pdf_*` | Regenerated DXF entity set (entities + layer states) differs; views do not fit the sheet; PDF missing or lacks the exact strings. |
 | `gdt_<id>_frame`, `datum_<X>_symbol`, `notes_present`, `general_tolerance_class_current` | Frame/datum/notes missing; a withdrawn ISO 2768-2 class. |
 
 ## When TechDraw cannot attach a dimension
@@ -159,9 +162,11 @@ projected (hidden-line-removed) vertices or circle. If a reference point has
 no projected vertex, a cosmetic vertex is placed at its projection
 (`snap: cosmetic` in `layout.json`; the attachment is self-checked). If no
 attachment is possible (feature hidden in that view, or oblique), the callout
-becomes annotation text with a leader on layer `DIMTXT_<id>` -- still checked
-against the model, but without an independent TechDraw value. Prefer a view
-where the feature is seen edge-on or as a circle.
+becomes annotation text with a leader on layer `DIMTXT_<id>`. That fails the
+check unless the dimension sets `allow_annotation = true` (it has no
+independent TechDraw value); with the opt-in it is still compared with the
+model and its leader must touch the feature. Prefer a view where the feature
+is seen edge-on or as a circle.
 
 ## Limits you must state when reporting
 

@@ -114,6 +114,7 @@ decimals = 2                         # optional, 2..4 (>= 2 keeps display roundi
 side = "below"                       # optional: below/above (horizontal), left/right (vertical)
 angle = 45                           # optional: leader angle for circle callouts, degrees
 offset = [0, 0]                      # optional nudge of the text, sheet mm
+allow_annotation = false             # optional; see below
 ```
 
 Linear dimensions take `axis` (`"X"`, `"Y"`, `"Z"`) plus `from` and `to`
@@ -124,6 +125,13 @@ the two silhouette lines with a diameter symbol.
 
 Tolerance display (DXF control codes: `%%c` diameter, `%%p` plus/minus):
 `60.00 %%p0.20`, `2X %%c6.60 +0.10/0`, and limits `%%c12.018/12.000`.
+
+If TechDraw cannot attach the dimension (feature hidden or oblique in that
+view) the callout is written as annotation text with a leader. That text has
+no independent TechDraw measurement, so it **fails** (`dim_<id>_annotation_fallback`)
+unless the dimension sets `allow_annotation = true`; even then the leader tip
+must sit on the feature's projection and the value is still compared with the
+model. Prefer choosing a better view.
 
 If `params/params.toml` gives the key a `tol`, it must equal the drawing
 tolerance (`dim_<id>_tolerance_vs_params`); params is the single source of

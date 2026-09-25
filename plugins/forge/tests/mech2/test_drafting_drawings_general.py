@@ -18,6 +18,9 @@ from pathlib import Path
 
 import pytest
 
+pytest.importorskip("numpy")  # CAD-env only; canonical runner is ~/.forge/bin/forge-python
+pytest.importorskip("build123d")
+
 TESTS = Path(__file__).resolve().parent
 SKILL = TESTS.parents[1] / "skills" / "drafting-drawings"
 SCRIPTS = SKILL / "scripts"
@@ -252,13 +255,11 @@ def test_FAILS_when_a_title_block_field_is_missing(project):
 @needs_freecad
 @pytest.mark.slow
 def test_FAILS_when_the_drawing_is_not_reproducible(project):
-    """Move one line of the front view by 0.5 mm: every value still checks out, only reproducibility catches it."""
+    """Add one stray line on a layer no other check reads: every value, view and field still
+    checks out, only the regenerate-and-compare step catches it. (A moved view edge is also
+    caught by view_<id>_orientation.)"""
     def shift(doc):
-        lines = [e for e in doc.modelspace().query("LINE") if e.dxf.layer == "View_front"]
-        xs = [x for e in lines for x in (e.dxf.start[0], e.dxf.end[0])]
-        inner = next(e for e in lines if min(xs) + 1 < e.dxf.start[0] < max(xs) - 1 and abs(e.dxf.start[0] - e.dxf.end[0]) < 1e-9)
-        inner.dxf.start = (inner.dxf.start[0] + 0.5, inner.dxf.start[1], 0)
-        inner.dxf.end = (inner.dxf.end[0] + 0.5, inner.dxf.end[1], 0)
+        doc.modelspace().add_line((30, 30), (60, 45), dxfattribs={"layer": "0"})
     _edit_dxf(_sheet(project, "l_bracket"), shift)
     r = _verify(project, "l_bracket", "--recheck")
     res = _assert_fails(r, project, "l_bracket", "sheet1_reproducible")

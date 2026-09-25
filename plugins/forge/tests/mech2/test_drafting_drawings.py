@@ -80,7 +80,7 @@ def test_verify_py_passes_and_produces_pdf_and_dxf_with_title_block_and_dimensio
     assert dxf.exists()
 
     # independently re-parse the DXF (not just trust verify.py's own measurement)
-    import ezdxf
+    ezdxf = pytest.importorskip("ezdxf")  # CAD-env only
     doc = ezdxf.readfile(str(dxf))
     msp = doc.modelspace()
     texts = [e.dxf.text for e in msp.query("TEXT")]
