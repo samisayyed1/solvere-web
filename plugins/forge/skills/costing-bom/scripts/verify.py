@@ -82,9 +82,29 @@ def run(project: Path, changed: list[str] | None) -> int:
     lifecycle_risk_n = 0
     unpriced_lines: list[str] = []
 
+    # S17: a duplicate ref_des (the same designator(s) billed twice) either
+    # double-counts the BOM cost or silently drops one of the two lines'
+    # real content -- count occurrences of each non-blank ref_des value
+    # up front so every row past the first can be flagged.
+    ref_des_counts: dict[str, int] = {}
+    for row in rows:
+        raw_ref = (row.get("ref_des") or "").strip()
+        if raw_ref:
+            ref_des_counts[raw_ref] = ref_des_counts.get(raw_ref, 0) + 1
+
     for row in rows:
         ref = (row.get("ref_des") or "").strip() or "<no ref_des>"
         loc = f"{BOM_REL}#{ref}"
+
+        if ref != "<no ref_des>" and ref_des_counts.get(ref, 0) > 1:
+            chk.measure(
+                f"{ref}.ref_des_unique", False, "1", equals=True, location=loc,
+                remediation=(
+                    f"ref_des {ref!r} appears on {ref_des_counts[ref]} BOM lines -- a duplicate "
+                    "double-counts cost/qty or hides that one of the lines is wrong. Merge the "
+                    "lines or use each designator once."
+                ),
+            )
 
         qty = _parse_float(row.get("qty_per_unit", ""))
         qty_ok = qty is not None and qty > 0
@@ -100,6 +120,44 @@ def run(project: Path, changed: list[str] | None) -> int:
         lifecycle = (row.get("lifecycle") or "").strip()
         alternates = (row.get("alternates") or "").strip()
         risk_note = (row.get("risk_note") or "").strip()
+        mpn = (row.get("mpn") or "").strip()
+        lead_time = (row.get("lead_time_weeks") or "").strip()
+
+        mpn_ok = bool(mpn)
+        chk.measure(
+            f"{ref}.mpn_present", mpn_ok, "1", equals=True, location=loc,
+            remediation=(
+                f"{ref}: mpn is blank -- bom-format.md requires an exact manufacturer part "
+                "number for every line. Fill it in."
+            ) if not mpn_ok else None,
+        )
+
+        lead_time_ok = bool(lead_time)
+        chk.measure(
+            f"{ref}.lead_time_present", lead_time_ok, "1", equals=True, location=loc,
+            remediation=(
+                f"{ref} ({mpn or '<no mpn>'}): lead_time_weeks is blank -- bom-format.md marks it "
+                "required. Quote and fill in the current lead time in weeks."
+            ) if not lead_time_ok else None,
+        )
+
+        alt_list = [a.strip() for a in alternates.split(";") if a.strip()]
+        if mpn_ok:
+            self_listed = [a for a in alt_list if a.lower() == mpn.lower()]
+            alternates_distinct = not self_listed
+            chk.measure(
+                f"{ref}.alternates_distinct_from_own_mpn", alternates_distinct, "1", equals=True, location=loc,
+                remediation=(
+                    f"{ref}: alternates lists {mpn!r} (its own mpn) as its own alternate -- this "
+                    "hides a real single-source risk instead of covering it. List a genuinely "
+                    "different alternate MPN, or leave alternates empty and cover the risk in "
+                    "risk_note."
+                ) if not alternates_distinct else None,
+            )
+            # A self-listed "alternate" is not a real second source: treat the
+            # line as single-source for the covered-by-risk-note check below.
+            if self_listed and len(alt_list) == len(self_listed):
+                alternates = ""
 
         is_single_source = not alternates
         is_lifecycle_risk = lifecycle.lower() != ACTIVE_LIFECYCLE
@@ -134,7 +192,16 @@ def run(project: Path, changed: list[str] | None) -> int:
             price = _parse_float(row.get(col, ""))
             if price is not None:
                 line_has_price = True
-                tier_totals[tier_qty] += price * qty
+                price_ok = price >= 0
+                chk.measure(
+                    f"{ref}.{col}_nonnegative", price_ok, "1", equals=True, location=loc,
+                    remediation=(
+                        f"{ref} ({mpn or '<no mpn>'}): {col} = {price} is negative -- a price can't "
+                        "be negative. Fix the quoted unit price."
+                    ) if not price_ok else None,
+                )
+                if price_ok:
+                    tier_totals[tier_qty] += price * qty
         if not line_has_price and tier_cols:
             unpriced_lines.append(ref)
 

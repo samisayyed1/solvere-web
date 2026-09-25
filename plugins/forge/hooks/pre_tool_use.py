@@ -59,6 +59,7 @@ from __future__ import annotations
 
 import os
 import re
+import subprocess
 import sys
 import unicodedata
 from pathlib import Path
@@ -67,6 +68,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _common import (  # noqa: E402
     HookRuntimeError, find_project_root, load_forge_toml, glob_match, is_judge, is_mechanical_engineer, tomllib,
 )
+from forge import state  # noqa: E402
 
 WRITE_TOOLS = {"Write", "Edit", "MultiEdit", "NotebookEdit"}
 
@@ -82,6 +84,16 @@ PROTECTED = (
 )
 PROTECTED_DIRS = ("release", "security", "evidence", "out/verify", ".forge", ".git", ".claude")
 CLAUDE_DIR_ALLOWED = (".claude/rules/**",)
+
+# (case-folded glob, why) -- ask on the main thread, deny for subagents
+# (N9): these configure the guardrails/CI themselves, same nuance as
+# forge.toml, but they are not "never writable" (a human may legitimately
+# edit them).
+GUARDRAIL_CONFIG = (
+    (".mcp.json", ".mcp.json configures the MCP servers Forge and the sandbox rely on"),
+    ("Makefile", "Makefile wires `make verify`/CI to the same checks the evidence gate enforces"),
+    (".github/workflows/**", ".github/workflows/ is the CI layer ADR-001 §16 relies on"),
+)
 SHELL_ONLY_FORBIDDEN = (
     ("params/params.toml", "change params with `forge params set` or the Edit tool (the verified-param "
                            "guard can only simulate those)"),
@@ -307,16 +319,14 @@ def _iter_param_leaves(data, prefix=()):
             yield from _iter_param_leaves(val, prefix + (key,))
 
 
-def _get_path(data, path):
-    node = data
-    for key in path:
-        if not isinstance(node, dict) or key not in node:
-            return None
-        node = node[key]
-    return node
+_VERIFIED_LOCKED_FIELDS = ("verified_by", "evidence")
 
 
 def _verified_param_violation(old_content: str | None, new_content: str | None) -> str | None:
+    """Deny a direct Write/Edit that would change what a param's
+    verification means (N6): only ``forge params set`` (never a raw file
+    edit) may promote a param to ``status = "verified"`` or touch its
+    ``verified_by``/``evidence`` fields."""
     if new_content is None:
         return ("params.toml could not be simulated for this edit (old_string not found in the "
                 "current file); denied out of caution. Re-read the file, or use "
@@ -329,13 +339,31 @@ def _verified_param_violation(old_content: str | None, new_content: str | None) 
         old_data = tomllib.loads(old_content) if old_content else {}
     except tomllib.TOMLDecodeError:
         old_data = {}
-    changed = [".".join(path) for path, leaf in _iter_param_leaves(old_data)
-               if leaf.get("status") == "verified" and _get_path(new_data, path) != leaf]
-    if not changed:
-        return None
-    return ("direct edits to verified param(s) are blocked: " + ", ".join(sorted(changed)) +
-            ". Change them with `forge params set <key> --value <v> --source \"<citation>\" "
-            "--justification \"<why>\"`, which demotes the param to measured and logs params/CHANGELOG.md.")
+    old_leaves = dict(_iter_param_leaves(old_data))
+    new_leaves = dict(_iter_param_leaves(new_data))
+
+    changed_values = [".".join(path) for path, leaf in old_leaves.items()
+                      if leaf.get("status") == "verified"
+                      and any(new_leaves.get(path, {}).get(f) != leaf.get(f) for f in _VALUE_FIELDS)]
+    if changed_values:
+        return ("direct edits to verified param(s) are blocked: " + ", ".join(sorted(changed_values)) +
+                ". Change them with `forge params set <key> --value <v> --source \"<citation>\" "
+                "--justification \"<why>\"`, which demotes the param to measured and logs params/CHANGELOG.md.")
+
+    promoted = [".".join(path) for path, leaf in new_leaves.items()
+                if leaf.get("status") == "verified" and (old_leaves.get(path) or {}).get("status") != "verified"]
+    if promoted:
+        return ("direct promotion to status=\"verified\" is blocked: " + ", ".join(sorted(promoted)) +
+                ". Only `forge params set <key> --status verified --verified-by \"<name>\" "
+                "--evidence <EV-id>` may verify a param (CONTRACTS.md §2: a human signs verified values).")
+
+    tampered = [".".join(path) for path, leaf in new_leaves.items()
+                if any(leaf.get(f) != (old_leaves.get(path) or {}).get(f) for f in _VERIFIED_LOCKED_FIELDS)]
+    if tampered:
+        return ("direct edits to verified_by/evidence are blocked: " + ", ".join(sorted(tampered)) +
+                ". Only `forge params set <key> --status verified --verified-by \"<name>\" "
+                "--evidence <EV-id>` may set them.")
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -352,6 +380,11 @@ def _path_policy(rel: str | None, agent_type: str | None, via: str) -> dict | No
         if agent_type:
             return _deny(f"forge.toml defines what the evidence gate checks; {agent_type} may not change it.")
         return _ask("forge.toml defines what the evidence gate checks. Confirm this change is intended.")
+    for pat, why in GUARDRAIL_CONFIG:
+        if rel == pat or glob_match(pat, rel):
+            if agent_type:
+                return _deny(f"{rel}: {why}; {agent_type} may not change it.")
+            return _ask(f"{rel}: {why}. Confirm this change is intended.")
     if glob_match("cad/**", rel) or rel == "cad":
         if is_mechanical_engineer(agent_type):
             return None

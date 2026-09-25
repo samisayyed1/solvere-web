@@ -29,7 +29,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _common import find_project_root, is_judge, truncate  # noqa: E402
+from _common import find_project_root, is_judge, load_forge_toml, truncate  # noqa: E402
 from forge import minischema  # noqa: E402
 
 PLUGIN_ROOT = Path(__file__).resolve().parent.parent
@@ -48,6 +48,8 @@ def handle(data: dict) -> tuple[int, dict | None]:
     project = find_project_root(data.get("cwd"))
     if project is None:
         return 0, None  # not a Forge product repo: no-op fast (brief §3.4)
+
+    load_forge_toml(project)  # N1: raises (fail closed) if forge.toml is missing but the project is real
 
     agent_type = data.get("agent_type")
     if not is_judge(agent_type):

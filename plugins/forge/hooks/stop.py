@@ -89,7 +89,13 @@ def _required(project: Path, toml: dict, manifest: dict) -> tuple[dict, dict]:
         domain = b["domain"]
         base, changed = _changed_for(project, domain, manifest, cache)
         bases[domain] = base
-        matched = {p for p in changed if any_glob_match(b.get("paths") or [], p)}
+        patterns = b.get("paths") or []
+        matched = {p for p in changed if any_glob_match(patterns, p)}
+        # N3: gitignored files under this domain's globs are still inputs,
+        # and .gitignore itself is an input of every domain.
+        matched.update(evidence.ignored_inputs(project, patterns))
+        if ".gitignore" in changed:
+            matched.add(".gitignore")
         if not matched:
             continue
         eps = b.get("entrypoints") or []
@@ -239,6 +245,17 @@ def handle(data: dict) -> tuple[int, dict | None]:
         return 0, None  # not a Forge product repo: no-op fast (brief §3.4)
 
     toml = load_forge_toml(project)
+
+    base_sha = state.ensure_base_pinned(project)
+    if base_sha is None:
+        reason = (".forge/base_sha is missing (N11): it pins the scaffold commit the evidence gate diffs "
+                  "against and must not be deleted. Restore it (the commit that added forge.toml, see "
+                  "`git log --diff-filter=A -- forge.toml`) or ask a human to re-pin it.")
+        count = state.record_stop_block(project, reason=reason)
+        if count >= BLOCK_CAP_HANDOFF:
+            return 0, _handoff(project, ["sys"], count)
+        return 2, {"decision": "block", "reason": reason}
+
     manifest_error = None
     try:
         manifest = evidence.load(project)

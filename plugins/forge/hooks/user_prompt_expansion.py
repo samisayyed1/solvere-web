@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _common import find_project_root, head_sha, tomllib  # noqa: E402
+from _common import find_project_root, head_sha, load_forge_toml, tomllib  # noqa: E402
 
 # Substrings of `command_name` that require a signed release/APPROVAL.toml.
 # "releasing-designs" and "testing-on-hardware" are the brief's named
@@ -44,6 +44,8 @@ def handle(data: dict) -> tuple[int, dict | None]:
     project = find_project_root(data.get("cwd"))
     if project is None:
         return 0, None  # not a Forge product repo: no-op fast (brief §3.4)
+
+    load_forge_toml(project)  # N1: raises (fail closed) if forge.toml is missing but the project is real
 
     command_name = data.get("command_name") or ""
     if not _is_gated(command_name):

@@ -43,6 +43,9 @@ __all__ = [
     "reset_stop_block",
     "set_last_green",
     "resolve_base",
+    "scaffold_base",
+    "base_sha_path",
+    "ensure_base_pinned",
     "changed_since",
     "write_precompact_snapshot",
     "compact_summary_text",
@@ -153,6 +156,44 @@ def scaffold_base(project: Path | str) -> str | None:
     code, out = _git(project, "log", "--diff-filter=A", "--format=%H", "--", "forge.toml")
     shas = [line.strip() for line in out.splitlines() if line.strip()] if code == 0 else []
     return shas[-1] if shas else None
+
+
+BASE_SHA_REL_PATH = Path(".forge/base_sha")
+
+
+def base_sha_path(project: Path | str) -> Path:
+    return Path(project) / BASE_SHA_REL_PATH
+
+
+def ensure_base_pinned(project: Path | str) -> str | None:
+    """The pinned scaffold-base commit SHA (N11).
+
+    ``.forge/base_sha`` is a static anchor for the evidence gate and for
+    PreToolUse's amend/reset guards, so they never have to trust *current*
+    git history (which ``git commit --amend`` on the scaffold commit, or a
+    reset to a fabricated root, can rewrite out from under them).
+
+    Bootstraps the pin on first use, when ``.forge/`` does not exist yet (so
+    this project has never been seen by a Forge hook): computes it once from
+    :func:`scaffold_base` and writes it. Once ``.forge/`` exists, a missing
+    ``base_sha`` file means it was deleted, and this returns ``None`` (fail
+    closed) instead of silently re-deriving a fresh one from whatever git
+    history says now.
+    """
+    path = base_sha_path(project)
+    try:
+        text = path.read_text().strip()
+        if text:
+            return text
+    except OSError:
+        pass
+    if path.parent.is_dir():
+        return None  # .forge/ exists but the pin doesn't: it was removed
+    sha = scaffold_base(project)
+    if sha:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(sha + "\n")
+    return sha
 
 
 def resolve_base(project: Path | str, domain: str, manifest: dict[str, Any] | None = None) -> str | None:

@@ -61,22 +61,88 @@ from forge.evidence import glob_match as _evidence_glob_match  # noqa: E402
 # Project / forge.toml discovery
 # ---------------------------------------------------------------------------
 
-def find_project_root(cwd: str | Path | None) -> Path | None:
-    """Walk up from ``cwd`` looking for ``forge.toml``.
+def _looks_like_broken_forge_project(candidate: Path) -> bool:
+    """N1: ``forge.toml`` is gone, but this directory still shows other
+    Forge markers -- a ``.forge/`` state dir, an evidence manifest, or a git
+    history that once added ``forge.toml`` here. In that case the directory
+    IS a Forge project (deleting ``forge.toml`` must not silently turn every
+    hook into a no-op); :func:`load_forge_toml` then fails closed instead of
+    treating it as ``{}``."""
+    try:
+        if (candidate / ".forge").is_dir():
+            return True
+        if (candidate / "evidence" / "manifest.json").is_file():
+            return True
+        if not (candidate / ".git").exists():
+            return False
+        res = subprocess.run(
+            ["git", "-C", str(candidate), "log", "--max-count=1", "--diff-filter=A", "--format=%H",
+             "--", "forge.toml"],
+            capture_output=True, text=True, timeout=5,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return res.returncode == 0 and bool(res.stdout.strip())
+
+
+def _walk_up_for_root(start: Path) -> Path | None:
+    for candidate in (start, *start.parents):
+        if (candidate / "forge.toml").is_file():
+            return candidate
+    return None
+
+
+def _candidates(cwd: str | Path | None, extra_paths=None) -> list[Path]:
+    out: list[Path] = []
+    if cwd:
+        try:
+            out.append(Path(cwd).resolve())
+        except OSError:
+            pass
+    env_dir = os.environ.get("CLAUDE_PROJECT_DIR")
+    if env_dir:
+        try:
+            out.append(Path(env_dir).resolve())
+        except OSError:
+            pass
+    for p in extra_paths or ():
+        if not p:
+            continue
+        try:
+            pp = Path(p)
+        except TypeError:
+            continue
+        if not pp.is_absolute():
+            continue  # a relative extra path is ambiguous without a base cwd
+        out.append(pp)
+    return out
+
+
+def find_project_root(cwd: str | Path | None, *, extra_paths=None) -> Path | None:
+    """Find the Forge project root.
+
+    Tried in order (N5): the payload ``cwd``, ``$CLAUDE_PROJECT_DIR`` (set
+    when the platform's own cwd is outside the project, e.g. after a shell
+    ``cd``), then any ``extra_paths`` a caller supplies (PreToolUse's write
+    target(s)/Bash command paths) -- each walked upward looking for
+    ``forge.toml``. If none of them find a real ``forge.toml``, the same
+    candidates are checked for :func:`_looks_like_broken_forge_project`
+    markers (N1), so a plain ``rm forge.toml`` does not turn every hook into
+    a silent no-op.
 
     Returns ``None`` when this isn't a Forge product repo at all, which is
     the standard "no-op fast" signal every hook (other than SessionStart's
     one-line hint) uses to exit 0 immediately (brief §3.4).
     """
-    if not cwd:
-        return None
-    try:
-        start = Path(cwd).resolve()
-    except OSError:
-        return None
-    for candidate in (start, *start.parents):
-        if (candidate / "forge.toml").is_file():
-            return candidate
+    candidates = _candidates(cwd, extra_paths)
+    for start in candidates:
+        root = _walk_up_for_root(start)
+        if root is not None:
+            return root
+    for start in candidates:
+        for candidate in (start, *start.parents):
+            if _looks_like_broken_forge_project(candidate):
+                return candidate
     return None
 
 
@@ -89,7 +155,13 @@ def load_forge_toml(root: Path) -> dict[str, Any]:
     path = root / "forge.toml"
     try:
         text = path.read_text()
-    except FileNotFoundError:
+    except (FileNotFoundError, IsADirectoryError):
+        if _looks_like_broken_forge_project(root):
+            raise HookRuntimeError(
+                f"{path} is missing but {root} still looks like a Forge project (.forge/, evidence/manifest.json "
+                "or git history that once added forge.toml); Forge guardrails cannot run until forge.toml is "
+                "restored."
+            ) from None
         return {}
     except (OSError, UnicodeDecodeError) as exc:
         raise HookRuntimeError(f"cannot read {path}: {exc}") from exc

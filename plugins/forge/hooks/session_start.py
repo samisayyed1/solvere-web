@@ -37,6 +37,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -44,8 +45,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _common import (  # noqa: E402
-    FORGE_REPO_ROOT, find_project_root, load_forge_toml, failing_checks, open_review_findings,
-    read_json, truncate,
+    FORGE_REPO_ROOT, HookRuntimeError, MIN_PYTHON, find_project_root, load_forge_toml, failing_checks,
+    open_review_findings, read_json, truncate,
 )
 from forge import state, version_check  # noqa: E402
 
@@ -159,6 +160,30 @@ def _doctor_drift() -> list[str] | None:
             if r.get("status") == "fail" and not str(r.get("id", "")).startswith("claude_code_version:")]
 
 
+def _python3_check() -> str | None:
+    """N15: ``hooks.json`` runs every hook as literal ``python3``. If that
+    resolves to nothing on PATH, every hook exits 127 (fails OPEN, not
+    closed); if it resolves to something older than :data:`MIN_PYTHON`,
+    every hook fails closed at the ``tomllib`` import (loud, but only after
+    the fact). Surface both here, since neither is otherwise visible."""
+    exe = shutil.which("python3")
+    if not exe:
+        return "no `python3` found on PATH; every Forge hook will fail OPEN (exit 127) until one is installed"
+    try:
+        proc = subprocess.run([exe, "--version"], capture_output=True, text=True, timeout=5)
+        out = (proc.stdout or proc.stderr or "").strip()
+    except (OSError, subprocess.SubprocessError) as exc:
+        return f"`python3` at {exe} could not be run ({exc})"
+    m = re.search(r"(\d+)\.(\d+)", out)
+    if not m:
+        return f"`python3` at {exe} did not report a recognisable version ({out!r})"
+    got = (int(m.group(1)), int(m.group(2)))
+    if got < MIN_PYTHON:
+        return (f"`python3` at {exe} is {got[0]}.{got[1]}, needs >= {MIN_PYTHON[0]}.{MIN_PYTHON[1]} "
+                "(tomllib); Forge hooks will fail closed")
+    return None
+
+
 def _version_warning() -> str | None:
     try:
         results = version_check.run_version_floor_checks(timeout=5.0)
@@ -225,8 +250,16 @@ def handle(data: dict) -> tuple[int, dict | None]:
         return 0, _no_project_hint()
 
     source = data.get("source")
-    toml = load_forge_toml(project)
+    py_problem = _python3_check()
+    broken_forge_toml: str | None = None
+    try:
+        toml = load_forge_toml(project)
+    except HookRuntimeError as exc:
+        toml, broken_forge_toml = {}, str(exc)
     gate = (toml.get("project") or {}).get("gate") or "(unset)"
+
+    if not broken_forge_toml:
+        state.ensure_base_pinned(project)  # N11: bootstrap the pin on first sight
 
     failing = failing_checks(project)
     assumptions_open = _count_open_assumptions(_read_text(project / "ASSUMPTIONS.md"))
@@ -239,6 +272,10 @@ def handle(data: dict) -> tuple[int, dict | None]:
     selfcheck = _selfcheck_line()
     if selfcheck:
         lines.insert(0, selfcheck)
+    if broken_forge_toml:
+        lines.insert(0, f"FORGE GUARDRAILS OFF: {broken_forge_toml}")
+    if py_problem:
+        lines.insert(0, f"FORGE PYTHON CHECK FAILED: {py_problem}.")
     if failing:
         shown = ", ".join(failing[:8]) + (f" (+{len(failing) - 8} more)" if len(failing) > 8 else "")
         lines.append(f"Failing checks ({len(failing)}): {shown}")
@@ -255,7 +292,12 @@ def handle(data: dict) -> tuple[int, dict | None]:
         lines.append(state.compact_summary_text(project, max_chars=900))
 
     text = truncate("\n".join(lines), ADDITIONAL_CONTEXT_MAX_CHARS)
-    return 0, {"additionalContext": text}
+    result: dict = {"additionalContext": text}
+    if py_problem:
+        result["systemMessage"] = truncate(
+            f"Forge: python3 check failed: {py_problem}. Put a Python >= {MIN_PYTHON[0]}.{MIN_PYTHON[1]} "
+            "first on PATH as `python3` and restart Claude Code.", 500)
+    return 0, result
 
 
 if __name__ == "__main__":

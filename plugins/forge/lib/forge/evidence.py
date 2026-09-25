@@ -157,10 +157,39 @@ def project_files(project: Path) -> list[str]:
     return sorted(out)
 
 
+def ignored_inputs(project: Path, patterns: Iterable[str]) -> list[str]:
+    """Gitignored files that match one of ``patterns`` (review #2, N3).
+
+    A domain glob is still an input even when the file it names is
+    gitignored: otherwise ``echo cad/new_part.py >> .gitignore`` would hide
+    a real design-file change from the evidence gate. ``[]`` on any git
+    failure (not a repo, timeout)."""
+    project = Path(project)
+    try:
+        res = subprocess.run(
+            ["git", "-C", str(project), "ls-files", "-z", "--others", "--ignored", "--exclude-standard"],
+            capture_output=True, timeout=10,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return []
+    if res.returncode != 0:
+        return []
+    names = [n for n in res.stdout.decode("utf-8", "surrogateescape").split("\0") if n]
+    pats = list(patterns)
+    return sorted({n for n in names if any_glob_match(pats, n) and (project / n).is_file()})
+
+
 def domain_inputs(project: Path, patterns: Iterable[str], files: list[str] | None = None) -> list[str]:
+    """Every file that is an input of a domain's glob ``patterns``: matching
+    tracked/untracked-non-ignored files, matching *gitignored* files (N3),
+    and ``.gitignore`` itself (N3: every domain must see edits to it, since
+    it decides what "gitignored" even means)."""
     pats = list(patterns)
     files = project_files(project) if files is None else files
-    return [f for f in files if any_glob_match(pats, f)]
+    matched = {f for f in files if any_glob_match(pats, f)}
+    matched.update(ignored_inputs(project, pats))
+    matched.add(".gitignore")
+    return sorted(matched)
 
 
 def domain_inputs_sha256(project: Path, patterns: Iterable[str], files: list[str] | None = None) -> str:
