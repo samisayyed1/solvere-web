@@ -141,3 +141,23 @@ def test_forge_root_placeholder_substituted(scaffolded_project, forge_root):
     text = (scaffolded_project / ".mcp.json").read_text()
     assert "${FORGE_ROOT}" not in text
     assert str(forge_root) in text
+
+
+# --- the scaffolded template passes its own checks (M7, review #1) ---------
+
+def test_scaffolded_project_passes_gardening_docs(scaffolded_project, forge_root):
+    """templates/project/.claude/rules/*.md must not trip gardening-docs's own
+    unenforced-rule-bullet check -- review #1 found 39 failures here, which
+    blocked every Markdown edit via PostToolUse on a freshly scaffolded project."""
+    import importlib.util
+    import json as _json
+    script = forge_root / "plugins" / "forge" / "skills" / "gardening-docs" / "scripts" / "verify.py"
+    spec = importlib.util.spec_from_file_location("forge_skill_gardening_docs_scaffold_check", script)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    rc = mod.main(["--project", str(scaffolded_project)])
+    result_path = scaffolded_project / "out" / "verify" / "gardening.docs.json"
+    result = _json.loads(result_path.read_text())
+    unenforced = next(m for m in result["measurements"] if m["name"] == "unenforced_rule_bullets")
+    assert unenforced["value"] == 0, unenforced.get("remediation")
+    assert rc == 0

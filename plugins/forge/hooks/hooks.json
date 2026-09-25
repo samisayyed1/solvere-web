@@ -8,7 +8,10 @@
           {
             "type": "command",
             "command": "python3",
-            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/session_start.py"],
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/_failclosed.py",
+              "session_start"
+            ],
             "timeout": 15,
             "statusMessage": "Forge: checking gate, evidence and doctor drift"
           }
@@ -21,7 +24,10 @@
           {
             "type": "command",
             "command": "python3",
-            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/user_prompt_submit.py"],
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/_failclosed.py",
+              "user_prompt_submit"
+            ],
             "timeout": 5
           }
         ]
@@ -33,7 +39,10 @@
           {
             "type": "command",
             "command": "python3",
-            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/user_prompt_expansion.py"],
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/_failclosed.py",
+              "user_prompt_expansion"
+            ],
             "timeout": 8
           }
         ]
@@ -46,7 +55,10 @@
           {
             "type": "command",
             "command": "python3",
-            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/pre_tool_use.py"],
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/_failclosed.py",
+              "pre_tool_use"
+            ],
             "timeout": 1,
             "statusMessage": "Forge: checking guardrails"
           }
@@ -55,12 +67,15 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Write|Edit|MultiEdit",
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit",
         "hooks": [
           {
             "type": "command",
             "command": "python3",
-            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/post_tool_use.py"],
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/_failclosed.py",
+              "post_tool_use"
+            ],
             "timeout": 32,
             "statusMessage": "Forge: running verify entrypoints for the changed path"
           }
@@ -73,7 +88,10 @@
           {
             "type": "command",
             "command": "python3",
-            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/stop.py"],
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/_failclosed.py",
+              "stop"
+            ],
             "timeout": 10,
             "statusMessage": "Forge: checking the evidence gate"
           }
@@ -87,7 +105,10 @@
           {
             "type": "command",
             "command": "python3",
-            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/subagent_stop.py"],
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/_failclosed.py",
+              "subagent_stop"
+            ],
             "timeout": 5
           }
         ]
@@ -100,7 +121,10 @@
           {
             "type": "command",
             "command": "python3",
-            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/pre_compact.py"],
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/_failclosed.py",
+              "pre_compact"
+            ],
             "timeout": 10
           }
         ]

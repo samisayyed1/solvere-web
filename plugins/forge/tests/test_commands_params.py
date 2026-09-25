@@ -62,6 +62,7 @@ def test_set_unverified_param_no_justification_needed(tmp_path, capsys, repo_roo
     project = _make_project(tmp_path)
     code, out, _err = _run(capsys, [
         "params", "--project", str(project), "set", "enclosure.wall_thickness", "--value", "2.5",
+        "--source", "R5d FDM min wall; 2.5 mm chosen for the lid lip",
     ], repo_root)
     assert code == 0
     assert "wrote" in out
@@ -85,6 +86,7 @@ def test_set_verified_param_with_justification_succeeds_and_logs_changelog(tmp_p
     project = _make_project(tmp_path)
     code, out, _err = _run(capsys, [
         "params", "--project", str(project), "set", "enclosure.height", "--value", "42",
+        "--source", "rev B prototype, calipers, 5 samples (lab book p.12)",
         "--justification", "measured on rev B prototype with calipers",
     ], repo_root)
     assert code == 0
@@ -101,6 +103,7 @@ def test_set_too_short_justification_is_rejected(tmp_path, capsys, repo_root):
     project = _make_project(tmp_path)
     code, _out, err = _run(capsys, [
         "params", "--project", str(project), "set", "enclosure.height", "--value", "42", "--justification", "x",
+        "--source", "rev B prototype, calipers, 5 samples (lab book p.12)",
     ], repo_root)
     assert code == 1
     assert "justification" in err
@@ -131,6 +134,7 @@ def test_set_schema_invalid_leaf_rejected(tmp_path, capsys, repo_root):
     project = _make_project(tmp_path)
     code, _out, err = _run(capsys, [
         "params", "--project", str(project), "set", "enclosure.wall_thickness", "--unit", "",
+        "--source", "R5d FDM min wall; unit cleared on purpose",
     ], repo_root)
     assert code == 1
     assert "schemas/params.schema.json" in err
@@ -178,3 +182,91 @@ def test_lint_json_output(tmp_path, capsys, repo_root):
     data = json.loads(out)
     assert data["count"] == 2
     assert data["errors"] == []
+
+
+# ---------------------------------------------------------------------------
+# review #1, M4: a changed verified value loses its verification
+# ---------------------------------------------------------------------------
+
+def _get(capsys, project, key, repo_root):
+    code, out, _ = _run(capsys, ["params", "--project", str(project), "get", key, "--json"], repo_root)
+    assert code == 0
+    return json.loads(out)
+
+
+def test_set_verified_value_change_drops_to_measured_and_clears_verification(tmp_path, capsys, repo_root):
+    """Seeded wrong (M4): 40 -> 35 used to keep status=verified, 'Alice Chen' and EV-0001."""
+    project = _make_project(tmp_path)
+    code, _out, err = _run(capsys, [
+        "params", "--project", str(project), "set", "enclosure.height", "--value", "35",
+        "--source", "rev B drawing D-102 sheet 2", "--justification", "PCB stack is 5 mm shorter in rev B",
+    ], repo_root)
+    assert code == 0, err
+    leaf = _get(capsys, project, "enclosure.height", repo_root)
+    assert leaf["value"] == 35
+    assert leaf["status"] == "measured"
+    assert leaf["verified_by"] == ""
+    assert leaf["evidence"] == []
+    assert leaf["source"] == "rev B drawing D-102 sheet 2"
+
+
+def test_set_value_change_without_citation_is_rejected(tmp_path, capsys, repo_root):
+    project = _make_project(tmp_path)
+    code, _out, err = _run(capsys, [
+        "params", "--project", str(project), "set", "enclosure.height", "--value", "35",
+        "--justification", "because I want it smaller",
+    ], repo_root)
+    assert code == 1
+    assert "--source" in err
+    assert "value = 40.0" in (project / "params" / "params.toml").read_text()
+
+
+def test_set_value_change_repeating_old_source_is_rejected(tmp_path, capsys, repo_root):
+    project = _make_project(tmp_path)
+    code, _out, err = _run(capsys, [
+        "params", "--project", str(project), "set", "enclosure.wall_thickness", "--value", "0.5",
+        "--source", "R5d FDM min wall 0.8-1.2mm; chosen 2.0 for stiffness",
+    ], repo_root)
+    assert code == 1
+    assert "repeats the old source" in err
+
+
+def test_set_value_change_cannot_keep_verified_status(tmp_path, capsys, repo_root):
+    project = _make_project(tmp_path)
+    code, _out, err = _run(capsys, [
+        "params", "--project", str(project), "set", "enclosure.height", "--value", "35",
+        "--source", "rev B drawing D-102 sheet 2", "--justification", "PCB stack is 5 mm shorter in rev B",
+        "--status", "verified",
+    ], repo_root)
+    assert code == 1
+    assert "cannot keep or claim verification" in err
+
+
+def test_set_verified_needs_existing_passing_evidence(tmp_path, capsys, repo_root):
+    project = _make_project(tmp_path)
+    code, _out, err = _run(capsys, [
+        "params", "--project", str(project), "set", "enclosure.wall_thickness", "--status", "verified",
+        "--verified-by", "QA Person", "--evidence", "EV-0042",
+    ], repo_root)
+    assert code == 1
+    assert "EV-0042" in err
+
+
+def test_set_preserves_comments_and_other_leaves(tmp_path, capsys, repo_root):
+    project = _make_project(tmp_path)
+    path = project / "params" / "params.toml"
+    path.write_text("# header comment: keep me\n" + PARAMS_TOML.replace(
+        'unit = "mm"\nstatus = "assumed"', 'unit = "mm"  # millimetres\nstatus = "assumed"', 1)
+        + "\n# trailing comment\n")
+    code, _out, err = _run(capsys, [
+        "params", "--project", str(project), "set", "enclosure.wall_thickness", "--value", "2.5",
+        "--source", "R5d FDM min wall; 2.5 mm chosen for the lid lip",
+    ], repo_root)
+    assert code == 0, err
+    text = path.read_text()
+    assert "# header comment: keep me" in text
+    assert "# millimetres" in text
+    assert "# trailing comment" in text
+    assert "value = 2.5" in text
+    assert 'verified_by = "Alice Chen"' in text
+    assert "re-serialised" not in err

@@ -44,7 +44,7 @@ allowed-tools: Read, Write, Edit, Grep, Glob, Bash(${CLAUDE_SKILL_DIR}/scripts/v
    ```
    forge-python ${CLAUDE_SKILL_DIR}/scripts/verify.py --project <root>
    ```
-   This writes `out/verify/trace.graph.json` (machine-readable graph) and `out/verify/trace.graph.mmd` (a Mermaid flowchart — paste into any Mermaid renderer to see the graph). Fix every failing measurement using its `remediation` string before calling the gate ready.
+   This writes `out/trace/trace.graph.json` (machine-readable graph) and `out/trace/trace.graph.mmd` (a Mermaid flowchart — paste into any Mermaid renderer to see the graph) — outside `out/verify/`, which holds only `forge.check/1` check-result files. Fix every failing measurement using its `remediation` string before calling the gate ready. A `.gitkeep` placeholder in `tests/` or a design directory is never treated as an orphan file.
 5. `forge trace` (CONTRACTS §11, the systems-team command) wraps step 4 for CI and hooks.
 
 ## What counts as an orphan

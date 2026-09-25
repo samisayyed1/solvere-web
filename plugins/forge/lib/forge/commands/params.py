@@ -6,17 +6,26 @@ table (``value``, ``unit``, optional ``tol``, ``status``, ``source``,
 optional ``verified_by``/``evidence``) validated against
 ``schemas/params.schema.json``.
 
-``set`` on a leaf whose *current* ``status`` is ``verified`` requires
-``--justification`` (a sentence naming the source) and appends the old
-value, the justification and a timestamp to ``params/CHANGELOG.md`` --
-this is the sourced, audited path the PreToolUse hook's verified-param
-guard points agents at instead of a direct file edit.
+**Value changes** (``value``, ``unit`` or ``tol``) of an existing leaf
+(review #1, M4):
 
-**Round-trip note:** the standard library has no TOML *writer*, so ``set``
-re-serializes the whole file from the parsed structure (via
-:func:`render_params_toml`) rather than doing an in-place text edit. This
-is correct -- every field the schema and CHANGELOG care about round-trips
-exactly -- but it does not preserve comments or original formatting.
+- always need ``--source "<citation>"``: a new value needs its own citation,
+  different from the old one (the old source described the old value);
+- on a ``verified`` leaf also need ``--justification`` (a sentence), and
+  the leaf drops to ``status = "measured"`` with ``verified_by`` and
+  ``evidence`` cleared -- the old verification described the old value.
+  Setting ``--status verified``/``--verified-by``/``--evidence`` in the same
+  call is refused: re-verification is a separate step that must cite
+  passing evidence entries that exist in ``evidence/manifest.json``;
+- are appended (old leaf, new leaf, justification) to ``params/CHANGELOG.md``.
+
+The Stop hook re-checks the same rule on the file itself, however it was
+changed.
+
+**Formatting:** ``set`` edits the leaf's table in place, so comments and
+formatting elsewhere in the file are preserved. Only when the leaf is not a
+plain ``[dotted.key]`` table (e.g. an inline table) does it fall back to
+re-serialising the whole file (:func:`render_params_toml`), and it says so.
 """
 
 from __future__ import annotations
@@ -198,35 +207,131 @@ def _cmd_get(ns: argparse.Namespace, params_path: Path, key_path: tuple[str, ...
     return 0
 
 
+_VALUE_FIELDS = ("value", "unit", "tol")
+_HEADER_RE = re.compile(r"^\s*\[")
+
+
+def _section_bounds(lines: list[str], key_path: tuple[str, ...]) -> tuple[int, int] | None:
+    """Line range ``[start, end)`` of the ``[a.b.c]`` table for ``key_path``
+    (header line included), or None."""
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if not stripped.startswith("[") or stripped.startswith("[["):
+            continue
+        header = stripped.split("#", 1)[0].strip()
+        if not header.endswith("]"):
+            continue
+        try:
+            parsed = tomllib.loads(header + "\n")
+        except tomllib.TOMLDecodeError:
+            continue
+        node, path = parsed, []
+        while isinstance(node, dict) and len(node) == 1:
+            k = next(iter(node))
+            path.append(k)
+            node = node[k]
+        if tuple(path) == key_path:
+            end = i + 1
+            while end < len(lines) and not _HEADER_RE.match(lines[end]):
+                end += 1
+            return i, end
+    return None
+
+
+def _field_span(lines: list[str], start: int, end: int, field: str) -> tuple[int, int] | None:
+    rx = re.compile(r"^\s*" + re.escape(field) + r"\s*=")
+    for i in range(start + 1, end):
+        if rx.match(lines[i]):
+            j = i + 1
+            while j <= end:  # a multi-line value: extend until the assignment parses
+                try:
+                    tomllib.loads("".join(lines[i:j]))
+                    return i, j
+                except tomllib.TOMLDecodeError:
+                    j += 1
+            return i, i + 1
+    return None
+
+
+def _edit_in_place(text: str, key_path: tuple[str, ...], new_leaf: dict, old_leaf: dict | None) -> str | None:
+    """Rewrite only the leaf's own lines; None if that is not possible."""
+    lines = text.splitlines(keepends=True)
+    if lines and not lines[-1].endswith("\n"):
+        lines[-1] += "\n"
+    if old_leaf is None:
+        block = [f"[{'.'.join(_toml_key(k) for k in key_path)}]\n"]
+        for field in _LEAF_FIELD_ORDER:
+            if field in new_leaf:
+                block.append(f"{field} = {_toml_value(new_leaf[field])}\n")
+        block += [f"{f} = {_toml_value(v)}\n" for f, v in new_leaf.items() if f not in _LEAF_FIELD_ORDER]
+        sep = ["\n"] if lines and lines[-1].strip() else []
+        return "".join(lines + sep + block)
+    bounds = _section_bounds(lines, key_path)
+    if bounds is None:
+        return None
+    start, end = bounds
+    fields = [f for f in _LEAF_FIELD_ORDER if f in new_leaf or f in old_leaf]
+    fields += [f for f in new_leaf if f not in fields]
+    for field in fields:
+        if new_leaf.get(field) == old_leaf.get(field) and (field in new_leaf) == (field in old_leaf):
+            continue
+        span = _field_span(lines, start, end, field)
+        new_line = [f"{field} = {_toml_value(new_leaf[field])}\n"] if field in new_leaf else []
+        if span:
+            i, j = span
+            comment = re.search(r"\s+#[^\"']*$", lines[j - 1].rstrip("\n")) if j == i + 1 else None
+            if new_line and comment:
+                new_line = [new_line[0].rstrip("\n") + comment.group(0) + "\n"]
+            lines[i:j] = new_line
+            end += len(new_line) - (j - i)
+        elif new_line:
+            insert_at = end
+            while insert_at > start + 1 and not lines[insert_at - 1].strip():
+                insert_at -= 1
+            lines[insert_at:insert_at] = new_line
+            end += 1
+    return "".join(lines)
+
+
+def _citation_ok(source: str | None, old_source: str | None) -> str | None:
+    if not source or len(source.strip()) < 10:
+        return "a value change needs --source \"<citation>\" (at least 10 characters: document, page, measurement)"
+    if old_source and source.strip() == str(old_source).strip():
+        return "--source must cite the new value; it repeats the old source, which described the old value"
+    return None
+
+
+def _evidence_ok(project: Path, ids: list[str]) -> str | None:
+    from .. import evidence as evidence_lib
+    try:
+        entries = {e.get("id"): e for e in evidence_lib.load(project).get("entries", [])}
+    except (evidence_lib.EvidenceError, ValueError, OSError) as exc:
+        return f"cannot read evidence/manifest.json ({exc})"
+    bad = [i for i in ids if i not in entries or entries[i].get("result") != "pass"
+           or entries[i].get("status") != "VERIFIED"]
+    if bad:
+        return f"evidence {', '.join(bad)} is missing, failing or UNVERIFIED in evidence/manifest.json"
+    return None
+
+
 def _cmd_set(ns: argparse.Namespace, project: Path, params_path: Path, key_path: tuple[str, ...]) -> int:
-    data = _load_params(params_path)
+    text = params_path.read_text() if params_path.is_file() else ""
+    data = tomllib.loads(text) if text else {}
     current = _get_leaf(data, key_path)
     current_status = (current or {}).get("status")
 
-    if current_status == "verified":
-        if not ns.justification or len(ns.justification.strip()) < 10:
-            print(f"forge params set: {ns.key} is status=verified; changing it needs "
-                  "--justification \"<source>\" (CONTRACTS.md §2) of at least a sentence.", file=sys.stderr)
-            return 1
+    def fail(msg: str) -> int:
+        print(f"forge params set: {ns.key}: {msg}", file=sys.stderr)
+        return 1
 
     if current is None and not (ns.value and ns.unit and ns.status and ns.source):
-        print(f"forge params set: {ns.key} does not exist yet; creating one needs "
-              "--value --unit --status --source.", file=sys.stderr)
-        return 1
+        return fail("does not exist yet; creating one needs --value --unit --status --source.")
 
     new_leaf = dict(current or {})
     if ns.value is not None:
         new_leaf["value"] = _coerce_value(ns.value)
     if ns.unit is not None:
         new_leaf["unit"] = ns.unit
-    if ns.status is not None:
-        new_leaf["status"] = ns.status
-    if ns.source is not None:
-        new_leaf["source"] = ns.source
-    if ns.verified_by is not None:
-        new_leaf["verified_by"] = ns.verified_by
-    if ns.evidence_ids is not None:
-        new_leaf["evidence"] = ns.evidence_ids
     if ns.tol_minus is not None or ns.tol_plus is not None:
         tol = dict(new_leaf.get("tol") or {})
         if ns.tol_minus is not None:
@@ -235,6 +340,44 @@ def _cmd_set(ns: argparse.Namespace, project: Path, params_path: Path, key_path:
             tol["plus"] = ns.tol_plus
         new_leaf["tol"] = tol
 
+    value_changed = current is not None and any(new_leaf.get(f) != current.get(f) for f in _VALUE_FIELDS)
+    if value_changed:
+        if current_status == "verified" and (not ns.justification or len(ns.justification.strip()) < 10):
+            return fail("is status=verified; changing its value needs --justification \"<why>\" "
+                        "(CONTRACTS.md §2) of at least a sentence, and --source \"<citation>\".")
+        why = _citation_ok(ns.source, current.get("source"))
+        if why:
+            return fail(why)
+        if current_status == "verified":
+            if ns.status == "verified" or ns.verified_by or ns.evidence_ids:
+                return fail("a changed value cannot keep or claim verification in the same step; the param "
+                            "drops to measured. Re-verify afterwards with --status verified --verified-by "
+                            "--evidence citing passing evidence for the new value.")
+            new_leaf["status"] = "measured"
+            new_leaf["verified_by"] = ""
+            new_leaf["evidence"] = []
+    elif current_status == "verified" and (ns.source is not None or ns.unit is not None
+                                           or ns.status not in (None, "verified")):
+        if not ns.justification or len(ns.justification.strip()) < 10:
+            return fail("is status=verified; changing it needs --justification \"<why>\" (CONTRACTS.md §2).")
+
+    if ns.status is not None:
+        new_leaf["status"] = ns.status
+    if ns.source is not None:
+        new_leaf["source"] = ns.source
+    if ns.verified_by is not None:
+        new_leaf["verified_by"] = ns.verified_by
+    if ns.evidence_ids is not None:
+        new_leaf["evidence"] = ns.evidence_ids
+    if new_leaf.get("status") != "verified" and (current_status == "verified" or value_changed):
+        new_leaf["verified_by"] = ""
+        new_leaf["evidence"] = []
+    if new_leaf.get("status") == "verified" and current_status != "verified" or (
+            new_leaf.get("status") == "verified" and ns.evidence_ids is not None):
+        why = _evidence_ok(project, list(new_leaf.get("evidence") or []))
+        if why:
+            return fail(why)
+
     errors = minischema.validate(new_leaf, _params_schema())
     if errors:
         print(f"forge params set: {ns.key} would violate schemas/params.schema.json:", file=sys.stderr)
@@ -242,14 +385,27 @@ def _cmd_set(ns: argparse.Namespace, project: Path, params_path: Path, key_path:
             print(f"  - {err}", file=sys.stderr)
         return 1
 
-    _set_leaf(data, key_path, new_leaf)
+    new_text = _edit_in_place(text, key_path, new_leaf, current)
+    if new_text is not None:
+        try:
+            ok = _get_leaf(tomllib.loads(new_text), key_path) == new_leaf
+        except tomllib.TOMLDecodeError:
+            ok = False
+        if not ok:
+            new_text = None
+    if new_text is None:
+        _set_leaf(data, key_path, new_leaf)
+        new_text = render_params_toml(data)
+        print("forge params set: note: the leaf is not a plain [table]; the file was re-serialised and "
+              "its comments were not preserved", file=sys.stderr)
     params_path.parent.mkdir(parents=True, exist_ok=True)
-    params_path.write_text(render_params_toml(data))
+    params_path.write_text(new_text)
 
-    if current_status == "verified" or ns.justification:
-        _append_changelog(project, ns.key, current, new_leaf, ns.justification)
+    if current_status == "verified" or value_changed or ns.justification:
+        _append_changelog(project, ns.key, current, new_leaf, ns.justification or ns.source)
 
-    print(f"forge params set: wrote {ns.key} to {params_path}")
+    print(f"forge params set: wrote {ns.key} to {params_path}"
+          + (" (status dropped to measured: re-verify it)" if value_changed and current_status == "verified" else ""))
     return 0
 
 

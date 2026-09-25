@@ -1,0 +1,13 @@
+# M8 (review #1) seeded-wrong case: a genuine 30 deg down-facing overhang
+# must FAIL the 45 deg FDM "max overhang without support" limit. faces is
+# omitted -- "auto" selects only genuinely downward-facing planar faces
+# (measure.select_downward_faces), which for this wedge is exactly the one
+# sloped underside.
+[part]
+name = "ramp_overhang"
+module = "cad/ramp_overhang.py"
+process = "fdm"
+
+[[check]]
+rule = "overhang_max_deg"
+requirement = "REQ-MFG-001"

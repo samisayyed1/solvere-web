@@ -133,6 +133,7 @@ evidence = []                 # evidence entry ids, required when status = "veri
   - `--fast` is the ≤ 30 s mode used by PostToolUse hooks.
 - **Output:** the entrypoint writes one or more `out/verify/<check_id>.json` files through `forge.checkresult` and exits with the aggregate status: 0 if all passed, 1 if any failed, 2 on any error.
 - **Nothing to check:** it exits 0 and prints `[SKIP] <reason>`. It never fakes a pass.
+- **check_id namespace:** every check_id an entrypoint writes starts with one fixed, unique prefix (e.g. `dfm.`, `firmware.`, `requirements.trace_graph`). As the very first line of `main()` -- before any `--changed`/`[SKIP]` short-circuit, so it prints on every invocation -- the entrypoint prints `[FORGE_CHECK_ID_PREFIX] <prefix>` to stdout. A hook collecting remediations from `out/verify/*.json` after running entrypoint X must only read files whose `check_id` starts with the prefix X printed on that run, never files merely written or touched recently -- two entrypoints matched on the same changed path can finish inside the same second, and file mtimes alone misattribute one entrypoint's fix messages to another (M7, review #1: "Fix messages from gardening-docs showed up under tracing-requirements").
 
 **Registered entrypoints.** Each owner must create its file with exactly this path:
 

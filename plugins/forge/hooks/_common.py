@@ -24,10 +24,37 @@ LIB_DIR = PLUGIN_ROOT / "lib"
 if str(LIB_DIR) not in sys.path:
     sys.path.insert(0, str(LIB_DIR))
 
-try:
-    import tomllib
-except ImportError:  # pragma: no cover -- hooks require py3.11+ (tomllib); see toolchain floor
-    tomllib = None  # type: ignore[assignment]
+MIN_PYTHON = (3, 11)
+
+
+class HookRuntimeError(RuntimeError):
+    """The hook cannot enforce its policy on this interpreter (fail closed)."""
+
+
+def _require_tomllib():
+    """Forge hooks need ``tomllib`` (Python >= 3.11) to read ``forge.toml``
+    and ``params/params.toml``. Without it every guard that parses TOML would
+    silently turn into a no-op (review #1, C3), so the hook fails CLOSED:
+    under the ``_failclosed`` wrapper this exception becomes exit 2; when a
+    hook script is run directly, the ``SystemExit(2)`` below does the same."""
+    try:
+        import tomllib as _tomllib  # noqa: PLC0415
+        return _tomllib
+    except ImportError:
+        msg = (f"forge hook error: Python {sys.version.split()[0]} at {sys.executable} has no tomllib "
+               f"(needs >= {MIN_PYTHON[0]}.{MIN_PYTHON[1]}); Forge guardrails cannot run, so this tool call "
+               "is blocked. Put a Python >= 3.11 first on PATH as `python3` (or install the Forge "
+               "toolchain: plugins/forge/toolchain/install.sh) and restart Claude Code.")
+        if os.environ.get("FORGE_HOOK_WRAPPED"):
+            raise HookRuntimeError(msg) from None
+        print(msg, file=sys.stderr)
+        raise SystemExit(2) from None
+
+
+tomllib = _require_tomllib()
+
+
+from forge.evidence import glob_match as _evidence_glob_match  # noqa: E402
 
 
 # ---------------------------------------------------------------------------
@@ -54,13 +81,22 @@ def find_project_root(cwd: str | Path | None) -> Path | None:
 
 
 def load_forge_toml(root: Path) -> dict[str, Any]:
-    """Best-effort parse of ``forge.toml``; ``{}`` on any error (never raises)."""
-    if tomllib is None:
-        return {}
+    """Best-effort parse of ``forge.toml``; ``{}`` on a missing file.
+
+    A ``forge.toml`` that exists but does not parse raises
+    :class:`HookRuntimeError` (fail closed): treating it as empty would
+    silently switch off every ``[[verify]]`` domain of the evidence gate."""
+    path = root / "forge.toml"
     try:
-        return tomllib.loads((root / "forge.toml").read_text())
-    except (OSError, UnicodeDecodeError, tomllib.TOMLDecodeError):
+        text = path.read_text()
+    except FileNotFoundError:
         return {}
+    except (OSError, UnicodeDecodeError) as exc:
+        raise HookRuntimeError(f"cannot read {path}: {exc}") from exc
+    try:
+        return tomllib.loads(text)
+    except tomllib.TOMLDecodeError as exc:
+        raise HookRuntimeError(f"{path} is not valid TOML ({exc}); the Forge gate cannot run until it is fixed") from exc
 
 
 # ---------------------------------------------------------------------------
@@ -109,33 +145,11 @@ def head_sha(root: Path) -> str:
 # glob matching for forge.toml [[verify]] paths (supports ** and *)
 # ---------------------------------------------------------------------------
 
-def _glob_to_regex(pattern: str) -> "re.Pattern[str]":
-    out: list[str] = []
-    i, n = 0, len(pattern)
-    while i < n:
-        c = pattern[i]
-        if c == "*":
-            if i + 1 < n and pattern[i + 1] == "*":
-                out.append(".*")
-                i += 2
-                if i < n and pattern[i] == "/":
-                    i += 1
-            else:
-                out.append("[^/]*")
-                i += 1
-        elif c == "?":
-            out.append("[^/]")
-            i += 1
-        else:
-            out.append(re.escape(c))
-            i += 1
-    return re.compile("^" + "".join(out) + "$")
-
-
 def glob_match(pattern: str, path: str) -> bool:
     """Match ``path`` (relative, forward-slash) against a glob supporting
-    ``**`` (any depth) and ``*``/``?`` (single segment)."""
-    return bool(_glob_to_regex(pattern).match(path))
+    ``**`` (any depth) and ``*``/``?`` (single segment). Shared with
+    ``forge verify`` via :func:`forge.evidence.glob_match`."""
+    return _evidence_glob_match(pattern, path)
 
 
 def any_glob_match(patterns: list[str], path: str) -> bool:
@@ -173,6 +187,9 @@ MECHANICAL_AGENT_TYPE = "forge:mechanical-engineer"
 
 
 def is_judge(agent_type: str | None) -> bool:
+    """Read-only reviewer roles (maker != checker, ADR-001 D6). These may not
+    write through any tool, and their Bash is limited to a read-only
+    allowlist (review #1, M2)."""
     return (agent_type or "") in JUDGE_AGENT_TYPES
 
 

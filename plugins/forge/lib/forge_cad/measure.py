@@ -25,6 +25,11 @@ Algorithms, per FORGE-BRIEF §3.3 "Mechanical":
   common volume for interference.
 - ``draft_angles``        -- face normal vs. pull direction, signed so a
   releasing face reads positive (see the docstring for the sign convention).
+- ``overhang_angles``     -- angle from horizontal of *downward-facing*
+  faces only (FDM/SLA "max overhang without support"); distinct from
+  ``draft_angles``, which measures side-wall angle from vertical for mold
+  draft -- applying the wrong one to the wrong rule family failed every
+  vertical wall's overhang check (M8, review #1).
 - ``min_radius``          -- curvature of cylindrical faces, filtered by
   ``Face.is_circular_concave`` for fillets.
 - ``hole_edge_distance``  -- cylindrical hole axis (via OCP
@@ -61,6 +66,9 @@ __all__ = [
     "interference",
     "draft_angles",
     "select_side_faces",
+    "overhang_angles",
+    "select_downward_faces",
+    "filter_downward_faces",
     "min_radius",
     "hole_edge_distance",
     "boss_rib_thickness",
@@ -424,6 +432,77 @@ def select_side_faces(shape: bd.Shape, *, pull_direction: Vec3 = (0.0, 0.0, 1.0)
         if abs(float(np.dot(n_arr, d))) < tol_dot:
             selected.append(face)
     return selected
+
+
+def _is_downward(face: bd.Face, d: np.ndarray, tol_dot: float) -> bool:
+    n = face.normal_at(face.center())
+    n_arr = _unit((n.X, n.Y, n.Z))
+    return float(np.dot(n_arr, d)) < -tol_dot
+
+
+def filter_downward_faces(faces: Sequence[bd.Face], *, pull_direction: Vec3 = (0.0, 0.0, 1.0),
+                           vertical_tol_deg: float = 1.0) -> list[bd.Face]:
+    """Keep only the faces in ``faces`` that genuinely face *downward*
+    relative to ``pull_direction`` (the print/build-up axis) -- i.e. an
+    unsupported overhang, not a side wall. ``vertical_tol_deg`` excludes
+    faces within that many degrees of exactly vertical: a pure side wall's
+    normal is perpendicular to ``pull_direction`` (dot ~= 0), not downward,
+    and must never be treated as an overhang (M8, review #1: "the overhang
+    rule is applied as a minimum draft, so every vertical wall fails").
+    """
+    d = _unit(pull_direction)
+    tol_dot = math.sin(math.radians(vertical_tol_deg))
+    return [f for f in faces if _is_downward(f, d, tol_dot)]
+
+
+def select_downward_faces(shape: bd.Shape, *, pull_direction: Vec3 = (0.0, 0.0, 1.0),
+                           vertical_tol_deg: float = 1.0) -> list[bd.Face]:
+    """Default face selection for overhang checks: every planar face of
+    ``shape`` that faces downward (see :func:`filter_downward_faces`). A
+    real part should usually name its actual candidate overhang faces
+    explicitly rather than relying on this whole-shape default, since it
+    will also pick up a part's base/bed-contact face."""
+    d = _unit(pull_direction)
+    tol_dot = math.sin(math.radians(vertical_tol_deg))
+    return [face for face in shape.faces() if face.is_planar and _is_downward(face, d, tol_dot)]
+
+
+def overhang_angles(shape: bd.Shape, faces: Sequence[bd.Face], *,
+                     pull_direction: Vec3 = (0.0, 0.0, 1.0)) -> list[dict[str, Any]]:
+    """Angle from horizontal of each given face, for an FDM/SLA-style
+    "maximum overhang without support" check (R5d).
+
+    **Sign convention:** 0 deg means the face is horizontal and facing
+    straight down (the worst case -- an unsupported flat floor); 90 deg
+    means the face is vertical (not an overhang at all). This is the
+    complement of :func:`draft_angles`'s angle-from-vertical convention --
+    ``angle_from_horizontal = 90 + draft_deg`` -- and callers should
+    restrict ``faces`` to genuinely downward-facing ones first (see
+    :func:`select_downward_faces` / :func:`filter_downward_faces`): running
+    this on a side wall would read 90 deg and trivially "pass" any overhang
+    limit, which is correct (a side wall isn't an overhang) but means the
+    caller, not this function, decides which faces are worth checking at
+    all.
+    """
+    d = _unit(pull_direction)
+    out: list[dict[str, Any]] = []
+    all_faces = shape.faces()
+    for face in faces:
+        n = face.normal_at(face.center())
+        n_arr = _unit((n.X, n.Y, n.Z))
+        draft_deg = math.degrees(math.asin(max(-1.0, min(1.0, float(np.dot(n_arr, d))))))
+        angle_from_horizontal = 90.0 + draft_deg
+        try:
+            idx = all_faces.index(face)
+        except ValueError:
+            idx = -1
+        out.append({
+            "face_index": idx,
+            "overhang_angle_from_horizontal_deg": angle_from_horizontal,
+            "area_mm2": float(face.area),
+            "normal": tuple(round(float(x), 6) for x in n_arr),
+        })
+    return out
 
 
 # --------------------------------------------------------------------------

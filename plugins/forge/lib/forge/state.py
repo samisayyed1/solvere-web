@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
 import tempfile
 import time
 from pathlib import Path
@@ -41,6 +42,8 @@ __all__ = [
     "record_stop_block",
     "reset_stop_block",
     "set_last_green",
+    "resolve_base",
+    "changed_since",
     "write_precompact_snapshot",
     "compact_summary_text",
 ]
@@ -110,12 +113,92 @@ def reset_stop_block(project: Path | str) -> None:
         save(project, data)
 
 
-def set_last_green(project: Path | str, domain: str, *, sha: str) -> None:
+def set_last_green(project: Path | str, domain: str, *, sha: str,
+                   evidence_ids: list[str] | None = None) -> None:
+    """Record ``sha`` (the HEAD a fully passing ``forge verify`` ran on) as the
+    last green point of ``domain``. ``evidence_ids`` are the verify entries
+    that proved it; :func:`resolve_base` only trusts a last-green SHA that
+    those passing manifest entries vouch for."""
     data = load(project)
     last_green = dict(data.get("last_green") or {})
-    last_green[domain] = {"sha": sha, "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
+    last_green[domain] = {"sha": sha, "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                          "evidence_ids": list(evidence_ids or [])}
     data["last_green"] = last_green
     save(project, data)
+
+
+# ---------------------------------------------------------------------------
+# git: the base the Stop gate diffs against (review #1, C2)
+# ---------------------------------------------------------------------------
+
+def _git(project: Path | str, *args: str) -> tuple[int, str]:
+    try:
+        res = subprocess.run(["git", "-c", "core.quotepath=off", "-C", str(project), *args], capture_output=True, text=True, timeout=10)
+        return res.returncode, res.stdout
+    except (OSError, subprocess.SubprocessError):
+        return 128, ""
+
+
+def _is_commit(project: Path | str, sha: str) -> bool:
+    return bool(sha) and _git(project, "cat-file", "-e", f"{sha}^{{commit}}")[0] == 0
+
+
+def _is_ancestor(project: Path | str, sha: str, of: str = "HEAD") -> bool:
+    return _git(project, "merge-base", "--is-ancestor", sha, of)[0] == 0
+
+
+def scaffold_base(project: Path | str) -> str | None:
+    """The oldest commit that added ``forge.toml`` (the scaffold commit), or
+    ``None`` when there is no such commit (no git, no commits yet)."""
+    code, out = _git(project, "log", "--diff-filter=A", "--format=%H", "--", "forge.toml")
+    shas = [line.strip() for line in out.splitlines() if line.strip()] if code == 0 else []
+    return shas[-1] if shas else None
+
+
+def resolve_base(project: Path | str, domain: str, manifest: dict[str, Any] | None = None) -> str | None:
+    """The commit the gate diffs ``domain`` against.
+
+    The domain's last-green SHA when it is a real commit, an ancestor of
+    HEAD, and vouched for by passing ``forge verify`` entries recorded on it;
+    otherwise the scaffold commit (so committing a change never hides it);
+    otherwise ``None`` (every file counts as changed).
+    """
+    info = (load(project).get("last_green") or {}).get(domain) or {}
+    sha = str(info.get("sha") or "")
+    ids = set(info.get("evidence_ids") or [])
+    if sha and ids and manifest is not None and _is_commit(project, sha) and _is_ancestor(project, sha):
+        entries = {e.get("id"): e for e in manifest.get("entries") or [] if isinstance(e, dict)}
+        vouched = all(
+            i in entries and entries[i].get("domain") == domain and entries[i].get("result") == "pass"
+            and entries[i].get("status") == "VERIFIED" and entries[i].get("recorded_by") == "forge verify"
+            and str(entries[i].get("git_sha", "")).startswith(sha)
+            for i in ids)
+        if vouched:
+            return sha
+    return scaffold_base(project)
+
+
+def changed_since(project: Path | str, base: str | None) -> list[str] | None:
+    """Files (posix, relative to ``project``) that differ between ``base`` and
+    the working tree -- committed, staged, unstaged, deleted and untracked
+    (non-ignored). ``base=None`` means "everything is new". Returns ``None``
+    when ``project`` is not in a git work tree."""
+    code, _ = _git(project, "rev-parse", "--is-inside-work-tree")
+    if code != 0:
+        return None
+    changed: set[str] = set()
+    if base:
+        code, out = _git(project, "diff", "--name-only", "--no-renames", "--relative", base, "--", ".")
+        if code != 0:
+            return None
+        changed.update(line for line in out.splitlines() if line)
+        code, out = _git(project, "ls-files", "--others", "--exclude-standard")
+    else:
+        code, out = _git(project, "ls-files", "--cached", "--others", "--exclude-standard")
+    if code != 0:
+        return None
+    changed.update(line for line in out.splitlines() if line)
+    return sorted(changed)
 
 
 def write_precompact_snapshot(

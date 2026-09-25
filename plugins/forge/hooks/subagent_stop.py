@@ -11,6 +11,12 @@ and validates it against ``schemas/verdict.schema.json`` (via
 keeps the subagent running so it can fix its own output, rather than
 letting a free-form "looks good to me" pass as a verdict.
 
+On top of the schema (which itself encodes the rule), the hook checks the
+CONTRACTS §5 consistency rule explicitly, so the reason names the offending
+criteria: ``overall`` may be ``PASS`` only if every criterion is ``PASS``
+(review #1, M5). A judge that reports a critical FAIL under an overall PASS
+is blocked and must fix its verdict.
+
 Every other ``agent_type`` (including the empty string used by internal
 agents, R1a §16) is left alone.
 """
@@ -69,6 +75,12 @@ def handle(data: dict) -> tuple[int, dict | None]:
         return 2, {"decision": "block", "reason": f"forge hook internal: could not load verdict schema: {exc}"}
 
     errors = minischema.validate(payload, schema)
+    if isinstance(payload, dict) and payload.get("overall") == "PASS":
+        not_pass = [f"{c.get('id')}={c.get('verdict')}" for c in payload.get("criteria") or []
+                    if isinstance(c, dict) and c.get("verdict") != "PASS"]
+        if not_pass:
+            errors.insert(0, "overall is PASS but these criteria are not PASS: " + ", ".join(not_pass)
+                          + " (CONTRACTS.md §5: overall is PASS only if every criterion is PASS)")
     if errors:
         reason = (f"{agent_type}'s verdict does not match schemas/verdict.schema.json:\n"
                   + "\n".join(f"- {e}" for e in errors) + "\nFix the verdict JSON block and stop.")

@@ -44,11 +44,14 @@ conflict = "Protolabs Network PDF and snap-fit article give a flat 0.5 mm for mo
 
 [[rule]]
 id = "overhang_max_deg"
-check_family = "geometry.draft"
-comparison = "min_from_vertical"
+check_family = "geometry.overhang"
+comparison = "min_from_horizontal"
 value_deg = 45.0
 source = "Protolabs Network PDF and FDM guide: 45 deg max overhang without support"
 conflict = ""
+# check_family was "geometry.draft" (mold-draft: angle from vertical) until
+# M8 (review #1) -- overhang is angle from horizontal on downward-facing
+# faces only, a different measurement, see checking-dfm/scripts/verify.py.
 
 [[rule]]
 id = "bridge_max_structural_mm"

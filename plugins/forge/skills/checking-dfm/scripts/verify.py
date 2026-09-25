@@ -76,10 +76,35 @@ def _load_material_table() -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:
     return doc.get("meta", {}), {m["id"]: m for m in doc.get("material", [])}
 
 
-def _resolve_limit(rule: dict[str, Any], nominal_wall_mm: float | None) -> tuple[str, float]:
-    """Returns (comparison, resolved numeric limit) for a rule, converting a
-    ratio-of-wall rule to an absolute mm/deg value."""
+def _resolve_limit(rule: dict[str, Any], nominal_wall_mm: float | None, *,
+                    as_ratio: bool = False) -> tuple[str, float]:
+    """Returns (comparison, resolved numeric limit) for a rule.
+
+    By default a ratio-of-wall rule (``min_ratio_of_wall`` / ``max_ratio_of_wall``)
+    is converted to an absolute mm/deg value (``value_ratio * nominal_wall_mm``),
+    because most families (min_wall, min_radius, ...) measure an absolute mm/deg
+    quantity and a ratio rule is just a convenient way to author that limit.
+
+    ``as_ratio=True`` is for families whose *measurement itself* is already a
+    dimensionless ratio (currently only ``geometry.boss_rib``, whose
+    ``measure.boss_rib_thickness`` returns ``thickness / nominal_wall_mm``).
+    There the limit must stay a bare ratio (``value_ratio``, never multiplied
+    by the wall) -- multiplying it turned a ratio-vs-ratio comparison into a
+    ratio-vs-millimetres one, so a rule capping ribs at 0.5x the wall let a
+    0.8-ratio rib pass on a 2 mm wall (limit became 0.5*2 = 1.0 mm, and
+    0.8 <= 1.0) (M8, review #1). A rule that mixes ``as_ratio=True`` with a
+    non-ratio comparison is a spec error, not a silent unit mismatch.
+    """
     comparison = rule["comparison"]
+    if as_ratio:
+        if comparison not in RATIO_COMPARISONS:
+            raise SpecError(
+                f"rule {rule['id']!r} measures a dimensionless ratio (check_family requires "
+                f"as_ratio limits) but comparison is {comparison!r}, not one of {sorted(RATIO_COMPARISONS)}"
+            )
+        if "value_ratio" not in rule:
+            raise SpecError(f"rule {rule['id']!r} is ratio-based; it needs value_ratio")
+        return comparison, float(rule["value_ratio"])
     if comparison in RATIO_COMPARISONS:
         if nominal_wall_mm is None:
             raise SpecError(f"rule {rule['id']!r} is ratio-based; the spec needs [part].nominal_wall_param")
@@ -101,7 +126,11 @@ def _apply_dfm_check(entry: dict[str, Any], *, rule: dict[str, Any], part_name: 
             "remove it from the spec or check it manually."
         )
     requirement = entry.get("requirement")
-    comparison, limit = _resolve_limit(rule, nominal_wall_mm)
+    # geometry.boss_rib measures a dimensionless ratio (rib/boss thickness
+    # over nominal wall) -- its limit must stay a ratio too, never be
+    # multiplied into millimetres (see _resolve_limit's as_ratio docstring,
+    # M8 review #1).
+    comparison, limit = _resolve_limit(rule, nominal_wall_mm, as_ratio=(family == "geometry.boss_rib"))
     check_id = f"dfm.{rule['id']}.{part_name}"
 
     with checkresult.run_check(check_id, target, project=project) as chk:
@@ -154,6 +183,37 @@ def _apply_dfm_check(entry: dict[str, Any], *, rule: dict[str, Any], part_name: 
                 chk.measure(f"draft_face_{r['face_index']}", r["draft_deg"], "deg", min=limit, requirement=requirement,
                             remediation=f"{rule['id']}: face {r['face_index']} draft {r['draft_deg']:.3f} deg is "
                                         f"below the {limit:.3f} deg minimum ({rule['source']}). Add draft.")
+
+        elif family == "geometry.overhang":
+            # FDM/SLA "maximum overhang without support": distinct from mold
+            # draft (geometry.draft above). Mold draft measures a side
+            # wall's angle from *vertical*; overhang measures a *downward-
+            # facing* face's angle from *horizontal*. Reusing geometry.draft
+            # here made every vertical wall (0 deg from vertical) fail a
+            # "min 45 deg" overhang limit, since it isn't the same angle at
+            # all (M8, review #1).
+            faces_spec = entry.get("faces", "auto")
+            all_faces = shape.faces()
+            candidates = measure.select_downward_faces(shape, pull_direction=pull_direction) if faces_spec == "auto" \
+                else [all_faces[i] for i in faces_spec]
+            # Only genuinely downward-facing faces are overhangs -- a
+            # vertical (or upward) face named explicitly is filtered out
+            # here too, never evaluated as an overhang.
+            down_faces = measure.filter_downward_faces(candidates, pull_direction=pull_direction)
+            if not down_faces:
+                # Nothing downward-facing was selected (e.g. an all-vertical
+                # part, or an explicit face list that named only side
+                # walls): there is no overhang to check, and that is a
+                # clean pass, not an error or a silent no-op.
+                chk.measure("overhang_none_found", True, "1", equals=True, requirement=requirement)
+            else:
+                results = measure.overhang_angles(shape, down_faces, pull_direction=pull_direction)
+                for r in results:
+                    angle = r["overhang_angle_from_horizontal_deg"]
+                    chk.measure(f"overhang_face_{r['face_index']}", angle, "deg", min=limit, requirement=requirement,
+                                remediation=f"{rule['id']}: face {r['face_index']} overhangs at {angle:.3f} deg "
+                                            f"from horizontal, below the {limit:.3f} deg minimum ({rule['source']}). "
+                                            "Add support material, add a chamfer/fillet, or reorient the part.")
 
         elif family == "geometry.min_radius":
             concave_only = bool(rule.get("concave_only", True))
@@ -269,6 +329,10 @@ def _run_one(fn, *args: Any, **kwargs: Any) -> int:
 
 
 def main(argv: list[str]) -> int:
+    # Declares this entrypoint's check_id namespace so PostToolUse can bind a
+    # fix message to the check that owns it, by check_id rather than which
+    # out/verify/*.json file happens to have the newest mtime (M7, review #1).
+    print("[FORGE_CHECK_ID_PREFIX] dfm.")
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--project", default=".", type=Path)
     ap.add_argument("--changed", action="append", default=[])

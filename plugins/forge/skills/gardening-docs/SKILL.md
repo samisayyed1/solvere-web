@@ -17,9 +17,9 @@ allowed-tools: Read, Grep, Glob, Edit, Bash(~/.forge/bin/forge-python *)
 1. Run the check: `~/.forge/bin/forge-python scripts/verify.py --project <root>` (or `forge verify` for the `docs` domain). It reports:
    - **broken links/anchors**: every relative Markdown link that doesn't resolve, or whose `#anchor` doesn't match a heading in the target (or the same document);
    - **stale tool versions**: any `<!-- forge-tool-version: id version -->` marker that disagrees with `plugins/forge/toolchain/manifest.json`;
-   - **unenforced rule bullets**: any bullet in `.claude/rules/*.md` that names no hook/lint/check/gate/enforcement mechanism (ADR-001 §13 point 6).
-2. **Fix what's cheap and obvious**: a typo'd path, a renamed heading, a version marker that just needs bumping. Use `Edit`, one targeted change per finding.
-3. **For anything structural** (a rule that genuinely has no mechanism yet, a doc that needs real rewriting), report it rather than papering over it — that's a `capturing-failures` or a real engineering task, not a doc edit.
+   - **unenforced rule bullets**: any bullet in `.claude/rules/*.md` that names no hook/lint/check/gate/enforcement mechanism, and also isn't marked `advisory` (ADR-001 §13 point 6).
+2. **Fix what's cheap and obvious**: a typo'd path, a renamed heading, a version marker that just needs bumping, or — for a rule bullet — naming its real mechanism (`hook`, `lint`, `check`, `gate`, `enforced`) if it truly has one. Use `Edit`, one targeted change per finding.
+3. **For anything structural** (a rule that genuinely has no mechanism yet, a doc that needs real rewriting), mark the bullet `(advisory)` if it truly has no automated enforcement — never invent a mechanism it doesn't have — or report it rather than papering over it if it should be enforced but isn't yet; that's a `capturing-failures` or a real engineering task, not a doc edit.
 4. **Cite the check result** (`out/verify/gardening.docs.json`) as evidence for "docs are internally consistent" claims, at level **L1**.
 
 ## Opting a doc into version tracking

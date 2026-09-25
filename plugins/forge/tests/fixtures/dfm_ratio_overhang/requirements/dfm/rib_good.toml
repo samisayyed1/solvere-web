@@ -1,0 +1,12 @@
+# M8 (review #1) passing case: ratio 0.8/2.0 = 0.4 must PASS the 0.5x
+# rib/boss cap.
+[part]
+name = "rib_good"
+module = "cad/rib_good.py"
+process = "injection_molding"
+nominal_wall_param = "dfm_test.nominal_wall_mm"
+
+[[check]]
+rule = "rib_max_ratio_of_wall"
+requirement = "REQ-MFG-001"
+faces = [5]

@@ -279,6 +279,11 @@ def _iter_specs(project: Path, changed: list[str]) -> list[Path]:
 
 
 def main(argv: list[str]) -> int:
+    # Declares this entrypoint's check_id namespace so PostToolUse can bind a
+    # fix message to the check that owns it, by check_id rather than which
+    # out/verify/*.json file happens to have the newest mtime (M7, review #1).
+    # Every check_id this script writes starts with "geometry." (see FAMILIES).
+    print("[FORGE_CHECK_ID_PREFIX] geometry.")
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--project", default=".", type=Path)
     ap.add_argument("--changed", action="append", default=[])

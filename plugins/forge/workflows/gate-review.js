@@ -93,52 +93,104 @@ function reviewPrompt(role) {
 }
 
 const reviewers = [
-  { role: 'verification-evaluator', agentType: 'forge:verification-evaluator' },
-  { role: 'red-team', agentType: 'forge:red-team' },
-  ...specialists.map((s) => ({ role: s, agentType: `forge:${s}` })),
+  { role: 'verification-evaluator', agentType: 'forge:verification-evaluator', required: true },
+  { role: 'red-team', agentType: 'forge:red-team', required: true },
+  ...specialists.map((s) => ({ role: s, agentType: `forge:${s}`, required: false })),
 ]
 
-const verdicts = (await parallel(
-  reviewers.map((r) => () => agent(
-    reviewPrompt(r.role),
-    { phase: 'Review', schema: VERDICT_SCHEMA, agentType: r.agentType, label: r.role }
-  ))
-)).filter(Boolean)
+// Every reviewer's outcome is kept, by role -- a reviewer that threw, returned
+// nothing or returned an invalid verdict is never silently dropped (review #1, M5).
+const settled = await parallel(
+  reviewers.map((r) => async () => {
+    try {
+      const v = await agent(
+        reviewPrompt(r.role),
+        { phase: 'Review', schema: VERDICT_SCHEMA, agentType: r.agentType, label: r.role }
+      )
+      return { role: r.role, verdict: v }
+    } catch (e) {
+      return { role: r.role, error: String((e && e.message) || e) }
+    }
+  })
+)
 
-if (!verdicts.length) {
-  throw new Error('gate-review: every reviewer failed or returned nothing; nothing to reconcile')
+// CONTRACTS.md §5 checks, re-done here rather than trusted: the structured
+// output schema above cannot express "overall PASS only if every criterion PASS".
+function verdictProblems(v, role) {
+  const problems = []
+  if (!v || typeof v !== 'object') return ['no verdict object returned']
+  if (v.schema !== 'forge.verdict/1') problems.push('schema is not forge.verdict/1')
+  if (!Array.isArray(v.criteria) || v.criteria.length === 0) problems.push('no criteria')
+  if (!['PASS', 'FAIL', 'BLOCKED'].includes(v.overall)) problems.push(`overall ${JSON.stringify(v.overall)} invalid`)
+  for (const c of Array.isArray(v.criteria) ? v.criteria : []) {
+    if (!c || !['PASS', 'FAIL', 'BLOCKED'].includes(c.verdict)) {
+      problems.push(`criterion ${c && c.id} has an invalid verdict`)
+      continue
+    }
+    if (c.verdict === 'PASS' && !(Array.isArray(c.evidence) && c.evidence.length)) {
+      problems.push(`criterion ${c.id} is PASS without evidence`)
+    }
+    if (c.verdict === 'FAIL' && !(c.severity && Array.isArray(c.affects) && c.affects.length)) {
+      problems.push(`criterion ${c.id} is FAIL without severity/affects`)
+    }
+  }
+  if (v.overall === 'PASS' && Array.isArray(v.criteria) && v.criteria.some((c) => !c || c.verdict !== 'PASS')) {
+    problems.push('overall is PASS but not every criterion is PASS')
+  }
+  return problems
 }
 
-log(`${verdicts.length}/${reviewers.length} reviewer(s) returned a forge.verdict/1 block.`)
+const outcomes = reviewers.map((r, i) => {
+  const s = (Array.isArray(settled) ? settled[i] : null) || { role: r.role, error: 'no result' }
+  const problems = s.error ? [`reviewer failed: ${s.error}`] : verdictProblems(s.verdict, r.role)
+  let effective = 'BLOCKED'
+  if (!problems.length) {
+    const cs = s.verdict.criteria
+    effective = cs.some((c) => c.verdict === 'FAIL') || s.verdict.overall === 'FAIL' ? 'FAIL'
+      : cs.some((c) => c.verdict === 'BLOCKED') || s.verdict.overall === 'BLOCKED' ? 'BLOCKED' : 'PASS'
+  }
+  return { role: r.role, required: r.required, verdict: s.verdict || null, problems, effective }
+})
+
+const verdicts = outcomes.filter((o) => !o.problems.length).map((o) => o.verdict)
+const unusable = outcomes.filter((o) => o.problems.length)
+const missingRequired = unusable.filter((o) => o.required).map((o) => o.role)
+
+const overallRecommendation = missingRequired.length ? 'BLOCKED'
+  : outcomes.some((o) => o.effective === 'FAIL') ? 'FAIL'
+  : outcomes.some((o) => o.effective === 'BLOCKED') ? 'BLOCKED' : 'PASS'
+
+log(`${verdicts.length}/${reviewers.length} reviewer(s) returned a valid forge.verdict/1 block` +
+  (unusable.length ? `; unusable: ${unusable.map((o) => `${o.role} (${o.problems.join('; ')})`).join(', ')}` : '') + '.')
 
 // ---- phase 2: reconcile into one gate record, sign-off left blank ------
 phase('Reconcile')
 
 const reconcilePrompt = (
-  `Reconcile these ${verdicts.length} reviewer verdicts for "${project}" gate ${gate} ("${subject}") into one ` +
-  `gate record.\n\nVerdicts (JSON): ${JSON.stringify(verdicts)}\n\n` +
+  `Reconcile these reviewer outcomes for "${project}" gate ${gate} ("${subject}") into one ` +
+  `gate record.\n\nValid verdicts (JSON): ${JSON.stringify(verdicts)}\n\n` +
+  `Reviewers with no usable verdict (JSON): ${JSON.stringify(unusable.map((o) => ({ role: o.role, problems: o.problems })))}\n\n` +
   `Read templates/project/reviews/_gate-template.md relative to the Forge plugin/repo root if it exists; ` +
   `otherwise use plugins/forge/skills/reviewing-designs/references/gate-record-template.md as the template. ` +
   `Write the merged report to reviews/${gate}.md inside "${project}" with: a criteria table that is the union ` +
   `of every reviewer's criteria (each row shows its verdict and which reviewer(s) raised it -- if reviewers ` +
   `disagree on the same criterion id, show both verdicts, don't silently pick one), evidence links, the ` +
   `verification-evaluator verdict JSON block verbatim, the red-team verdict JSON block verbatim, any ` +
-  `specialist verdicts verbatim, an "Open risks" section drawn from every "FAIL"/"BLOCKED" criterion and every ` +
-  `red-team finding, and a one-paragraph recommendation (PASS/FAIL/BLOCKED) that is explicitly a ` +
-  `recommendation, not a decision. End the file with EXACTLY this literal line, left blank -- ` +
+  `specialist verdicts verbatim, a "Missing or invalid reviews" section listing every reviewer above with no ` +
+  `usable verdict and why, an "Open risks" section drawn from every "FAIL"/"BLOCKED" criterion and every ` +
+  `red-team finding, and a one-paragraph recommendation that is explicitly a recommendation, not a decision. ` +
+  `The recommendation MUST be exactly ${overallRecommendation} (computed by the workflow from the verdicts; ` +
+  `do not change it). End the file with EXACTLY this literal line, left blank -- ` +
   `never fill in a name, date or decision yourself, under any circumstance: ` +
   `"Human sign-off: ____________  Name: ____  Date: ____  Decision: PASS / FAIL". ` +
-  `Return the path you wrote and the overall recommendation you put in it.`
+  `Return the path you wrote.`
 )
 
 const reconciliation = await agent(reconcilePrompt, { phase: 'Reconcile', label: 'reconcile' })
 
-const anyFail = verdicts.some((v) => v.overall === 'FAIL')
-const anyBlocked = verdicts.some((v) => v.overall === 'BLOCKED')
-const overallRecommendation = anyFail ? 'FAIL' : anyBlocked ? 'BLOCKED' : 'PASS'
-
-log(`Gate review reconciled: recommendation ${overallRecommendation} (${verdicts.length} reviewer(s)). ` +
-  'The sign-off line was left blank -- only a human can pass this gate.')
+log(`Gate review reconciled: recommendation ${overallRecommendation} (${verdicts.length} valid verdict(s)` +
+  (missingRequired.length ? `; BLOCKED because ${missingRequired.join(' and ')} returned no valid verdict` : '') +
+  '). The sign-off line was left blank -- only a human can pass this gate.')
 
 return {
   schema: 'forge.gate_review/1',
@@ -147,6 +199,7 @@ return {
   subject,
   reviewers: reviewers.map((r) => r.role),
   verdicts,
+  unusable: unusable.map((o) => ({ role: o.role, problems: o.problems })),
   overall_recommendation: overallRecommendation,
   reconciliation,
 }

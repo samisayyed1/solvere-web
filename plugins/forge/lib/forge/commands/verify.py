@@ -11,9 +11,15 @@ each listed entrypoint as
 
 in ladder order (the order the entrypoints are listed), aggregates the exit
 codes (any ``ERROR`` -> 2, else any ``FAIL`` -> 1, else 0), and records one
-evidence entry per domain via ``forge.evidence.add_from_checks`` over
-whichever ``out/verify/*.json`` files the entrypoint(s) for that domain wrote
-or touched during this run.
+evidence entry **per (domain, entrypoint) run** via
+``forge.evidence.add_verify_entry``: bound to the ``out/verify/*.json`` files
+that entrypoint wrote (with their sha256), its exit code, its ``--changed``
+scope and ``inputs_sha256`` over every file the domain's globs cover. That
+binding is what the Stop hook's evidence gate re-checks (review #1, C2/M6).
+
+When every entrypoint of a domain ran in this invocation and passed, the
+domain's last-green SHA (``.forge/state.json``) is set to HEAD, vouched for
+by the entries just written (review #1, M9).
 
 An entrypoint script that does not exist yet is not an error: it is reported
 as SKIP and listed, because other builders add their ``scripts/verify.py``
@@ -28,14 +34,13 @@ Standard library only -- this module runs under the plain ``forge`` CLI
 from __future__ import annotations
 
 import argparse
-import fnmatch
 import os
 import subprocess
 import sys
 from pathlib import Path
 from typing import Any
 
-from .. import evidence
+from .. import evidence, state
 
 NAME = "verify"
 HELP = "run domain verify entrypoints from forge.toml in ladder order (CONTRACTS.md §9)"
@@ -80,7 +85,9 @@ def _load_forge_toml(project: Path) -> dict[str, Any]:
 
 
 def _matches_any(rel_path: str, patterns: list[str]) -> bool:
-    return any(fnmatch.fnmatch(rel_path, pat) for pat in patterns)
+    # The same matcher the hooks use, so verify and the Stop gate always agree
+    # on which domain a path belongs to.
+    return evidence.any_glob_match(patterns, rel_path)
 
 
 def _forge_python(forge_root: Path) -> Path:
@@ -134,10 +141,34 @@ def _run_entrypoint(skill: str, *, plugin_root: Path, forge_python: Path, projec
     }
 
 
-def _evidence_domain(domain: str) -> str:
-    # evidence.DOMAINS (CONTRACTS.md §4) has no "docs" entry -- forge.toml's docs blocks
-    # (e.g. gardening-docs) record their evidence under "sys" rather than erroring.
-    return domain if domain in evidence.DOMAINS else "sys"
+def _rel_changed(project: Path, changed: list[str]) -> list[str]:
+    out = []
+    for c in changed:
+        p = Path(c)
+        if p.is_absolute():
+            try:
+                p = p.resolve().relative_to(project)
+            except ValueError:
+                pass
+        out.append(os.path.normpath(p.as_posix()).replace(os.sep, "/"))
+    return out
+
+
+def _patterns_for(toml_data: dict[str, Any], domain: str, skill: str) -> list[str]:
+    pats: list[str] = []
+    for b in toml_data.get("verify", []):
+        if b.get("domain") == domain and skill in (b.get("entrypoints") or []):
+            pats.extend(p for p in b.get("paths", []) if p not in pats)
+    return pats
+
+
+def _head(project: Path) -> str | None:
+    try:
+        res = subprocess.run(["git", "-C", str(project), "rev-parse", "--verify", "-q", "HEAD"],
+                             capture_output=True, text=True, timeout=10)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return res.stdout.strip() if res.returncode == 0 and res.stdout.strip() else None
 
 
 def _run_blocks(toml_data: dict[str, Any], *, plugin_root: Path, forge_python: Path, project: Path,
@@ -145,37 +176,62 @@ def _run_blocks(toml_data: dict[str, Any], *, plugin_root: Path, forge_python: P
     results: list[dict[str, Any]] = []
     blocks = sorted(toml_data.get("verify", []), key=lambda b: RUNG_ORDER.index(b.get("rung", "syntax"))
                      if b.get("rung") in RUNG_ORDER else len(RUNG_ORDER))
+    rels = _rel_changed(project, changed) if changed is not None else None
+    files = evidence.project_files(project)
     for block in blocks:
         domain = block.get("domain", "?")
         patterns = block.get("paths", [])
         entrypoints = block.get("entrypoints", [])
-        if changed is not None:
-            rels = [Path(c).as_posix() for c in changed]
-            if not any(_matches_any(r, patterns) for r in rels):
+        if rels is not None:
+            scope = [r for r in rels if _matches_any(r, patterns)]
+            if not scope:
                 continue
             run_changed = changed
         else:
-            run_changed = None
-        block_results = []
+            scope, run_changed = None, None
         for skill in entrypoints:
             res = _run_entrypoint(skill, plugin_root=plugin_root, forge_python=forge_python,
                                    project=project, changed=run_changed, fast=fast)
             res["domain"] = domain
             res["rung"] = block.get("rung", "?")
-            block_results.append(res)
             results.append(res)
-        check_files = [f for r in block_results for f in r.get("check_files", [])]
-        if check_files:
+            if res["status"] == "SKIP" or "returncode" not in res and res["status"] != "ERROR":
+                continue  # the entrypoint does not exist: nothing ran, nothing to record
             try:
-                evidence.add_from_checks(
-                    project, check_files, artifact=", ".join(entrypoints),
-                    domain=_evidence_domain(domain),
-                    claim=f"forge verify ({block.get('rung', '?')} rung) for domain {domain}",
-                    model=os.environ.get("FORGE_MODEL"),
-                )
-            except evidence.EvidenceError as exc:
-                print(f"forge verify: evidence for domain {domain} not recorded: {exc}", file=sys.stderr)
+                res["evidence_id"] = evidence.add_verify_entry(
+                    project, domain=domain, entrypoint=skill, returncode=res.get("returncode", 2),
+                    check_files=res.get("check_files", []),
+                    patterns=_patterns_for(toml_data, domain, skill), scope=scope, fast=fast,
+                    rung=block.get("rung"), model=os.environ.get("FORGE_MODEL"), files=files)
+            except (evidence.EvidenceError, OSError, ValueError) as exc:
+                res["status"] = "ERROR"
+                res["reason"] = f"evidence for {domain}/{skill} not recorded: {exc}"
+                print(f"forge verify: evidence for {domain}/{skill} not recorded: {exc}", file=sys.stderr)
     return results
+
+
+def _record_last_green(toml_data: dict[str, Any], project: Path, results: list[dict[str, Any]],
+                       fast: bool) -> list[str]:
+    """Set last-green for every domain whose every entrypoint ran here, in
+    full mode and without a --changed scope, and passed."""
+    if fast:
+        return []
+    head = _head(project)
+    if not head:
+        return []
+    green: list[str] = []
+    domains = {b.get("domain") for b in toml_data.get("verify", []) if b.get("domain")}
+    for domain in sorted(domains):
+        needed = {(domain, ep) for b in toml_data.get("verify", []) if b.get("domain") == domain
+                  for ep in b.get("entrypoints", [])}
+        ran = {(r["domain"], r["skill"]): r for r in results if r.get("domain") == domain}
+        if not needed or set(ran) != needed:
+            continue
+        if all(r["status"] == "PASS" and r.get("evidence_id") for r in ran.values()):
+            state.set_last_green(project, domain, sha=head,
+                                 evidence_ids=[r["evidence_id"] for r in ran.values()])
+            green.append(domain)
+    return green
 
 
 def _print_report(results: list[dict[str, Any]]) -> None:
@@ -211,6 +267,10 @@ def run(ns: argparse.Namespace, forge_root: Path) -> int:
     results = _run_blocks(toml_data, plugin_root=plugin_root, forge_python=forge_python,
                            project=project, changed=changed, fast=ns.fast)
     _print_report(results)
+    if changed is None:
+        green = _record_last_green(toml_data, project, results, ns.fast)
+        if green:
+            print(f"forge verify: last-green recorded for {', '.join(green)}")
 
     if any(r["status"] == "ERROR" for r in results):
         return 2

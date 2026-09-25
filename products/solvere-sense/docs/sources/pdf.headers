@@ -1,0 +1,23 @@
+HTTP/1.1 200 Connection Established
+
+HTTP/2 200 
+content-type: application/pdf
+content-length: 1473301
+accept-ranges: bytes
+date: Fri, 25 Sep 2026 07:12:15 GMT
+server: AmazonS3
+last-modified: Thu, 30 Jul 2026 11:27:19 GMT
+etag: "897fedd43f97d137a3eb9b70e107975e"
+x-amz-meta-uid: 1001
+x-amz-meta-atime: 1777029271
+x-amz-meta-mode: 33188
+x-amz-meta-ctime: 1785410838
+x-amz-meta-mtime: 1785410838
+x-amz-meta-gid: 1001
+x-amz-version-id: lfAkX5Exu7XlVmCjxX4Fm.ScWNRu7xvO
+x-amz-server-side-encryption: AES256
+x-cache: Miss from cloudfront
+via: 1.1 8ed049e850641857b8159b937b790558.cloudfront.net (CloudFront)
+x-amz-cf-pop: IAD61-P7
+x-amz-cf-id: fY85CJ6rGEWiEgjmR8ET-xWroKxNREubibjBA9183XRWdWpxfrtSXQ==
+

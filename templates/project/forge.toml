@@ -59,6 +59,26 @@ paths = ["firmware/**"]
 entrypoints = ["building-firmware"]
 rung = "build"
 
+# --- manufacturing, BOM and compliance -------------------------------------
+
+[[verify]]
+domain = "mfg"
+paths = ["mfg/**"]
+entrypoints = ["checking-dfm"]
+rung = "numeric"      # process rules re-checked when manufacturing inputs change
+
+[[verify]]
+domain = "mfg"
+paths = ["bom/**"]
+entrypoints = ["costing-bom"]
+rung = "numeric"      # BOM roll-up and supply-chain risk flags
+
+[[verify]]
+domain = "compliance"
+paths = ["compliance/**"]
+entrypoints = ["mapping-compliance"]
+rung = "validity"     # standards map, test plan, pre-scan plan
+
 # --- docs ----------------------------------------------------------------
 
 [[verify]]

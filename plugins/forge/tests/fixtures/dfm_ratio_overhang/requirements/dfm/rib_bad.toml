@@ -1,0 +1,14 @@
+# M8 (review #1) seeded-wrong case: ratio 1.6/2.0 = 0.8 must FAIL the 0.5x
+# rib/boss cap -- before the fix, _resolve_limit converted 0.5x * 2.0mm wall
+# into a 1.0 mm absolute limit and compared the 0.8 *ratio* against it, which
+# wrongly PASSED (0.8 <= 1.0).
+[part]
+name = "rib_bad"
+module = "cad/rib_bad.py"
+process = "injection_molding"
+nominal_wall_param = "dfm_test.nominal_wall_mm"
+
+[[check]]
+rule = "rib_max_ratio_of_wall"
+requirement = "REQ-MFG-001"
+faces = [5]

@@ -11,6 +11,9 @@ Refuses (exit 1) unless:
 2. The gate record it names (``reviews/<gate>.md``) has a **filled** human sign-off line
    (CONTRACTS.md §7) whose Decision is unambiguously ``PASS`` -- not the blank template,
    and not a ``FAIL``.
+3. ``evidence/manifest.json`` has no ``UNVERIFIED`` entry and no entry recording
+   ``result: "fail"``, and ``out/verify/*.json`` has no ``fail``/``error`` check result
+   (ADR-001 SS11, M9 review #1: "UNVERIFIED evidence blocks gates and releases").
 
 Only then does it build ``release/<version>/``: STEP/STL/drawings (if `out/cad/` has any),
 Gerbers/drill/pos via ``kicad-cli`` (for every ``ecad/*.kicad_pcb``), the BOM (if `bom/`
@@ -69,6 +72,63 @@ def gate_signed_off(gate_md_text: str) -> tuple[bool, str]:
     if not dec:
         return False, "sign-off line has no unambiguous 'Decision: PASS' or 'Decision: FAIL'"
     return True, dec.group(1)
+
+
+def check_evidence_clean(project: Path) -> None:
+    """Refuses (``ReleaseRefused``) when the evidence trail is not clean.
+
+    ADR-001 SS11 / PROGRESS.md M9 (review #1): "UNVERIFIED evidence blocks
+    gate records and releases", but nothing enforced it -- ``forge evidence
+    add`` could write an UNVERIFIED entry (an error check, or a manifest a
+    human hand-edited) and release.py never looked at it. This checks both
+    of the release's evidence sources:
+
+    1. ``evidence/manifest.json``: any entry with ``status: "UNVERIFIED"``,
+       or any entry recording ``result: "fail"``, blocks the release.
+    2. ``out/verify/*.json`` (``forge.check/1`` results): any check whose
+       ``status`` is ``fail`` or ``error`` blocks the release, even if it
+       was never rolled up into an evidence entry at all -- a release must
+       never ship past a check nobody journaled.
+    """
+    manifest_path = project / "evidence" / "manifest.json"
+    if manifest_path.exists():
+        try:
+            manifest = json.loads(manifest_path.read_text())
+        except (OSError, json.JSONDecodeError) as exc:
+            raise ReleaseRefused(f"{manifest_path} is not valid JSON: {exc}") from exc
+        for entry in manifest.get("entries", []) if isinstance(manifest, dict) else []:
+            if not isinstance(entry, dict):
+                continue
+            entry_id = entry.get("id", "?")
+            artifact = entry.get("artifact", "?")
+            if entry.get("status") == "UNVERIFIED":
+                raise ReleaseRefused(
+                    f"evidence/manifest.json entry {entry_id!r} ({artifact}) is UNVERIFIED -- "
+                    "ADR-001 SS11: UNVERIFIED evidence blocks releases. Re-run the check(s) so the "
+                    "entry records a real, passing result, or remove the stale entry."
+                )
+            if entry.get("result") == "fail":
+                raise ReleaseRefused(
+                    f"evidence/manifest.json entry {entry_id!r} ({artifact}) records a failing "
+                    "result -- fix the underlying issue and re-verify before releasing."
+                )
+
+    verify_dir = project / "out" / "verify"
+    if verify_dir.is_dir():
+        for f in sorted(verify_dir.glob("*.json")):
+            try:
+                data = json.loads(f.read_text())
+            except (OSError, json.JSONDecodeError):
+                continue
+            if not isinstance(data, dict) or data.get("schema") != "forge.check/1":
+                continue
+            status = data.get("status")
+            if status in ("fail", "error"):
+                rel = f.relative_to(project)
+                raise ReleaseRefused(
+                    f"{rel} is a {status.upper()} check result (check_id "
+                    f"{data.get('check_id', '?')!r}) -- fix and re-run it before releasing."
+                )
 
 
 def head_sha(project: Path) -> str:
@@ -273,6 +333,7 @@ def main(argv: list[str]) -> int:
 
     try:
         approval = check_approval(project)
+        check_evidence_clean(project)
     except ReleaseRefused as exc:
         print(f"[REFUSED] releasing-designs: {exc}", file=sys.stderr)
         return 1

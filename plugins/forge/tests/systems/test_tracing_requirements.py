@@ -66,9 +66,9 @@ def test_fully_wired_fixture_passes(tmp_path):
     assert verify.run(project, None) == 0
     out = json.loads((project / "out/verify/requirements.trace_graph.json").read_text())
     assert out["status"] == "pass"
-    graph = json.loads((project / "out/verify/trace.graph.json").read_text())
+    graph = json.loads((project / "out/trace/trace.graph.json").read_text())
     assert {"REQ-MECH-004", "REQ-MECH-005"} <= {n["id"] for n in graph["nodes"]}
-    assert (project / "out/verify/trace.graph.mmd").exists()
+    assert (project / "out/trace/trace.graph.mmd").exists()
 
 
 def test_orphan_design_file_fails(tmp_path):
@@ -128,3 +128,56 @@ def test_missing_trace_entry_fails(tmp_path):
 def test_no_requirements_or_trace_is_skip(tmp_path):
     assert verify.run(tmp_path, None) == 0
     assert not (tmp_path / "out").exists()
+
+
+def test_gitkeep_is_never_an_orphan(tmp_path):
+    """M7 (review #1): 'tests/.gitkeep is flagged as an orphan test' -- a
+    placeholder file kept only so git tracks an empty directory is not a
+    test or design artifact and must never trip the orphan check."""
+    project = _base_project(tmp_path)
+    (project / "tests" / ".gitkeep").write_text("")
+    (project / "cad" / ".gitkeep").write_text("")
+    _write_trace(project, {
+        "REQ-MECH-004": {"design": ["cad/enclosure.py"], "tests": ["tests/test_wall.py"],
+                          "evidence": ["EV-0001"], "status": "verified"},
+        "REQ-MECH-005": {"design": [], "tests": [], "evidence": [], "status": "waived"},
+    })
+    assert verify.run(project, None) == 0
+    out = json.loads((project / "out/verify/requirements.trace_graph.json").read_text())
+    failing = _measurement_names_failing(out)
+    assert not any(".gitkeep" in name for name in failing)
+
+
+def test_a_genuinely_orphaned_non_gitkeep_file_still_fails(tmp_path):
+    """The .gitkeep exclusion must not become a general orphan-check escape
+    hatch -- a real orphaned source file still fails."""
+    project = _base_project(tmp_path)
+    (project / "tests" / "test_untraced.py").write_text("def test_x(): pass\n")
+    _write_trace(project, {
+        "REQ-MECH-004": {"design": ["cad/enclosure.py"], "tests": ["tests/test_wall.py"],
+                          "evidence": ["EV-0001"], "status": "verified"},
+        "REQ-MECH-005": {"design": [], "tests": [], "evidence": [], "status": "waived"},
+    })
+    assert verify.run(project, None) == 1
+    out = json.loads((project / "out/verify/requirements.trace_graph.json").read_text())
+    failing = _measurement_names_failing(out)
+    assert any(name == "orphan.test.tests/test_untraced.py" for name in failing)
+
+
+def test_graph_files_written_outside_out_verify(tmp_path):
+    """M7 (review #1): a trace.graph.json living in out/verify/ made
+    `forge verify` error trying to parse it as a forge.check/1 result --
+    graph files must live under out/trace/ instead."""
+    project = _base_project(tmp_path)
+    _write_trace(project, {
+        "REQ-MECH-004": {"design": ["cad/enclosure.py"], "tests": ["tests/test_wall.py"],
+                          "evidence": ["EV-0001"], "status": "verified"},
+        "REQ-MECH-005": {"design": [], "tests": [], "evidence": [], "status": "waived"},
+    })
+    assert verify.run(project, None) == 0
+    assert (project / "out" / "trace" / "trace.graph.json").exists()
+    assert (project / "out" / "trace" / "trace.graph.mmd").exists()
+    # out/verify/ holds only forge.check/1 result files
+    for f in (project / "out" / "verify").glob("*.json"):
+        data = json.loads(f.read_text())
+        assert data.get("schema") == "forge.check/1", f

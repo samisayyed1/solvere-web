@@ -148,6 +148,10 @@ def _run_one(stack_path: Path, project: Path) -> int:
 
 
 def main() -> int:
+    # Declares this entrypoint's check_id namespace so PostToolUse can bind a
+    # fix message to the check that owns it, by check_id rather than which
+    # out/verify/*.json file happens to have the newest mtime (M7, review #1).
+    print("[FORGE_CHECK_ID_PREFIX] mech.stack_")
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--project", type=Path, default=Path.cwd())
     ap.add_argument("--changed", action="append", default=[])

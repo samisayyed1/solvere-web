@@ -16,9 +16,15 @@ Three checks over every ``*.md`` under the project (excluding ``out/``, ``releas
    against `plugins/forge/toolchain/manifest.json`'s pinned version for that tool id and
    flags a mismatch or an unknown id.
 3. **Rules with no stated enforcing mechanism** (``gardening.rule_mechanisms``): every
-   top-level bullet in `.claude/rules/*.md` should name what enforces it (hook, lint,
-   check, gate) per ADR-001 §13 point 6 ("every rule that matters has a hook, permission
-   or lint counterpart"); a bullet naming none of those words is flagged as advisory-only.
+   top-level bullet in `.claude/rules/*.md` must either name what enforces it (hook, lint,
+   check, gate, "enforced") per ADR-001 §13 point 6 ("every rule that matters has a hook,
+   permission or lint counterpart"), or say explicitly that it is advisory-only (the word
+   "advisory"). A bullet naming neither is flagged -- silently unstated enforcement is
+   exactly what this check exists to catch. A bullet that claims a real mechanism must
+   still name one of the actual words; writing "advisory" on a bullet that is genuinely
+   enforced elsewhere just moves the failure from "missing mechanism" to "misdescribed
+   mechanism" for a human to catch in review, so authors are pushed to cite the true
+   mechanism, not to paper over the gap.
 
 This script only *proposes* fixes (SKILL.md); it never edits a doc itself.
 No `*.md` files found -> exit 0, `[SKIP] ...`.
@@ -44,7 +50,7 @@ _MD_LINK = re.compile(r"(?<!!)\[([^\]]*)\]\(([^)\s]+)\)")
 _HEADING = re.compile(r"^(#{1,6})\s+(.+?)\s*$", re.MULTILINE)
 _TOOL_VERSION_MARKER = re.compile(r"<!--\s*forge-tool-version:\s*([\w.-]+)\s+([\w.+-]+)\s*-->")
 _RULE_BULLET = re.compile(r"^- (.+)$", re.MULTILINE)
-_MECHANISM_WORDS = re.compile(r"\b(hook|lint|check|gate|enforced|enforc)\w*\b", re.IGNORECASE)
+_MECHANISM_WORDS = re.compile(r"\b(hook|lint|check|gate|enforced|enforc|advisory)\w*\b", re.IGNORECASE)
 
 
 def find_markdown_files(project: Path) -> list[Path]:
@@ -138,11 +144,15 @@ def check_rule_mechanisms(project: Path) -> list[dict[str, Any]]:
             if not _MECHANISM_WORDS.search(bullet):
                 unenforced.append({"file": str(rule_file.relative_to(project)),
                                    "bullet": bullet[:80],
-                                   "reason": "no hook/lint/check/gate/enforced mentioned"})
+                                   "reason": "no hook/lint/check/gate/enforced/advisory mentioned"})
     return unenforced
 
 
 def main(argv: list[str]) -> int:
+    # Declares this entrypoint's check_id namespace so PostToolUse can bind a
+    # fix message to the check that owns it, by check_id rather than which
+    # out/verify/*.json file happens to have the newest mtime (M7, review #1).
+    print("[FORGE_CHECK_ID_PREFIX] gardening.docs")
     ap = argparse.ArgumentParser()
     ap.add_argument("--project", required=True, type=Path)
     ap.add_argument("--changed", nargs="*", default=None)

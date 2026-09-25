@@ -36,19 +36,34 @@ frequent = false                # true applies the repeated-use allowable (mater
 **Rule `check_family`.** Every rule in a `references/rules/*.toml` table
 names the `forge_cad` measurement it maps to (`geometry.min_wall`,
 `geometry.hole_diameter`, `geometry.clearance`, `geometry.draft`,
-`geometry.min_radius`, `geometry.hole_edge`, `geometry.boss_rib`) or
-`"unsupported"` for a real DFM number that has no matching measurement yet
-(e.g. bend relief, K-factor, thread depth ratios -- see each rule table's
-`conflict` field). Referencing an `unsupported` rule in a spec is a hard
-error, not a skip -- fix the spec to reference a checkable rule, or check
-that limit by hand and record it as a manual finding instead.
+`geometry.overhang`, `geometry.min_radius`, `geometry.hole_edge`,
+`geometry.boss_rib`) or `"unsupported"` for a real DFM number that has no
+matching measurement yet (e.g. bend relief, K-factor, thread depth ratios --
+see each rule table's `conflict` field). Referencing an `unsupported` rule
+in a spec is a hard error, not a skip -- fix the spec to reference a
+checkable rule, or check that limit by hand and record it as a manual
+finding instead.
+
+`geometry.draft` and `geometry.overhang` measure different angles and must
+not be confused: `geometry.draft` is mold-release draft, a side wall's angle
+*from vertical* (0 deg = straight wall, no draft); `geometry.overhang` is
+FDM/SLA's "max overhang without support", a *downward-facing* face's angle
+*from horizontal* (0 deg = flat unsupported floor, 90 deg = vertical, not an
+overhang at all). Using `geometry.draft` for an overhang rule made every
+vertical wall fail (M8, review #1) -- `faces = "auto"` on `geometry.overhang`
+selects only genuinely downward-facing faces, and a face named explicitly
+that isn't downward-facing is filtered out, never evaluated.
 
 **Ratio rules.** A rule with `comparison = "min_ratio_of_wall"` or
-`"max_ratio_of_wall"` (e.g. rib/boss thickness ratios, sheet-metal
-bend-radius-to-thickness) is resolved to an absolute mm/deg limit by
-multiplying `value_ratio` by `[part].nominal_wall_param`'s value in
-`params/params.toml` -- the spec must set `nominal_wall_param` if it uses
-any such rule.
+`"max_ratio_of_wall"` (e.g. sheet-metal bend-radius-to-thickness) is resolved
+to an absolute mm/deg limit by multiplying `value_ratio` by
+`[part].nominal_wall_param`'s value in `params/params.toml` -- the spec must
+set `nominal_wall_param` if it uses any such rule. **Exception:**
+`geometry.boss_rib` (rib/boss thickness ratios) measures a dimensionless
+ratio directly (`measured thickness / nominal wall`), so its `value_ratio`
+limit is compared as-is, never multiplied by the wall -- doing that turned a
+ratio-vs-ratio comparison into a ratio-vs-millimetres one and let an
+over-thick rib pass (M8, review #1).
 
 **Conservative-value policy.** Every rule table's numbers trace to
 `docs/research/R5c-dfm-molding-cnc-sheetmetal.md` /

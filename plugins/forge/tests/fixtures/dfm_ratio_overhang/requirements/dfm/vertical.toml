@@ -1,0 +1,14 @@
+# M8 (review #1) passing case: a vertical side wall, checked explicitly by
+# face index (never the flat bottom), must PASS the overhang check --
+# before the fix, geometry.draft's "angle from vertical" semantics were
+# reused for overhang, and a vertical wall (0 deg from vertical) always
+# failed a "min 45 deg" limit.
+[part]
+name = "vertical_wall"
+module = "cad/vertical_wall.py"
+process = "fdm"
+
+[[check]]
+rule = "overhang_max_deg"
+requirement = "REQ-MFG-001"
+faces = [0]

@@ -116,5 +116,22 @@ def test_rule_bullet_without_mechanism_flagged(verify_mod, tmp_path):
     assert "nice fillets" in unenforced["remediation"]
 
 
+def test_rule_bullet_marked_advisory_passes(verify_mod, tmp_path):
+    """A bullet with no hook/lint/check/gate can still pass if it says so honestly
+    (M7: templates/project's own rules use this for genuinely unchecked guidance)."""
+    (tmp_path / ".claude" / "rules").mkdir(parents=True)
+    (tmp_path / ".claude" / "rules" / "mechanical.md").write_text(
+        "# Mechanical rules\n\n"
+        "- Only mechanical-engineer writes cad/, enforced by a PreToolUse hook.\n"
+        "- Always use nice fillets (advisory -- no automated check for aesthetics).\n"
+    )
+    (tmp_path / "docs.md").write_text("nothing to link here\n")
+    rc = verify_mod.main(["--project", str(tmp_path)])
+    result = json.loads((tmp_path / "out/verify/gardening.docs.json").read_text())
+    unenforced = next(m for m in result["measurements"] if m["name"] == "unenforced_rule_bullets")
+    assert unenforced["value"] == 0
+    assert rc == 0
+
+
 def test_no_markdown_files_is_a_clean_skip(verify_mod, tmp_path):
     assert verify_mod.main(["--project", str(tmp_path)]) == 0

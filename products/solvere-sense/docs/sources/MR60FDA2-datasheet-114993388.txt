@@ -1,0 +1,213 @@
+===== PAGE 1 =====
+INDUSTRIAL PRODUCT DATASHEET
+XIAO 60GHz mmWave
+Human Fall Detection
+Sensor-MR60FDA2
+60GHz mmWave fall and presence sensor with XIAO ESP32C6 and Home
+Assistant no-code integration.
+SKU
+114993388
+UPDATED
+2026-07-30 08:17:32
+PRICE
+$26.90(Excl. VAT)
+
+===== PAGE 2 =====
+Overview
+The MR60FDA2 60GHz mmWave sensor detects falls within a 3x3x3 meter range and static
+human presence up to 6 meters, using pre-set algorithms. It features a Seeed Studio XIAO
+ESP32C6 pre-ﬂashed with ESPHome, enabling no-code Home Assistant integration, along with
+a BH1750 ambient light sensor, WS2812 RGB LED, and Grove connector for expansion.
+2
+XIAO 60GHz mmWave Human Fall Detection Sensor-MR60FDA2
+XIAO 60GHz mmWave Human Fall Detection Sensor-MR60FDA2
+
+===== PAGE 3 =====
+Key Features
+Note:
+Early Build provides beta products (featuring 3D-printed cases) and evolving software before ﬁnal release.
+We welcome your feedback and suggestions to shape the product's evolution. Enjoy exploring!
+Feature 1:
+Advanced mmWave Sensing for Fall and Human Presence Detection
+The MR60FDA2 60GHz mmWave Sensor Module specializes in fall detection with pre-set algorithms and includes
+human static presence functionality.
+Human Static Presence: Effective up to 6 meters.
+Fall Detection:
+Detects within a 3x3x3 meter range, with a horizontal Field of View (FoV) of 120° and a vertical FoV of
+100°.
+*The above parameters have been tested in the empty deployment environments.
+Feature 2: Powered by ESP32 & ESPHome & No-Code Integration with Home Assistant
+The kit features a
+Seeed Studio XIAO ESP32C6
+with pre-ﬂashed
+ESPHome
+ﬁrmware, enabling seamless plug-and-play
+integration with
+Home Assistant
+. Conﬁgure the device in ESPHome, and no-code setup for Home Assistant in 1-2
+minutes. Thanks to the integration, you can customize detection zones and access analytics to pinpoint target
+locations efﬁciently from Home Assistant.
+Feature 3: Ambient Light Sensing for R
+esponsive Automation
+The mmWave sensor module includes a BH1750 light sensor, offering precise ambient light detection from 1 to 65,535
+lux, with adjustable measurements up to 100,000 lux. Supported by
+ESPHome
+and
+Arduino IDE
+, it allows you to collect
+ambient light readings as frequently as every second, enhancing your automation's responsiveness to environmental
+changes.
+Feature 4: Customizable Interaction
+This 60GHz mmWave Sensor Module is equipped with a WS2812 RGB LED, allowing for DIY customization of the
+indicator light.
+Feature 5: Extended Sensing or Automation with Grove
+We’ve added one additional Grove Connector to the mmWave Module for easy expansion with your own Grove sensors
+and actuators (e.g., PIR and Relay).
+Choose from over 300 compatible Grove Modules!
+Feature 6: Open Source 3D Printed Enclosure
+To simplify deployment, we offer a
+3D printed enclosure
+available for free download
+, providing a starting point to
+customize your casing design.
+Feature 7: Open for Customization
+Want to tailor-make the kit to ﬁt your unique applications?
+For more information about 3D point cloud data generation and interference zone conﬁguration when customizing
+mmWave modules.
+Seeed provides one-stop R&D customization and manufacturing services for fast development
+3
+XIAO 60GHz mmWave Human Fall Detection Sensor-MR60FDA2
+XIAO 60GHz mmWave Human Fall Detection Sensor-MR60FDA2
+
+===== PAGE 4 =====
+from concept to production. Contact us at
+iot@seeed.cc
+to learn more.
+4
+XIAO 60GHz mmWave Human Fall Detection Sensor-MR60FDA2
+XIAO 60GHz mmWave Human Fall Detection Sensor-MR60FDA2
+
+===== PAGE 5 =====
+Product Gallery
+5
+XIAO 60GHz mmWave Human Fall Detection Sensor-MR60FDA2
+XIAO 60GHz mmWave Human Fall Detection Sensor-MR60FDA2
+
+===== PAGE 6 =====
+Specification
+General Parameters
+mmWave Firmware
+Fall Detection
+Detection Range
+Human Static Presence
+Detection
+:
+up to
+6 Meters
+Fall Detection:
+●
+3x3x3 meter range
+●
+Horizontal Field of View (FoV) of 120°
+●
+Vertical FoV of 100°
+MCU
+Seeed Studio XIAO ESP32C6
+LED
+WS2812 RGB LED
+Button
+Rest
+Light Sensor
+BH1750
+?
+Range:
+1 to 65,535 lux with adjustable measurements up to
+100,000 lux
+Grove
+C
+onnect
+or
+1 GPIO Port
+●
+D0
+●
+D10
+Pin Header S
+pacing
+2.54mm
+Power
+Supply
+5V/1A
+Power consumption
+0.5w: Standby Mode
+0.8w:
+Activation
+Mode
+1.4w: Work with Grove Relay status
+6
+XIAO 60GHz mmWave Human Fall Detection Sensor-MR60FDA2
+XIAO 60GHz mmWave Human Fall Detection Sensor-MR60FDA2
+
+===== PAGE 7 =====
+Hardware Overview
+Part List
+60GHz
+mmWave
+Sensor Module with 3D Printed Case
+x1
+Seeed Studio XIAO ESP32C6
+with Pre-Flashed ESPHome Firmware
+x1
+7
+XIAO 60GHz mmWave Human Fall Detection Sensor-MR60FDA2
+XIAO 60GHz mmWave Human Fall Detection Sensor-MR60FDA2
+
+===== PAGE 8 =====
+Compliance & Logistics
+HSCODE
+8526109090
+USHSCODE
+8526100040
+UPC
+EUHSCODE
+8471707000
+COO
+CHINA
+FCC Requirement
+Any changes or modiﬁcations not expressly approved by the party responsible for compliance could void the user’s authority to operate the equipment.
+This device complies with Part 15 of the FCC Rules. Operation is subject to the following two conditions:
+(1) this device may not cause harmful interference, and
+(2) this device must accept any interference received, including interference that may cause undesired operation.
+15.21
+This transmitter must not be co-located or operating in conjunction with any other antenna or transmitter.
+Note: This equipment has been tested and found to comply with the limits for a Class B digital device, pursuant to Part 15 of the FCC Rules.
+These limits are designed to provide reasonable protection against harmful interference in a residential installation.
+This equipment generates, uses, and can radiate radio frequency energy.
+If not installed and used in accordance with the instructions, it may cause harmful interference to radio communications.
+However, there is no guarantee that interference will not occur in a particular installation.
+If this equipment does cause harmful interference to radio or television reception, which can be determined by turning the equipment off and on, the user is encouraged to try to correct the interference
+by one or more of the following measures:
+Reorient or relocate the receiving antenna.
+Increase the separation between the equipment and receiver.
+Connect the equipment into an outlet on a circuit different from that to which the receiver is connected.
+Consult the dealer or an experienced radio/TV technician for help.
+Resource Links
+https://www.seeedstudio.com/MR60FDA2-60GHz-mmWave-Sensor-Fall-Detection-Module-p-5946.html
+mmWave 3D Case
+PCN-114993388.pdf
+Seeed Technology Co.,Ltd.
+9F, Building G3, International E City,
+Zhongshanyuan Road, Nanshan, Shenzhen, China
+Tel:
++86 0755-80695676
+Web:
+www.seeed.cc
+Shop:
+www.seeedstudio.com
+↓
+↓
+8
+XIAO 60GHz mmWave Human Fall Detection Sensor-MR60FDA2
+XIAO 60GHz mmWave Human Fall Detection Sensor-MR60FDA2
+
+

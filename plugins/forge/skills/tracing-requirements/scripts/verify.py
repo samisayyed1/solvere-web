@@ -20,8 +20,11 @@ map) and ``evidence/manifest.json`` (for evidence id existence), then FAILS
     requirement's ``design[]``/``tests[]`` entries.
 
 On success (and even on failure, so the graph can be inspected) it writes
-``out/verify/trace.graph.json`` (nodes/edges) and
-``out/verify/trace.graph.mmd`` (a Mermaid flowchart).
+``out/trace/trace.graph.json`` (nodes/edges) and
+``out/trace/trace.graph.mmd`` (a Mermaid flowchart) -- deliberately *outside*
+``out/verify/``, which holds only ``forge.check/1`` result files (CONTRACTS
+§3, §9); a graph file living there made ``forge verify`` choke trying to read
+it as a check result (M7, review #1).
 
 Standard library only.
 """
@@ -50,6 +53,10 @@ DESIGN_EXTS = {
     ".kicad_sch", ".kicad_pcb", ".net", ".sysml",
 }
 IGNORE_DIR_NAMES = {"__pycache__", "out", ".git", "node_modules", ".pytest_cache"}
+# Placeholder files kept only so an empty directory survives in git; they are
+# never design or test artifacts, so the orphan check must not flag them (M7,
+# review #1: "tests/.gitkeep is flagged as an orphan test").
+IGNORE_FILE_NAMES = {".gitkeep", ".gitignore"}
 
 
 def _iter_source_files(project: Path, dirs: tuple[str, ...], exts: set[str] | None) -> list[Path]:
@@ -60,6 +67,8 @@ def _iter_source_files(project: Path, dirs: tuple[str, ...], exts: set[str] | No
             continue
         for p in base.rglob("*"):
             if not p.is_file():
+                continue
+            if p.name in IGNORE_FILE_NAMES:
                 continue
             if any(part in IGNORE_DIR_NAMES for part in p.relative_to(project).parts):
                 continue
@@ -234,15 +243,22 @@ def run(project: Path, changed: list[str] | None) -> int:
         )
 
     graph = build_graph(req_ids, trace, evidence_ids)
-    out_dir = project / "out" / "verify"
-    out_dir.mkdir(parents=True, exist_ok=True)
-    (out_dir / "trace.graph.json").write_text(json.dumps(graph, indent=2, ensure_ascii=False) + "\n")
-    (out_dir / "trace.graph.mmd").write_text(render_mermaid(graph))
+    # Graph files are not forge.check/1 results, so they never go in out/verify/
+    # (CONTRACTS §3, §9) -- a stray trace.graph.json there made `forge verify`
+    # error out trying to parse it as a check result (M7, review #1).
+    graph_dir = project / "out" / "trace"
+    graph_dir.mkdir(parents=True, exist_ok=True)
+    (graph_dir / "trace.graph.json").write_text(json.dumps(graph, indent=2, ensure_ascii=False) + "\n")
+    (graph_dir / "trace.graph.mmd").write_text(render_mermaid(graph))
 
     return chk.finish()
 
 
 def main(argv: list[str]) -> int:
+    # Declares this entrypoint's check_id namespace so PostToolUse can bind a
+    # fix message to the check that owns it, by check_id rather than which
+    # out/verify/*.json file happens to have the newest mtime (M7, review #1).
+    print(f"[FORGE_CHECK_ID_PREFIX] {CHECK_ID}")
     project = Path(".")
     changed: list[str] = []
     i = 0

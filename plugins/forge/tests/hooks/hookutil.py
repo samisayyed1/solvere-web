@@ -113,6 +113,12 @@ paths = ["cad/**", "params/**"]
 entrypoints = ["verifying-geometry"]
 rung = "numeric"
 
+[[verify]]
+domain = "docs"
+paths = ["docs/**", "*.md"]
+entrypoints = ["gardening-docs"]
+rung = "syntax"
+
 [network]
 allowed_domains = ["github.com", "octopart.com"]
 """
@@ -134,6 +140,7 @@ def make_forge_project(root: Path) -> Path:
     (root / "params" / "params.toml").write_text(PARAMS_TOML)
     (root / "cad" / "enclosure.py").write_text("print('part')\n")
     (root / "reviews" / "G1.md").write_text(REVIEW_MD)
+    (root / ".gitignore").write_text("out/\n.forge/\n")
 
     _git(root, "init", "-q")
     _git(root, "config", "user.email", "test@example.com")
@@ -141,6 +148,46 @@ def make_forge_project(root: Path) -> Path:
     _git(root, "add", "-A")
     _git(root, "commit", "-q", "-m", "init")
     return root
+
+
+def git(root: Path, *args: str) -> str:
+    return subprocess.run(["git", "-C", str(root), *args], check=True, capture_output=True, text=True).stdout
+
+
+def commit_all(root: Path, msg: str = "change") -> str:
+    _git(root, "add", "-A")
+    _git(root, "commit", "-q", "-m", msg)
+    return git(root, "rev-parse", "HEAD").strip()
+
+
+def verify_patterns(project: Path, domain: str, entrypoint: str) -> list[str]:
+    import tomllib
+    toml = tomllib.loads((project / "forge.toml").read_text())
+    pats: list[str] = []
+    for b in toml.get("verify", []):
+        if b.get("domain") == domain and entrypoint in b.get("entrypoints", []):
+            pats.extend(b.get("paths", []))
+    return pats
+
+
+def record_run(project: Path, domain: str, entrypoint: str, *, status: str = "pass", check_id: str | None = None,
+               fast: bool = False, scope: list[str] | None = None, returncode: int | None = None) -> str:
+    """What ``forge verify`` does for one entrypoint: write a real
+    ``forge.check/1`` result through ``forge.checkresult`` and record a
+    bound evidence entry through ``forge.evidence.add_verify_entry``."""
+    from forge import evidence
+    from forge.checkresult import Check
+    cid = check_id or f"{domain}.{entrypoint.replace('-', '_')}"
+    chk = Check(cid, "t", project=project)
+    if status == "pass":
+        chk.measure("x", 1.0, "mm", min=0.0)
+    else:
+        chk.measure("x", -1.0, "mm", min=0.0, remediation="x is -1 mm, below the 0 mm minimum; fix it")
+    rc = chk.finish()
+    return evidence.add_verify_entry(
+        project, domain=domain, entrypoint=entrypoint, returncode=rc if returncode is None else returncode,
+        check_files=[project / "out" / "verify" / f"{cid}.json"],
+        patterns=verify_patterns(project, domain, entrypoint), scope=scope, fast=fast)
 
 
 def touch_newer(path: Path) -> None:

@@ -1,0 +1,8 @@
+# Fixture params for the M8 (review #1) seeded-wrong tests: boss/rib
+# ratio-vs-ratio, and overhang-vs-draft face selection. Not a real product.
+
+[dfm_test.nominal_wall_mm]
+value = 2.0
+unit = "mm"
+status = "assumed"
+source = "Fixture spec: the nominal wall a rib/boss ratio rule is checked against."

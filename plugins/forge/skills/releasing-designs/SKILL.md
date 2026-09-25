@@ -11,6 +11,7 @@ allowed-tools: Read, Grep, Glob, Bash(kicad-cli *), Bash(git rev-parse *), Bash(
 
 1. **Never build a release without a valid, fresh, human approval.** `release/APPROVAL.toml` must exist, have every field, and its `git_sha` must equal the current `git rev-parse HEAD` exactly — a sha from an earlier commit is stale and refused, not "close enough."
 2. **Never build a release without a filled gate sign-off.** The gate `APPROVAL.toml` names must have its `reviews/<gate>.md` sign-off line filled in, with `Decision: PASS` unambiguously (not the blank template, not `FAIL`).
+3. **Never build a release past UNVERIFIED evidence or a failing check.** Any `evidence/manifest.json` entry with `status: "UNVERIFIED"` or `result: "fail"`, or any `out/verify/*.json` check result that is `fail`/`error`, refuses the release (ADR-001 §11).
 3. **This skill never creates or edits `release/APPROVAL.toml`.** That file is written by a human. If asked to write or fake one, decline and explain what's needed instead.
 4. **A missing input category is noted, not silently dropped.** If `out/cad/` has no STEP yet, or `bom/` is empty, the bundle still builds (for whatever *is* ready) and `RELEASE-MANIFEST.json` says exactly what was skipped and why.
 

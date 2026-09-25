@@ -47,8 +47,11 @@ conflict = ""
 
 [[rule]]
 id = "overhang_min_angle_deg"
-check_family = "geometry.draft"
-comparison = "min_from_vertical"
+check_family = "geometry.overhang"
+comparison = "min_from_horizontal"
 value_deg = 19.0
 source = "Protolabs Network SLA guide: unsupported overhang needs >= 19 deg from level (and < 1 mm long)"
 conflict = "PN PDF says 'support always required' for any overhang (most conservative -- effectively 0 deg unsupported budget); Formlabs Form 4 allows >= 10 deg and <= 5 mm unsupported. 19 deg (PN guide) kept as the working conservative middle value since 'always support' isn't checkable as a numeric limit."
+# check_family was "geometry.draft" (mold-draft: angle from vertical) until
+# M8 (review #1) -- overhang is angle from horizontal on downward-facing
+# faces only, a different measurement, see checking-dfm/scripts/verify.py.
