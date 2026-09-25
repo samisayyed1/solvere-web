@@ -14,6 +14,7 @@ allowed-tools: Read, Write, Edit, Grep, Glob, Bash(${CLAUDE_SKILL_DIR}/scripts/i
 3. Extraction is by explicit, reviewable regex pattern per param (`[[param]]` in the intake spec), not free-form NLP parsing of the datasheet -- every match is exactly reproducible and the pattern is visible in the spec for a human to sanity-check.
 4. `intake.py`/`verify.py` never overwrite an existing `params/params.toml` entry -- they only add params that aren't already present. Changing a value someone already recorded (especially a `verified` one) goes through the sourced-justification path (`forge params set`), not this skill.
 5. Page numbers come from splitting the source text on form-feed (`\f`, what `pdftotext` inserts between pages) or `[PAGE n]` markers. A datasheet pasted as one undifferentiated blob of text cannot be cited by page -- fix the source text, don't fix the check.
+6. A pattern's captured number is only trusted if the unit that follows it **in the datasheet text** agrees with the `[[param]]`'s declared `unit` -- a pattern that captures only digits (`([\d.]+)`, no unit literal) against text in a different unit (`"Length: 2.56 in"` with `unit = "mm"`) is rejected, never silently accepted with the spec's unit pasted onto the text's number.
 
 ## File format
 
@@ -46,12 +47,15 @@ forge-python ${CLAUDE_SKILL_DIR}/scripts/intake.py --project <root> --spec docs/
 forge-python ${CLAUDE_SKILL_DIR}/scripts/verify.py --project <root> [--changed docs/datasheets/<name>-intake.toml]
 ```
 
-`verify.py` re-runs the intake (idempotently -- see rule 4) and then checks it. Writes `out/intake/<doc>.json` (what matched, what was silent, what got added) and `out/verify/mech.datasheet_<doc>.json` with measurements `matched_params_in_params_toml`, `datasheet_params_have_page_ref`, `silent_params_have_measurement_procedure`. No `docs/datasheets/*-intake.toml` files means `[SKIP]` and exit 0.
+`verify.py` re-runs the intake (idempotently -- see rule 4) and then checks it. Writes `out/intake/<doc>.json` (what matched, what was silent, what got added, and what had a unit mismatch) and `out/verify/mech.datasheet_<doc>.json` with measurements `matched_params_in_params_toml`, `datasheet_params_have_page_ref`, `silent_params_have_measurement_procedure`, `matched_params_unit_agrees_with_text`. No `docs/datasheets/*-intake.toml` files means `[SKIP]` and exit 0.
+
+**The unit is captured from the datasheet text itself, not just trusted from the spec.** Whatever unit token actually follows the matched number in the text (independent of whether the pattern's own non-captured text happened to include it) is compared against the `[[param]]`'s declared `unit`. A mismatch ("Length: 2.56 in" matched with `unit = "mm"`) is never written to `params/params.toml` and fails `matched_params_unit_agrees_with_text` -- fix the pattern or the unit, never guess which one is right.
 
 ## What this skill refuses
 
 - Inventing a value for a param the datasheet doesn't state -- it writes a measurement procedure, never a number.
 - Accepting a datasheet-sourced param whose source has no real page number.
+- Writing a value to `params/params.toml` when the unit in the datasheet text disagrees with the spec's declared `unit`.
 - Overwriting an existing `params/params.toml` entry (datasheet or otherwise) -- add-only.
 - An intake spec with an empty `[[param]]` list -- exit 2, nothing to check.
 

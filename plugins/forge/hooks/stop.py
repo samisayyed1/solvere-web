@@ -188,6 +188,35 @@ def verified_param_violations(project: Path, toml: dict, manifest: dict) -> list
             if stale or unknown or not cur.get("verified_by"):
                 problems.append(f"verified param {key} changed value but still claims status=verified with "
                                 "the old verification; it must drop to measured until re-verified")
+
+    # N6: a leaf promoted straight to status="verified" (old status was NOT
+    # verified), bypassing `forge params set --status verified` entirely --
+    # e.g. a Write/Edit made behind the hooks' back. Its evidence must be
+    # tied to this exact param (artifact == "param:<key>"), pass, and
+    # VERIFIED, the same rule `forge params set` enforces.
+    for path, leaf in new.items():
+        if leaf.get("status") != "verified":
+            continue
+        old_leaf = old.get(path)
+        if old_leaf is not None and old_leaf.get("status") == "verified":
+            continue  # a value change on an already-verified leaf: covered above
+        key = ".".join(path)
+        artifact = f"param:{key}"
+        ev = leaf.get("evidence") or []
+        bad = [i for i in ev if i not in ids or ids[i].get("result") != "pass" or ids[i].get("status") != "VERIFIED"]
+        untied = [i for i in ev if i not in bad and ids.get(i, {}).get("artifact") != artifact]
+        if not ev or bad or untied or not leaf.get("verified_by"):
+            if not ev:
+                detail = "no evidence"
+            elif bad:
+                detail = f"evidence {', '.join(bad)} missing/failing/UNVERIFIED"
+            elif untied:
+                detail = f"evidence {', '.join(untied)} not tied to {artifact!r}"
+            else:
+                detail = "no verified_by"
+            problems.append(f"verified param {key} was promoted to status=verified outside `forge params set` "
+                            f"({detail}); only `forge params set --status verified` may verify a param, with "
+                            "evidence tied to it")
     return problems
 
 

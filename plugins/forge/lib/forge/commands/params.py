@@ -301,16 +301,24 @@ def _citation_ok(source: str | None, old_source: str | None) -> str | None:
     return None
 
 
-def _evidence_ok(project: Path, ids: list[str]) -> str | None:
+def _evidence_ok(project: Path, ids: list[str], key: str) -> str | None:
+    """N6: verifying evidence must be *tied* to this param -- its
+    ``artifact`` must be ``param:<key>`` -- not just any passing entry
+    (a sysml check, an unrelated claim, ...)."""
     from .. import evidence as evidence_lib
     try:
         entries = {e.get("id"): e for e in evidence_lib.load(project).get("entries", [])}
     except (evidence_lib.EvidenceError, ValueError, OSError) as exc:
         return f"cannot read evidence/manifest.json ({exc})"
+    artifact = f"param:{key}"
     bad = [i for i in ids if i not in entries or entries[i].get("result") != "pass"
            or entries[i].get("status") != "VERIFIED"]
     if bad:
         return f"evidence {', '.join(bad)} is missing, failing or UNVERIFIED in evidence/manifest.json"
+    untied = [i for i in ids if entries[i].get("artifact") != artifact]
+    if untied:
+        return (f"evidence {', '.join(untied)} is not tied to this param (its `artifact` must be {artifact!r}); "
+                "verifying evidence must be recorded against the param itself")
     return None
 
 
@@ -374,7 +382,7 @@ def _cmd_set(ns: argparse.Namespace, project: Path, params_path: Path, key_path:
         new_leaf["evidence"] = []
     if new_leaf.get("status") == "verified" and current_status != "verified" or (
             new_leaf.get("status") == "verified" and ns.evidence_ids is not None):
-        why = _evidence_ok(project, list(new_leaf.get("evidence") or []))
+        why = _evidence_ok(project, list(new_leaf.get("evidence") or []), ns.key)
         if why:
             return fail(why)
 

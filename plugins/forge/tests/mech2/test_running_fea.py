@@ -135,6 +135,90 @@ def test_verify_py_ERRORS_on_fewer_than_3_mesh_levels(tmp_path):
     assert r.returncode == 2, r.stdout + r.stderr
 
 
+def test_verify_py_ERRORS_on_safety_factor_below_hard_floor(tmp_path):
+    """S8: a min_safety_factor below 1.0 is never a case-file choice, waiver or not."""
+    _write_case(tmp_path, overrides={"requirement": {"min_safety_factor": 0.5}})
+    r = _run_verify(tmp_path)
+    assert r.returncode == 2, r.stdout + r.stderr
+    assert "hard floor" in (r.stdout + r.stderr)
+
+
+def _write_case_no_waiver(project: Path, overrides: dict | None = None) -> Path:
+    """Like _write_case, but starts from a copy of the fixture with its
+    [waiver] removed -- the fixture carries one to justify its own
+    stress_tolerance_pct=15 (see smoke_cantilever.toml), which would
+    otherwise mask the "no waiver" ceiling tests below."""
+    data = tomllib.loads(FIXTURE.read_text())
+    data.pop("waiver", None)
+    if overrides:
+        for section, kv in overrides.items():
+            data.setdefault(section, {}).update(kv)
+    cases_dir = project / "analysis" / "fea"
+    cases_dir.mkdir(parents=True, exist_ok=True)
+    path = cases_dir / "smoke_cantilever.toml"
+    path.write_text(_dump_toml(data))
+    return path
+
+
+def test_verify_py_ERRORS_on_hand_calc_tolerance_above_ceiling_without_waiver(tmp_path):
+    """S8: deflection_tolerance_pct = 500 is not a real tolerance -- it would
+    accept almost any FEA result as agreeing with the hand calc."""
+    _write_case_no_waiver(tmp_path, overrides={"hand_calc": {"deflection_tolerance_pct": 500.0}})
+    r = _run_verify(tmp_path)
+    assert r.returncode == 2, r.stdout + r.stderr
+    assert "ceiling" in (r.stdout + r.stderr)
+
+
+def test_verify_py_ERRORS_on_convergence_tolerance_above_ceiling_without_waiver(tmp_path):
+    """S8: convergence_tol_pct = 100 would call an unconverged mesh converged."""
+    _write_case_no_waiver(tmp_path, overrides={"mesh": {"convergence_tol_pct": 100.0}})
+    r = _run_verify(tmp_path)
+    assert r.returncode == 2, r.stdout + r.stderr
+    assert "ceiling" in (r.stdout + r.stderr)
+
+
+def test_verify_py_ERRORS_on_implausible_e_for_named_material(tmp_path):
+    """S8: E = 210 MPa for a material named 'steel' is a GPa/MPa unit slip
+    (real structural steel is ~200000 MPa); the E plausibility band must
+    catch it, never silently trust it."""
+    _write_case(tmp_path, overrides={"material": {"name": "generic_structural_steel", "E_MPa": 210.0}})
+    r = _run_verify(tmp_path)
+    assert r.returncode == 2, r.stdout + r.stderr
+    assert "implausible" in (r.stdout + r.stderr)
+
+
+def test_verify_py_accepts_ceiling_violation_with_a_signed_waiver(tmp_path):
+    """Positive case: a [waiver] naming a human and a reason lets a case
+    past the hand-calc ceiling that would otherwise be refused -- proven by
+    getting past _load_case to the (still slow) solve stage rather than
+    erroring at case-load time. We stop short of the real solve here by
+    also pushing the safety factor requirement absurdly low is NOT used
+    (that stays a hard floor); instead this only checks _load_case directly."""
+    sys.path.insert(0, str(SCRIPTS_DIR))
+    import verify as v
+
+    data = tomllib.loads(FIXTURE.read_text())
+    data["hand_calc"]["deflection_tolerance_pct"] = 500.0
+    data["waiver"] = {"signed_by": "Jane Doe", "reason": "rough sizing pass only, refine before gate review"}
+    path = tmp_path / "case.toml"
+    path.write_text(_dump_toml(data))
+    case = v._load_case(path)  # must not raise
+    assert case["waiver"]["signed_by"] == "Jane Doe"
+
+
+def test_load_case_errors_when_waiver_has_no_signed_by(tmp_path):
+    sys.path.insert(0, str(SCRIPTS_DIR))
+    import verify as v
+
+    data = tomllib.loads(FIXTURE.read_text())
+    data["hand_calc"]["deflection_tolerance_pct"] = 500.0
+    data["waiver"] = {"reason": "rough sizing pass only, refine before gate review"}
+    path = tmp_path / "case.toml"
+    path.write_text(_dump_toml(data))
+    with pytest.raises(ValueError, match="signed_by"):
+        v._load_case(path)
+
+
 def test_verify_py_skips_cleanly_with_no_cases(tmp_path):
     r = _run_verify(tmp_path)
     assert r.returncode == 0

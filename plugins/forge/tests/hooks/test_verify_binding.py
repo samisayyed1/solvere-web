@@ -168,16 +168,21 @@ def test_error_exit_is_recorded_unverified(env):
 
 
 def test_skip_entry_needs_no_check_file_but_is_bound_to_inputs(env):
-    """An entrypoint that finds nothing to check (exit 0, no result file)."""
+    """An entrypoint that finds nothing to check (exit 0, no result file) is
+    recorded N/A -- never a pass (D1) -- so it can never satisfy the gate
+    for a domain that has an actual, unverified change."""
     repo, project = env
     _ep(repo, "ep-docs", "print('[SKIP] nothing to check')\n", "x")
     _ep(repo, "ep-a", PASS, "mech.a")
     _ep(repo, "ep-b", PASS, "mech.b")
-    (project / "docs" / "b.md").write_text("# b\n")
     assert verify.run(NS(all=True, project=project), repo) == 0
     docs = [e for e in evidence.load(project)["entries"] if e["domain"] == "docs"][0]
-    assert docs["notes"].startswith("[SKIP]") and docs["result"] == "pass"
+    assert docs["notes"].startswith("[SKIP]") and docs["result"] == "na"
+    # nothing in docs/ changed since the baseline commit, so the gate has
+    # nothing to require there even though the only docs entry is N/A.
     assert run_hook("stop.py", {"cwd": str(project)}).returncode == 0
+    # docs/ now really changes, and ep-docs still finds nothing to check:
+    # N/A is not verification of that change (D1), so the gate blocks.
     (project / "docs" / "b.md").write_text("# b changed\n")
     assert run_hook("stop.py", {"cwd": str(project)}).returncode == 2
 

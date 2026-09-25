@@ -1298,6 +1298,13 @@ def _analyse_git_sub(ctx: Ctx, sub: str, rest: list[str]) -> None:
         return
     if sub in ("apply", "am") and pos:
         return
+    if sub == "update-index" and any(f in ("--assume-unchanged", "--skip-worktree") for f in flags):
+        # N2 (cheap defense in depth; residual against deliberate evasion,
+        # see ADR-001 §16): these flags make `git status`/`git diff` stop
+        # reporting a tracked file's changes, which is exactly what the
+        # evidence gate's "what changed" scan relies on.
+        raise Verdict("deny", f"`git update-index {'/'.join(f for f in flags if f in ('--assume-unchanged', '--skip-worktree'))}` "
+                              "would hide a tracked file's changes from the evidence gate; not allowed")
 
 
 # ---------------------------------------------------------------------------

@@ -173,12 +173,14 @@ def ensure_base_pinned(project: Path | str) -> str | None:
     git history (which ``git commit --amend`` on the scaffold commit, or a
     reset to a fabricated root, can rewrite out from under them).
 
-    Bootstraps the pin on first use, when ``.forge/`` does not exist yet (so
-    this project has never been seen by a Forge hook): computes it once from
-    :func:`scaffold_base` and writes it. Once ``.forge/`` exists, a missing
-    ``base_sha`` file means it was deleted, and this returns ``None`` (fail
-    closed) instead of silently re-deriving a fresh one from whatever git
-    history says now.
+    Bootstraps the pin on first use -- when it has never been pinned before
+    (tracked by ``base_sha_pinned`` in ``.forge/state.json``, not merely by
+    whether ``.forge/`` exists, since other Forge state such as
+    ``last_green`` can legitimately create that directory first): computes
+    it once from :func:`scaffold_base` and writes it. Once it has been
+    pinned, a missing ``base_sha`` file means it was deleted, and this
+    returns ``None`` (fail closed) instead of silently re-deriving a fresh
+    one from whatever git history says now.
     """
     path = base_sha_path(project)
     try:
@@ -187,12 +189,15 @@ def ensure_base_pinned(project: Path | str) -> str | None:
             return text
     except OSError:
         pass
-    if path.parent.is_dir():
-        return None  # .forge/ exists but the pin doesn't: it was removed
+    data = load(project)
+    if data.get("base_sha_pinned"):
+        return None  # was pinned before; the file is gone now (removed)
     sha = scaffold_base(project)
     if sha:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(sha + "\n")
+        data["base_sha_pinned"] = True
+        save(project, data)
     return sha
 
 

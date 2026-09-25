@@ -224,16 +224,8 @@ def _run_blocks(toml_data: dict[str, Any], *, plugin_root: Path, forge_python: P
                     domain=domain, entrypoint=skill, returncode=res.get("returncode", 2),
                     check_files=res.get("check_files", []),
                     patterns=_patterns_for(toml_data, domain, skill), scope=scope, fast=fast,
-                    rung=block.get("rung"), model=os.environ.get("FORGE_MODEL"), files=files)
-                if res["status"] == "NA" and "na" in inspect.signature(evidence.add_verify_entry).parameters:
-                    # Interface note (D1): once evidence.add_verify_entry grows an
-                    # ``na: bool = False`` kwarg, this starts recording the run
-                    # with result="na" instead of "pass" -- see the report for the
-                    # exact change. Until then this degrades to today's behaviour
-                    # (recorded as a passing [SKIP] claim), which is why the N/A
-                    # status is still enforced independently here for printing and
-                    # last-green, regardless of what evidence.py does with it.
-                    add_kwargs["na"] = True
+                    rung=block.get("rung"), model=os.environ.get("FORGE_MODEL"), files=files,
+                    na=res["status"] == "NA")  # D1: recorded with result="na", never "pass"
                 res["evidence_id"] = evidence.add_verify_entry(project, **add_kwargs)
             except (evidence.EvidenceError, OSError, ValueError) as exc:
                 res["status"] = "ERROR"

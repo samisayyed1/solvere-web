@@ -473,10 +473,15 @@ vector_n = [0.0, 0.0, -100.0]"""
     # S8: a safety-factor requirement below 1.0 (would accept a part predicted to yield)
     (lambda t: t.replace("min_safety_factor = 1.5", "min_safety_factor = 0.5"), "hard floor"),
     # S8: a hand-calc tolerance above the 10% ceiling, with no [waiver]
-    (lambda t: t.replace("tolerance_pct = 3.0\n[requirement]", "tolerance_pct = 50.0\n[requirement]"),
+    (lambda t: t.replace("tolerance_pct = 5.0\n[requirement]", "tolerance_pct = 50.0\n[requirement]"),
      "ceiling"),
     # S8: a convergence tolerance above the 5% ceiling, with no [waiver]
     (lambda t: t.replace("convergence_tol_pct = 1.0", "convergence_tol_pct = 100.0"), "ceiling"),
+    # S8: E plausibility band -- 210 MPa for "steel" is a GPa/MPa slip (should be ~210000 MPa)
+    (lambda t: t.replace(
+        '[material]\nparams = "materials.steel"',
+        '[material]\nname = "steel"\nE_MPa = 210.0\nnu = 0.3\nyield_MPa = 250.0\nsource = "typo: meant GPa"'),
+     "implausible"),
 ])
 def test_malformed_general_cases_error_out(tmp_path, mutate, match):
     text = mutate(CANTILEVER.format(name="cantilever_bad", load=TIP_TRACTION, sizes="[5.0, 3.5, 2.5]",
@@ -486,6 +491,57 @@ def test_malformed_general_cases_error_out(tmp_path, mutate, match):
     assert r.returncode == 2, r.stdout + r.stderr
     out = json.loads(next((root / "out" / "verify").glob("*.json")).read_text())
     assert out["status"] == "error" and match in out["error"], out["error"]
+
+
+def test_signed_waiver_permits_a_looser_convergence_ceiling(tmp_path):
+    """S8 positive case: a [waiver] naming a human and a reason lets
+    load_case accept a convergence_tol_pct above the 5% ceiling that would
+    otherwise be refused (see the parametrized "ceiling" case above)."""
+    sys.path.insert(0, str(SKILL_DIR / "scripts"))
+    import general_fea as g
+
+    root = _project(tmp_path, {})
+    text = CANTILEVER.format(name="cantilever_waived", load=TIP_TRACTION, sizes="[5.0, 3.5, 2.5]", hc_height="10.0")
+    text = text.replace("convergence_tol_pct = 1.0", "convergence_tol_pct = 100.0")
+    text += ('\n[waiver]\nsigned_by = "Jane Doe"\n'
+             'reason = "coarse first-pass mesh accepted for a rough sizing check; refine before release"\n')
+    path = root / "analysis" / "fea" / "waived.toml"
+    path.write_text(textwrap.dedent(text))
+    case = g.load_case(path, root)  # must not raise
+    assert case["waiver"]["signed_by"] == "Jane Doe"
+
+
+def test_waiver_without_signed_by_is_refused(tmp_path):
+    """A [waiver] must actually name a human -- an empty/missing signed_by
+    waives nothing."""
+    sys.path.insert(0, str(SKILL_DIR / "scripts"))
+    import general_fea as g
+
+    root = _project(tmp_path, {})
+    text = CANTILEVER.format(name="cantilever_bad_waiver", load=TIP_TRACTION, sizes="[5.0, 3.5, 2.5]", hc_height="10.0")
+    text = text.replace("convergence_tol_pct = 1.0", "convergence_tol_pct = 100.0")
+    text += '\n[waiver]\nreason = "coarse mesh accepted, revisit later, owner TBD"\n'
+    path = root / "analysis" / "fea" / "bad_waiver.toml"
+    path.write_text(textwrap.dedent(text))
+    with pytest.raises(g.CaseError, match="signed_by"):
+        g.load_case(path, root)
+
+
+def test_e_within_the_steel_band_is_not_flagged(tmp_path):
+    """Positive case for the E plausibility band: the fixture's real steel
+    value (210 GPa = 210000 MPa, inline) must load cleanly."""
+    sys.path.insert(0, str(SKILL_DIR / "scripts"))
+    import general_fea as g
+
+    root = _project(tmp_path, {})
+    text = CANTILEVER.format(name="cantilever_ok_e", load=TIP_TRACTION, sizes="[5.0, 3.5, 2.5]", hc_height="10.0")
+    text = text.replace(
+        '[material]\nparams = "materials.steel"',
+        '[material]\nname = "steel"\nE_MPa = 210000.0\nnu = 0.3\nyield_MPa = 250.0\nsource = "handbook value"')
+    path = root / "analysis" / "fea" / "ok_e.toml"
+    path.write_text(textwrap.dedent(text))
+    case = g.load_case(path, root)  # must not raise
+    assert case["_material"]["E"] == pytest.approx(210000.0)
 
 
 def test_material_param_without_source_is_refused(tmp_path):

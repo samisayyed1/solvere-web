@@ -30,7 +30,7 @@ allowed-tools: Read, Grep, Glob, Write, Edit, Bash(cc *), Bash(clang *), Bash(ar
    [firmware.debounce]
    size_budget_bytes = 512
    ```
-4. **Run the check**: `~/.forge/bin/forge-python ${CLAUDE_SKILL_DIR}/scripts/verify.py --project <root>` (or `forge verify` for the `fw` domain). Per module it: builds + runs tests on the host, static-analyzes with `clang --analyze`, checks the size budget (target build if the cross-compiler exists, else a clearly-labelled host proxy, or a clean SKIP), and runs the mutation check.
+4. **Run the check**: `~/.forge/bin/forge-python ${CLAUDE_SKILL_DIR}/scripts/verify.py --project <root>` (or `forge verify` for the `fw` domain). Per module it: builds + runs tests on the host, static-analyzes with `clang --analyze`, checks the size budget (target build if the cross-compiler exists, else a clearly-labelled host proxy, or a clean SKIP), and runs the mutation check. **`firmware/src/*.c` is always compiled, even with no tests yet written** — a `firmware.compile` check runs `-c` (no link) on every source file and FAILs on a compiler error; only the *unit-test* rung (which needs a `firmware/tests/test_*.c` to run) is allowed to SKIP for lack of tests.
 5. **A build or test failure's `remediation`** names the file and the failing assertion or compiler error — fix the code, not the check.
 6. **Cite the result** (`out/verify/firmware.<module>.json`) as evidence at level **L1** (host build) — target-build evidence is still L1 until it runs on real hardware (L4, via `testing-on-hardware`).
 

@@ -34,10 +34,32 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from forge.checkresult import Check, CheckContractError  # noqa: E402
 from forge.tools import find_tool, forge_home  # noqa: E402
+import material_bands  # noqa: E402
 import mesh_and_solve as m  # noqa: E402
 
 _SAFE = re.compile(r"[^a-z0-9_]+")
 DEFAULT_CCX = Path(find_tool("ccx") or forge_home() / "bin" / "ccx")
+
+# S8: same bounds as the general path (general_fea.py) -- see its module-level
+# comment for the reasoning. The safety-factor floor is never waivable; the
+# hand-calc and convergence ceilings may be waived by a [waiver] naming a
+# human and a reason.
+HARD_MIN_SAFETY_FACTOR = 1.0
+CEILING_HAND_CALC_TOL_PCT = 10.0
+CEILING_CONVERGENCE_TOL_PCT = 5.0
+
+
+def _check_waiver(data: dict, where: str) -> dict | None:
+    w = data.get("waiver")
+    if w is None:
+        return None
+    if not isinstance(w, dict):
+        raise ValueError(f"{where}: [waiver] must be a table")
+    if not str(w.get("signed_by", "")).strip():
+        raise ValueError(f"{where}: [waiver].signed_by must name a human -- an empty waiver waives nothing")
+    if len(str(w.get("reason", "")).strip()) < 10:
+        raise ValueError(f"{where}: [waiver].reason must explain why the ceiling is being waived")
+    return w
 
 
 def _safe_name(name: str) -> str:
@@ -94,6 +116,43 @@ def _load_case(path: Path) -> dict:
     for lvl in levels:
         if not (isinstance(lvl, list) and len(lvl) == 3):
             raise ValueError(f"{path}: each [mesh].levels entry must be [nx, ny, nz], got {lvl!r}")
+
+    waiver = _check_waiver(data, str(path))
+    min_sf = float(data["requirement"]["min_safety_factor"])
+    if min_sf < HARD_MIN_SAFETY_FACTOR:
+        raise ValueError(
+            f"{path}: [requirement].min_safety_factor = {min_sf} is below the hard floor of "
+            f"{HARD_MIN_SAFETY_FACTOR} (S8) -- a safety factor requirement below 1.0 accepts a part predicted "
+            "to yield under the stated load. This floor is never waivable; fix the requirement or the design."
+        )
+    conv_tol = float(data["mesh"]["convergence_tol_pct"])
+    if conv_tol > CEILING_CONVERGENCE_TOL_PCT and waiver is None:
+        raise ValueError(
+            f"{path}: [mesh].convergence_tol_pct = {conv_tol} exceeds the {CEILING_CONVERGENCE_TOL_PCT}% "
+            "ceiling (S8) -- a looser tolerance calls an unconverged mesh converged. Tighten it, or add a "
+            "[waiver] with signed_by and reason naming a human who accepts the wider bound."
+        )
+    for key in ("deflection_tolerance_pct", "stress_tolerance_pct"):
+        tol = float(data["hand_calc"][key])
+        if tol > CEILING_HAND_CALC_TOL_PCT and waiver is None:
+            raise ValueError(
+                f"{path}: [hand_calc].{key} = {tol} exceeds the {CEILING_HAND_CALC_TOL_PCT}% ceiling (S8) -- a "
+                "looser tolerance stops the hand calc from actually cross-checking the FEA. Tighten it, or add "
+                "a [waiver] with signed_by and reason naming a human who accepts the wider bound."
+            )
+
+    mat = data["material"]
+    e_mpa = float(mat["E_MPa"])
+    name = str(mat.get("name", "?"))
+    band = material_bands.implausible_e(name, e_mpa)
+    if band is not None:
+        keyword, lo, hi = band
+        raise ValueError(
+            f"{path}: [material].E_MPa = {e_mpa} is implausible for a material named {name!r} (matched family "
+            f"{keyword!r}, typical published range [{lo:,.0f}, {hi:,.0f}] MPa). This usually means a GPa value "
+            "was entered where MPa was expected (e.g. 210 instead of 210000 for steel). Fix the value, or "
+            "rename [material].name if this genuinely isn't that family."
+        )
     return data
 
 

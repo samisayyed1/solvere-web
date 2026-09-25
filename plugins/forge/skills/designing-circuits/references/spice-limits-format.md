@@ -34,6 +34,14 @@ remediation = "Regulator dissipation exceeds the package's thermal budget; add a
   block (`meas tran vout_dc avg v(out) from=2m to=5m`, for example).
 - Give either `min`/`max`, or `equals`+`tol` (both use `forge.checkresult.Check.measure`'s
   own limit semantics — see `plugins/forge/lib/forge/checkresult.py`).
+- **`unit` may be a base SPICE unit (`V`, `A`, `W`, `s`, `Hz`, `F`, `H`, `Ohm`) or that
+  unit with exactly one SI prefix (`p`/`n`/`u`/`µ`/`m`/`k`/`M`/`G`/`T`), or `"1"` for
+  unitless.** ngspice's own `.meas` results are always printed in the *base* unit — SPICE
+  itself has no notion of "mV". `min`/`max`/`equals`/`tol` are read in whatever unit you
+  declared, and the script converts the raw ngspice value into that unit before comparing
+  (`unit = "mV", max = 40` against a 0.05 V ripple compares the converted 49.99 mV to 40,
+  not the raw 0.0499923). Any other unit string (`"Vrms"`, `"dB"`, a typo) is a hard ERROR,
+  never silently treated as the base unit.
 - `requirement` should cite a `REQ-<AREA>-<NNN>` id from `requirements/requirements.md`.
 - `remediation` is optional; if omitted, the script writes a generic one. Prefer a
   specific one that names the fix.

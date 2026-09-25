@@ -230,8 +230,8 @@ def add_entry(project: Path, *, artifact: str, domain: str, claim: str, check_id
         raise EvidenceError(f"domain {domain!r} not in {DOMAINS}")
     if level not in LEVELS:
         raise EvidenceError(f"level {level!r} not in {LEVELS}")
-    if result not in ("pass", "fail"):
-        raise EvidenceError("result must be 'pass' or 'fail'")
+    if result not in ("pass", "fail", "na"):
+        raise EvidenceError("result must be 'pass', 'fail' or 'na'")
     if status not in ("VERIFIED", "UNVERIFIED"):
         raise EvidenceError("status must be VERIFIED or UNVERIFIED")
     if level in ("L4", "L5") and not signed_by:
@@ -302,15 +302,21 @@ def add_from_checks(project: Path, check_files: list[Path], *, artifact: str, do
 def add_verify_entry(project: Path, *, domain: str, entrypoint: str, returncode: int,
                      check_files: list[Path], patterns: Iterable[str], scope: list[str] | None = None,
                      fast: bool = False, rung: str | None = None, model: str | None = None,
-                     files: list[str] | None = None) -> str:
+                     files: list[str] | None = None, na: bool = False) -> str:
     """Record one ``forge verify`` run of one entrypoint, bound to its outputs.
 
     ``check_files`` are the result files the run wrote; files that are not
     ``forge.check/1`` results (e.g. graph dumps) are ignored. The entry is
     ``pass`` only if the entrypoint exited 0 **and** every check it wrote
-    passed; an exit of 2 or an ``error`` check makes it UNVERIFIED. An exit-0
-    run that wrote no check file is recorded as a ``[SKIP]`` (nothing to
-    check): it carries no measurement, which the gate states explicitly.
+    passed; an exit of 2 or an ``error`` check makes it UNVERIFIED.
+
+    An exit-0 run that wrote **no** check file (``na=True``, or detected here
+    the same way when the caller does not pass it: zero check files at exit
+    0) is recorded with ``result = "na"`` (D1) -- never ``"pass"``. It
+    carries no measurement, so nothing downstream (the Stop gate's
+    :func:`binding_problems`, ``forge evidence status``, last-green) may
+    treat it as verified: ``result != "pass"`` already fails every one of
+    those checks on its own.
     """
     project = Path(project).resolve()
     checks: list[tuple[Path, dict[str, Any]]] = []
@@ -319,7 +325,8 @@ def add_verify_entry(project: Path, *, domain: str, entrypoint: str, returncode:
         if r is not None:
             checks.append((Path(f).resolve(), r))
     statuses = {r.get("status") for _, r in checks}
-    passed = returncode == 0 and statuses <= {"pass"}
+    is_na = na or (not checks and returncode == 0)
+    passed = returncode == 0 and statuses <= {"pass"} and not is_na
     errored = returncode not in (0, 1) or "error" in statuses
     rels = [os.path.relpath(p, project).replace(os.sep, "/") for p, _ in checks]
     tools: dict[str, str] = {}
@@ -333,18 +340,18 @@ def add_verify_entry(project: Path, *, domain: str, entrypoint: str, returncode:
     }
     if rung:
         run["rung"] = rung
-    skipped = not checks and returncode == 0
     claim = (f"forge verify {domain}/{entrypoint}: "
-             + ("[SKIP] nothing to check" if skipped else
+             + ("N/A -- nothing to check" if is_na else
                 f"{sum(1 for _, r in checks if r.get('status') == 'pass')}/{len(checks)} check(s) passed"))
+    result = "na" if is_na else ("pass" if passed else "fail")
     return add_entry(
         project, artifact=f"entrypoint:{entrypoint}", domain=domain, claim=claim,
         check_ids=[str(r.get("check_id")) for _, r in checks],
-        result="pass" if passed else "fail",
+        result=result,
         level=min(levels, key=LEVELS.index) if levels else "L0",
         evidence_files=rels, model=model, tool_versions=tools,
         status="UNVERIFIED" if errored else "VERIFIED",
-        notes="[SKIP] entrypoint exited 0 without writing a check result" if skipped else None,
+        notes="[SKIP] entrypoint exited 0 without writing a check result" if is_na else None,
         _run=run, _inputs_digest=domain_inputs_sha256(project, patterns, files))
 
 
