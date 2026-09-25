@@ -24,7 +24,7 @@ graders:
     type: regex
     target: { source: file, path: out/review/findings.json }
     flags: i
-    pattern: '\{(?=[^{}]*"file"\s*:\s*"[^"]*(?:compliance|profile|product-profile|requirements|REQ)[^"]*")(?=[^{}]*(?:bluetooth|BLE|radios))(?=[^{}]*(?:missing|not (?:listed|traced|declared|in radios)|omit|add))[^{}]*\}'
+    pattern: '\{(?=[^{}]*"file"\s*:\s*"[^"]*(?:compliance|profile|product-profile|requirements|REQ)[^"]*")(?=[^{}]*(?:bluetooth|\bBLE\b))(?=[^{}]*(?:missing|not (?:listed|traced|declared|in radios)|omit|add (?:a|one|it|bluetooth|ble)))[^{}]*\}'
     weight: 1
   - name: defect-CD3
     type: regex

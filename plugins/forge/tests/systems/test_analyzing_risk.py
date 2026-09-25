@@ -114,3 +114,59 @@ def test_invalid_sod_range_fails(tmp_path):
 def test_no_dfmea_file_is_skip(tmp_path):
     assert verify.run(tmp_path, None) == 0
     assert not (tmp_path / "out").exists()
+
+
+# --- S16 -----------------------------------------------------------------
+
+def test_high_ap_with_placeholder_action_fields_fails(tmp_path):
+    """S = O = D = 10 with action 'TBD', owner '?', due_date 'someday' must
+    FAIL -- placeholders are not a tracked action."""
+    rows = (
+        "DFMEA-005,critical part,retain function,catastrophic failure,"
+        "safety hazard,10,unknown cause,10,none,10,TBD,?,someday\n"
+    )
+    project = _write_dfmea(tmp_path, rows)
+    assert verify.run(project, None) == 1
+    out = json.loads((project / "out/verify/safety.dfmea_ap.json").read_text())
+    failing = [m["name"] for m in out["measurements"] if not m["pass"]]
+    assert any("high_ap_has_action" in name for name in failing)
+
+
+def test_high_ap_with_non_iso_due_date_fails(tmp_path):
+    rows = (
+        "DFMEA-006,critical part,retain function,catastrophic failure,"
+        "safety hazard,9,bad design,7,none,7,fix design,J. Doe,2001\n"
+    )
+    project = _write_dfmea(tmp_path, rows)
+    assert verify.run(project, None) == 1
+    out = json.loads((project / "out/verify/safety.dfmea_ap.json").read_text())
+    failing = [m["name"] for m in out["measurements"] if not m["pass"]]
+    assert any("high_ap_has_action" in name for name in failing)
+
+
+def test_overdue_due_date_is_flagged(tmp_path):
+    rows = (
+        "DFMEA-007,enclosure lid,retain water seal,gasket compresses unevenly,"
+        "water ingress damages PCB,9,gasket groove tolerance stack,5,"
+        "visual inspection at assembly,6,add compression test to line QC,"
+        "J. Rivera,2020-01-01\n"
+    )
+    project = _write_dfmea(tmp_path, rows)
+    assert verify.run(project, None) == 1
+    out = json.loads((project / "out/verify/safety.dfmea_ap.json").read_text())
+    m = next(m for m in out["measurements"] if m["name"] == "DFMEA-007.due_date_not_overdue")
+    assert not m["pass"]
+
+
+def test_future_due_date_is_not_overdue(tmp_path):
+    rows = (
+        "DFMEA-008,enclosure lid,retain water seal,gasket compresses unevenly,"
+        "water ingress damages PCB,9,gasket groove tolerance stack,5,"
+        "visual inspection at assembly,6,add compression test to line QC,"
+        "J. Rivera,2030-01-01\n"
+    )
+    project = _write_dfmea(tmp_path, rows)
+    assert verify.run(project, None) == 0
+    out = json.loads((project / "out/verify/safety.dfmea_ap.json").read_text())
+    m = next(m for m in out["measurements"] if m["name"] == "DFMEA-008.due_date_not_overdue")
+    assert m["pass"]

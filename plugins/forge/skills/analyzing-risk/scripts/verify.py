@@ -17,6 +17,7 @@ check_id: ``safety.dfmea_ap``. Standard library only.
 from __future__ import annotations
 
 import csv
+import datetime
 import sys
 from pathlib import Path
 
@@ -41,6 +42,27 @@ def _parse_int_1_10(raw: str) -> int | None:
     except (TypeError, ValueError):
         return None
     return v if 1 <= v <= 10 else None
+
+
+# S16: text that looks like it fills the field but carries no real
+# information ("TBD", "?", "someday", ...) must not count as a stated
+# action/owner/due date.
+PLACEHOLDER_VALUES = {
+    "tbd", "t.b.d.", "n/a", "na", "none", "?", "??", "unknown", "someday",
+    "-", "--", "pending", "asap", "later", "xxx", "todo",
+}
+
+
+def _is_placeholder(value: str) -> bool:
+    return value.strip().lower() in PLACEHOLDER_VALUES
+
+
+def _parse_iso_date(raw: str) -> datetime.date | None:
+    """A due date must be a real, parseable ISO-8601 date (YYYY-MM-DD)."""
+    try:
+        return datetime.date.fromisoformat(raw.strip())
+    except (TypeError, ValueError):
+        return None
 
 
 def run(project: Path, changed: list[str] | None) -> int:
@@ -87,22 +109,44 @@ def run(project: Path, changed: list[str] | None) -> int:
         action = (row.get("action") or "").strip()
         owner = (row.get("owner") or "").strip()
         due_date = (row.get("due_date") or "").strip()
-        has_action = bool(action and owner and due_date)
+
+        # S16: a placeholder ("TBD", "?", "someday", ...) is not a stated
+        # action/owner/due date, and a due date must be a real ISO date.
+        action_ok = bool(action) and not _is_placeholder(action)
+        owner_ok = bool(owner) and not _is_placeholder(owner)
+        due_parsed = _parse_iso_date(due_date) if due_date and not _is_placeholder(due_date) else None
+        due_ok = due_parsed is not None
+        has_action = action_ok and owner_ok and due_ok
 
         if result.ap == "High":
             chk.measure(
                 f"{row_id}.high_ap_has_action", has_action, "1", equals=True, location=loc,
                 remediation=(
                     f"{row_id} (S={s} O={o} D={d}) is Action Priority High "
-                    f"({result.note}) but has no tracked action+owner+due_date. "
-                    "A High-AP finding needs an action, an owner and a due date, or a "
-                    "documented reason current controls are enough."
+                    f"({result.note}) but action={action!r} owner={owner!r} "
+                    f"due_date={due_date!r} is missing, a placeholder, or not a real "
+                    "ISO-8601 (YYYY-MM-DD) date. A High-AP finding needs a real action, "
+                    "a real owner and a real due date, or a documented reason current "
+                    "controls are enough."
                 ) if not has_action else None,
             )
         else:
             # Not a failing condition, but record the classification for the
             # evidence trail; note is not "None" so nothing can silently pass.
             chk.measure(f"{row_id}.ap_{result.ap.lower()}", True, "1", equals=True, location=loc)
+
+        # S16: whatever the AP band, a real due date that has already passed
+        # is an overdue action and must be flagged, not silently carried.
+        if due_ok:
+            today = datetime.date.today()
+            overdue = due_parsed < today
+            chk.measure(
+                f"{row_id}.due_date_not_overdue", not overdue, "1", equals=True, location=loc,
+                remediation=(
+                    f"{row_id}: due_date {due_date} is in the past (today is "
+                    f"{today.isoformat()}). Close the action out or set a new due date."
+                ) if overdue else None,
+            )
 
     return chk.finish()
 

@@ -1,0 +1,326 @@
+{
+ "variants": {
+  "good": {
+   "files": {
+    "out/review/findings.json": {
+     "schema": "forge.findings/1",
+     "findings": [
+      {
+       "file": "compliance/product-profile.toml",
+       "location": "target_markets",
+       "category": "unknown market code",
+       "severity": "major",
+       "description": "target_markets includes 'EUU', which is not a valid market code (compliance.standards_map check profile.target_markets_valid fails; valid codes are CA, EU, UK, US). Likely a typo of 'EU'; an unrecognised code maps no standards at all."
+      },
+      {
+       "file": "compliance/product-profile.toml",
+       "location": "radios",
+       "category": "radio missing from profile",
+       "severity": "major",
+       "description": "requirements/requirements.md REQ-ELEC-002 names Bluetooth Low Energy (BLE), but profile.radios only lists wifi_2g4 and radar_60ghz (check radios.requirements_named_radio_missing fails: bluetooth). Add a bluetooth radio id (e.g. ble) to radios, or add a [radios_excluded] note if BLE was ruled out."
+      },
+      {
+       "file": "compliance/product-profile.toml",
+       "location": "radios",
+       "category": "radio untraced in requirements",
+       "severity": "major",
+       "description": "profile.radios lists radar_60ghz but no requirement or params.toml entry names a radar (check radios.profile_radio_untraced fails: radar). Either add a requirement for the radar, or remove it from radios if the product has none."
+      }
+     ]
+    },
+    "out/verify/compliance.standards_map.json": {
+     "schema": "forge.check/1",
+     "check_id": "compliance.standards_map",
+     "target": "compliance/product-profile.toml",
+     "status": "fail",
+     "level": "L0",
+     "measurements": [
+      {"name": "data.rows_sourced", "value": 0, "unit": "1", "limit": {"equals": 0}, "pass": true,
+       "location": "references/standards.toml"},
+      {"name": "profile.required_fields", "value": true, "unit": "1", "limit": {"equals": true}, "pass": true,
+       "location": "compliance/product-profile.toml"},
+      {"name": "profile.target_markets_valid", "value": "EUU", "unit": "1", "limit": {"equals": ""}, "pass": false,
+       "location": "compliance/product-profile.toml#target_markets",
+       "remediation": "target_markets has unknown code(s) ['EUU']; valid codes are ['CA', 'EU', 'UK', 'US'] (aliases: ['GB']), from standards.toml [[market]]. An unknown code maps no standards at all. Fix the typo, or add the market with sourced rows first."},
+      {"name": "profile.power_source_valid", "value": "", "unit": "1", "limit": {"equals": ""}, "pass": true,
+       "location": "compliance/product-profile.toml#power_source"},
+      {"name": "profile.radios_valid", "value": "", "unit": "1", "limit": {"equals": ""}, "pass": true,
+       "location": "compliance/product-profile.toml#radios"},
+      {"name": "profile.radios_declared", "value": true, "unit": "1", "limit": {"equals": true}, "pass": true,
+       "location": "compliance/product-profile.toml#radios"},
+      {"name": "radios.has_radio_consistent", "value": true, "unit": "1", "limit": {"equals": true}, "pass": true,
+       "location": "compliance/product-profile.toml#has_radio"},
+      {"name": "radios.cross_check_inputs_present", "value": true, "unit": "1", "limit": {"equals": true}, "pass": true,
+       "location": "requirements/, params/params.toml"},
+      {"name": "radios.requirements_named_radio_missing", "value": "bluetooth", "unit": "1", "limit": {"equals": ""}, "pass": false,
+       "location": "compliance/product-profile.toml#radios",
+       "remediation": "the project names radio(s) the profile does not list: bluetooth (first named at requirements/requirements.md:9). Add the matching id(s) from ['ble', 'ieee802154_2g4', 'radar_60ghz', 'wifi_2g4'] to radios (and has_radio = true), or add [radios_excluded] bluetooth = \"<why>\"."},
+      {"name": "radios.profile_radio_untraced", "value": "radar", "unit": "1", "limit": {"equals": ""}, "pass": false,
+       "location": "compliance/product-profile.toml#radios",
+       "remediation": "the profile lists radio famil(ies) ['radar'] that no requirements/**/*.md or params/params.toml text names. Either the requirements are missing that radio, or the profile claims a radio the product does not have (remove it)."}
+     ],
+     "tool_versions": {},
+     "git_sha": "nogit",
+     "started": "2026-09-25T10:19:49Z",
+     "duration_s": 0.006,
+     "notes": "8 standard(s) matched: ['iec-62368-1', 'ul94-flammability', 'ipc-2221c', 'fcc-part15', 'etsi-en303645', 'nist-ir8259', 'fcc-15-247', 'fcc-15-255']; standards-map.md NOT regenerated because the profile failed validation"
+    }
+   },
+   "created": [
+    "out/review/findings.json",
+    "out/verify/compliance.standards_map.json"
+   ],
+   "tools": [
+    {
+     "tool": "Read",
+     "input": {
+      "file_path": "/w/compliance/product-profile.toml"
+     }
+    },
+    {
+     "tool": "Read",
+     "input": {
+      "file_path": "/w/requirements/requirements.md"
+     }
+    },
+    {
+     "tool": "Bash",
+     "input": {
+      "command": "forge-python skills/mapping-compliance/scripts/verify.py --project /w"
+     }
+    },
+    {
+     "tool": "Write",
+     "input": {
+      "file_path": "/w/out/review/findings.json",
+      "content": "..."
+     }
+    }
+   ],
+   "last_message": "Review done: 3 defects (unknown market code EUU, BLE named by REQ-ELEC-002 but missing from radios, radar_60ghz in radios but untraced). Findings in out/review/findings.json; the mapping-compliance check itself also FAILs on these (out/verify/compliance.standards_map.json).",
+   "expect": "all_pass"
+  },
+  "bad-missing-CD1": {
+   "base": "good",
+   "files": {
+    "out/review/findings.json": {
+     "schema": "forge.findings/1",
+     "findings": [
+      {
+       "file": "compliance/product-profile.toml",
+       "location": "radios",
+       "category": "radio missing from profile",
+       "severity": "major",
+       "description": "requirements/requirements.md REQ-ELEC-002 names Bluetooth Low Energy (BLE), but profile.radios only lists wifi_2g4 and radar_60ghz. Add a bluetooth radio id."
+      },
+      {
+       "file": "compliance/product-profile.toml",
+       "location": "radios",
+       "category": "radio untraced in requirements",
+       "severity": "major",
+       "description": "profile.radios lists radar_60ghz but no requirement names a radar. Remove it or add a requirement."
+      }
+     ]
+    }
+   },
+   "expect": {
+    "defect-CD1": false
+   }
+  },
+  "bad-missing-CD2": {
+   "base": "good",
+   "files": {
+    "out/review/findings.json": {
+     "schema": "forge.findings/1",
+     "findings": [
+      {
+       "file": "compliance/product-profile.toml",
+       "location": "target_markets",
+       "category": "unknown market code",
+       "severity": "major",
+       "description": "target_markets includes 'EUU', not a valid market code; valid codes are CA, EU, UK, US."
+      },
+      {
+       "file": "compliance/product-profile.toml",
+       "location": "radios",
+       "category": "radio untraced in requirements",
+       "severity": "major",
+       "description": "profile.radios lists radar_60ghz but no requirement names a radar. Remove it or add a requirement."
+      }
+     ]
+    }
+   },
+   "expect": {
+    "defect-CD2": false
+   }
+  },
+  "bad-missing-CD3": {
+   "base": "good",
+   "files": {
+    "out/review/findings.json": {
+     "schema": "forge.findings/1",
+     "findings": [
+      {
+       "file": "compliance/product-profile.toml",
+       "location": "target_markets",
+       "category": "unknown market code",
+       "severity": "major",
+       "description": "target_markets includes 'EUU', not a valid market code; valid codes are CA, EU, UK, US."
+      },
+      {
+       "file": "compliance/product-profile.toml",
+       "location": "radios",
+       "category": "radio missing from profile",
+       "severity": "major",
+       "description": "requirements/requirements.md REQ-ELEC-002 names BLE, but profile.radios has no bluetooth id. Add one."
+      }
+     ]
+    }
+   },
+   "expect": {
+    "defect-CD3": false
+   }
+  },
+  "bad-decoy-WIFI": {
+   "base": "good",
+   "files": {
+    "out/review/findings.json": {
+     "schema": "forge.findings/1",
+     "findings": [
+      {
+       "file": "compliance/product-profile.toml",
+       "location": "target_markets",
+       "category": "unknown market code",
+       "severity": "major",
+       "description": "target_markets includes 'EUU', which is not a valid market code; valid codes are CA, EU, UK, US."
+      },
+      {
+       "file": "compliance/product-profile.toml",
+       "location": "radios",
+       "category": "radio missing from profile",
+       "severity": "major",
+       "description": "requirements/requirements.md REQ-ELEC-002 names BLE, but profile.radios has no bluetooth id. Add one."
+      },
+      {
+       "file": "compliance/product-profile.toml",
+       "location": "radios",
+       "category": "radio untraced in requirements",
+       "severity": "major",
+       "description": "profile.radios lists radar_60ghz but no requirement names a radar. Remove it or add a requirement."
+      },
+      {
+       "file": "compliance/product-profile.toml",
+       "location": "wifi_2g4",
+       "category": "review",
+       "severity": "minor",
+       "description": "wifi_2g4 in radios looks unlisted / a possible mismatch worth flagging"
+      }
+     ]
+    }
+   },
+   "expect": {
+    "decoy-WIFI": false
+   }
+  },
+  "bad-no-findings": {
+   "base": "good",
+   "files": {
+    "out/review/findings.json": null,
+    "out/verify/compliance.standards_map.json": null
+   },
+   "created": [],
+   "tools": [
+    {
+     "tool": "Read",
+     "input": {
+      "file_path": "/w/compliance/product-profile.toml"
+     }
+    },
+    {
+     "tool": "Read",
+     "input": {
+      "file_path": "/w/requirements/requirements.md"
+     }
+    }
+   ],
+   "expect": {
+    "findings-written": false,
+    "wrote-findings-with-write": false,
+    "compliance-check-was-run": false,
+    "compliance-check-genuinely-fails": false,
+    "defect-CD1": false,
+    "defect-CD2": false,
+    "defect-CD3": false
+   },
+   "why": "a missing findings file fails every file-target grader, including the not_contains decoy grader and the out/verify status check (nothing was ever run)"
+  },
+  "bad-check-not-run": {
+   "base": "good",
+   "files": {
+    "out/verify/compliance.standards_map.json": null
+   },
+   "tools": [
+    {
+     "tool": "Read",
+     "input": {
+      "file_path": "/w/compliance/product-profile.toml"
+     }
+    },
+    {
+     "tool": "Read",
+     "input": {
+      "file_path": "/w/requirements/requirements.md"
+     }
+    },
+    {
+     "tool": "Write",
+     "input": {
+      "file_path": "/w/out/review/findings.json",
+      "content": "..."
+     }
+    }
+   ],
+   "expect": {
+    "compliance-check-was-run": false,
+    "compliance-check-genuinely-fails": false
+   },
+   "why": "the agent guessed the defects by reading the files instead of actually running mapping-compliance's own check -- proves compliance-check-genuinely-fails is not vacuous: it fails whenever the real check was never run, regardless of what the findings say"
+  },
+  "bad-edited-profile": {
+   "base": "good",
+   "tools": [
+    {
+     "tool": "Read",
+     "input": {
+      "file_path": "/w/compliance/product-profile.toml"
+     }
+    },
+    {
+     "tool": "Edit",
+     "input": {
+      "file_path": "/w/compliance/product-profile.toml",
+      "old_string": "EUU",
+      "new_string": "EU"
+     }
+    },
+    {
+     "tool": "Bash",
+     "input": {
+      "command": "forge-python skills/mapping-compliance/scripts/verify.py --project /w"
+     }
+    },
+    {
+     "tool": "Write",
+     "input": {
+      "file_path": "/w/out/review/findings.json",
+      "content": "..."
+     }
+    }
+   ],
+   "expect": {
+    "no-profile-edits": false
+   },
+   "why": "this is a review, not a fix -- editing the profile under review must fail no-profile-edits even though the findings themselves might still be fine"
+  }
+ }
+}

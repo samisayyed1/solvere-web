@@ -150,10 +150,13 @@ def test_changed_params_toml_reruns_every_spec_and_catches_a_wall_violation(proj
     params_path = project / "params" / "params.toml"
     text = params_path.read_text()
     assert "value = 2.0" in text
-    # fdm.toml's wall_min_unsupported_mm rule requires >= 1.2 mm; 0.5 mm
-    # (box.py's actual built wall, driven by this param) fails it.
+    # fdm.toml's wall_min_unsupported_mm rule requires >= 1.2 mm; 1.0 mm
+    # (box.py's actual built wall, driven by this param) fails it. (A wall
+    # much thinner than this makes box.py's own 2.0 mm outer fillet
+    # geometrically invalid -- an unrelated build error, not the DFM
+    # violation this test is targeting.)
     params_path.write_text(text.replace(
-        "[enclosure.wall_thickness]\nvalue = 2.0", "[enclosure.wall_thickness]\nvalue = 0.5", 1))
+        "[enclosure.wall_thickness]\nvalue = 2.0", "[enclosure.wall_thickness]\nvalue = 1.0", 1))
 
     proc = _run(project, "--changed", "params/params.toml")
 
@@ -163,6 +166,9 @@ def test_changed_params_toml_reruns_every_spec_and_catches_a_wall_violation(proj
     m = next(x for x in result["measurements"] if x["name"] == "min_wall")
     assert m["value"] < 1.2
     assert "wall_min_unsupported_mm" in m["remediation"]
+
+
+def test_changed_params_toml_still_passes_the_wall_rule_when_in_bounds(project):
 
 
 def test_changed_params_toml_still_passes_when_the_value_stays_in_bounds(project):

@@ -126,3 +126,79 @@ def test_verify_fails_below_minimum_concept_count(tmp_path):
 def test_no_pugh_file_is_skip(tmp_path):
     assert verify.run(tmp_path, None) == 0
     assert not (tmp_path / "out").exists()
+
+
+# --- S15 ---------------------------------------------------------------
+
+def test_minimum_concepts_cannot_be_lowered_below_the_floor(tmp_path):
+    """A maker cannot set minimum_concepts=1 in the file it wrote to let its
+    own single concept pass -- the floor is enforced regardless."""
+    data = {
+        "schema": "forge.pugh/1",
+        "minimum_concepts": 1,
+        "criteria": CRITERIA,
+        "concepts": [
+            {"name": "datum", "datum": True, "scores": {"cost": 0, "mfg": 0, "ergo": 0}},
+            {"name": "A", "scores": {"cost": 1, "mfg": 1, "ergo": 1}},
+        ],
+    }
+    project = _write_pugh(tmp_path, data)
+    assert verify.run(project, None) == 1
+    out = json.loads((project / "out/verify/concepts.pugh_sensitivity.json").read_text())
+    m = next(m for m in out["measurements"] if m["name"] == "concepts.count")
+    assert not m["pass"]
+    assert m["limit"]["min"] == 3
+
+
+def test_score_out_of_pugh_range_fails(tmp_path):
+    data = {
+        "schema": "forge.pugh/1",
+        "criteria": CRITERIA,
+        "concepts": [
+            {"name": "datum", "datum": True, "scores": {"cost": 0, "mfg": 0, "ergo": 0}},
+            {"name": "A", "scores": {"cost": 50, "mfg": 1, "ergo": 1}},
+            {"name": "B", "scores": {"cost": -1, "mfg": 0, "ergo": 0}},
+            {"name": "C", "scores": {"cost": 0, "mfg": -1, "ergo": -1}},
+        ],
+    }
+    project = _write_pugh(tmp_path, data)
+    assert verify.run(project, None) == 1
+    out = json.loads((project / "out/verify/concepts.pugh_sensitivity.json").read_text())
+    m = next(m for m in out["measurements"] if m["name"] == "A.scores_in_range")
+    assert not m["pass"]
+
+
+def test_missing_datum_fails(tmp_path):
+    data = {
+        "schema": "forge.pugh/1",
+        "criteria": CRITERIA,
+        "concepts": [
+            {"name": "A", "scores": {"cost": 1, "mfg": 1, "ergo": 1}},
+            {"name": "B", "scores": {"cost": -1, "mfg": 0, "ergo": 0}},
+            {"name": "C", "scores": {"cost": 0, "mfg": -1, "ergo": -1}},
+        ],
+    }
+    project = _write_pugh(tmp_path, data)
+    assert verify.run(project, None) == 1
+    out = json.loads((project / "out/verify/concepts.pugh_sensitivity.json").read_text())
+    m = next(m for m in out["measurements"] if m["name"] == "concepts.has_datum")
+    assert not m["pass"]
+
+
+def test_duplicate_concept_names_fail(tmp_path):
+    data = {
+        "schema": "forge.pugh/1",
+        "criteria": CRITERIA,
+        "concepts": [
+            {"name": "datum", "datum": True, "scores": {"cost": 0, "mfg": 0, "ergo": 0}},
+            {"name": "A", "scores": {"cost": 1, "mfg": 1, "ergo": 1}},
+            {"name": "A", "scores": {"cost": -1, "mfg": 0, "ergo": 0}},
+            {"name": "C", "scores": {"cost": 0, "mfg": -1, "ergo": -1}},
+        ],
+    }
+    project = _write_pugh(tmp_path, data)
+    assert verify.run(project, None) == 1
+    out = json.loads((project / "out/verify/concepts.pugh_sensitivity.json").read_text())
+    m = next(m for m in out["measurements"] if m["name"] == "concepts.unique_names")
+    assert not m["pass"]
+    assert "A" in m["remediation"]

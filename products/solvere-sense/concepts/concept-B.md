@@ -1,13 +1,19 @@
 # Concept B: "Radome-datum pod" (RF-first)
 
 - **Lens:** best radar/RF performance. The radome geometry, antenna gap, keep-out cone and sensor orientation follow MDS §8 exactly, even where that costs appearance, cable handling or cost.
+- **Revision 1 (2026-09-25):** the only change is to clear GATE-S2 for the light pipe P4.
+  - P4's demo material is now **Covestro Makrolon 2407, transparent**: UL 94 V-2 at 0.75 mm and HB at 2.7 mm [MK2407].
+  - P4's smallest section is set at ≥ 0.75 mm, so the V-2 listing sits at or below the pipe wall.
+  - The unlisted VCC reference is removed.
+  - The GATE-S2 table, the P4 part row, the cost line and R-B3 are updated to match. The requirement statuses are unchanged.
 - **Status:** G1 concept, evidence L0/L1. The only analysis is `concepts/sketches/B/rf_geometry.py` (output in `rf_geometry.out.txt`), which is arithmetic on params and cited values. Nothing here is measured.
 - **Sources fetched 2026-09-25 for this concept (not from memory):**
   - [GREG22] N. Gregory, "Measuring the Electrical Properties of 3D Printed Plastics in the W-Band", Univ. of Arkansas, 2022, https://scholarworks.uark.edu/eleguht/85/. Abstract: PETG "lowest permittivity at 2.675"; imaginary part "below 0.045 for all samples" over 75-110 GHz.
   - [FLFR] Formlabs "Flame Retardant" resin TDS, Rev. 01, 13.04.2023, https://formlabs-media.formlabs.com/datasheets/2301761-TDS-ENUS-0.pdf. "UL 94 V-0 (3mm) V-1 (2.5mm) HB (1.5mm)"; dielectric constant 3.82 at 1.0 MHz and dissipation factor 0.025 at 1 MHz (ASTM D150).
   - [HPPA12] HP technical note 4AA7-2792ENW, May 2018, "HP 3D High Reusability PA 12 … UL 94 and UL 746A Certification" (copy hosted by forerunner3d.com). Certified "HB at a 0.75mm thickness", with a UL Blue Card on UL iQ.
   - [HPFR] HP 3D HR PA 12 FR (enabled by Evonik) datasheet, Feb 2025 (copy hosted by druckerfachmann.de). UL 94: "1 mm XY and Z HB Pass" and "2.5 mm XY and Z V0 Pass"; per a UL Blue Card of Jan 2025.
-  - [VCC] VCC 7513D2-L product page, https://vcc.co/products/lightpipe-single-position-clear-rigid-right-poly-ul-94-v0-board-mount_7513d2-l/. "Clear Polycarbonate", "UL 94-V0"; no thickness is stated.
+  - [MK2407] Covestro Makrolon 2407 product page, https://solutions.covestro.com/en/products/makrolon/makrolon-2407_000000000086286874, fetched 2026-09-25. UL 94 "V-2" at 0.75 mm and "HB" at 2.7 mm; "available in transparent, translucent and opaque colors".
+    - Cross-checked against the PolyOne Distribution datasheet of 2020-01-29 (https://www.teameliteonline.com/wp-content/uploads/2020/01/document-10.pdf). It lists the same UL 94 rows and transmittance of 89.0 % at 2.00 mm (ISO 13468-2).
   - [ARX26] Işık et al., "Permittivity Characterization of 3D-Printed Materials at Millimeter Waves", arXiv 2607.16937, 2026. PLA and resins measured at 70-110 GHz, εr 2.45 to 2.75. It is used only as support for the coupon plan and gives no PETG or PA12 value.
 
 ## 1. Summary
@@ -25,7 +31,7 @@ Because the radome is flat and parallel to the antenna, the half-wave thickness 
 | P1 | Pod (side skirt + integral flat radome + kit datum ledge + bayonet lugs + light-pipe bore) | holds the kit; RF window; the twisting part | FDM PETG, radome face on the bed | MJF, HP 3D HR PA 12 FR [HPFR] (primary); SLA, Formlabs FR resin [FLFR] (backup) |
 | P2 | Kit retainer ring | clamps the radar board onto the P1 datum ledge; printed flexure fingers, no metal | FDM PETG | as P1 |
 | P3 | Base plate (bayonet ramps + detent + O-ring face groove + cable clamp + ceiling screw holes) | fixed to the ceiling; carries the pod | FDM PETG, ceiling face on the bed | MJF HP 3D HR PA 12 FR [HPFR] |
-| P4 | Light pipe (90° TIR prism rod) | carries WS2812 light to a flush side-skirt exit | FDM PETG stand-in (optical check only) | bought-in clear PC rod stock of a UL 94-listed grade (see GATE-S2), cut and faced |
+| P4 | Light pipe (90° TIR prism rod) | carries WS2812 light to a flush side-skirt exit | FDM PETG stand-in (optical check only) | Covestro Makrolon 2407, transparent [MK2407]. Moulded, or machined from stock certified as 2407; the source is to be quoted. Smallest section ≥ 0.75 mm |
 | P5 | T-bar clip adapter (optional) | screws to P3's hole pattern; jaws for 15 and 24 mm grids | FDM PETG | MJF HP 3D HR PA 12 FR [HPFR] |
 | P6 | Fixings: screws + drywall anchors, screws + concrete plugs | P3 to the ceiling | bought-in (proposed at G2 from the anchor makers' datasheets, REQ-MNT-003) | same |
 | P7 | O-ring cord (bathroom variant only) | IPX4 seal in the P3 groove | not fitted in v1 | cord supplier TBD |
@@ -113,7 +119,7 @@ Because the radome is flat and parallel to the antenna, the half-wave thickness 
 4. *Loads:* per REQ-MECH-015, test load = measured weight × safety factor. The value and source of the factor go in `params/params.toml` and are TBD at G2, as the owner set. The G0 placeholder `mount.retention_load_factor` 4.0 is not used as a design value.
    - Weak point: the P5 printed hook jaws on the T-bar flange (see Risks).
 
-**GATE-S2, flammability: PASS for P1, P2, P3 and P5; shortfall on P4.**
+**GATE-S2, flammability: PASS for P1-P5 (Revision 1).**
 
 | Part | Fit-check grade | Demo grade and published UL 94 listing | Demo wall vs listing |
 |---|---|---|---|
@@ -121,11 +127,11 @@ Because the radome is flat and parallel to the antenna, the half-wave thickness 
 | P2 retainer | PETG fit-check only | as P1 | ≥ 2.5 mm |
 | P3 base plate | PETG fit-check only | HP 3D HR PA 12 FR [HPFR] (plain HP HR PA 12 is HB at 0.75 mm [HPPA12]) | ≥ 2.5 mm |
 | P5 T-bar clip | PETG fit-check only | HP 3D HR PA 12 FR [HPFR] | ≥ 2.5 mm |
-| P4 light pipe | PETG stand-in, fit-check only | clear PC of a UL 94 V-0 grade, e.g. the material of VCC 7513D2-L [VCC] | **shortfall:** [VCC] gives no listing thickness, and a board-mount part cannot mount on the as-is kit. A rod-stock grade with a thickness-stated listing is still to be found at G2 |
+| P4 light pipe | PETG stand-in, fit-check only | Covestro Makrolon 2407 transparent: V-2 at 0.75 mm, HB at 2.7 mm [MK2407] | smallest pipe section ≥ 0.75 mm, so V-2 is listed at or below the wall. If the qualified human requires HB-or-better at the pipe wall, the pipe section goes to ≥ 2.7 mm; this is geometry only, and the pipe stays outside the cone |
 
 - No part depends on an unlisted material for demo units.
 - The class itself is set by the qualified human (Q-17).
-- REQ-SAFE-001 does not name the light pipe, but the gate does. P4 is therefore reported as falling short until a listed rod grade is cited.
+- REQ-SAFE-001 does not name the light pipe, but the gate does. P4 now cites a maker's listing that states a thickness [MK2407].
 - The HP FR datasheet does not state colour; the warm-white finish is at risk (R-B4).
 
 **GATE-S3, radar window: PASS at concept level (the concept is built around it).**
@@ -221,7 +227,7 @@ M = meets (by concept), R = at risk, N = not addressed by the enclosure concept 
 |---|---|---|
 | R-B1 | εr of PA 12 FR at 60 GHz is unknown; if > 3.99, N = 2 gives T < 2.5 mm, below the MJF wall rule and the V-0 listing | Coupons first at G1-G2 (TP-SYS-002); N = 3 path valid to εr 8.99; Formlabs FR backup |
 | R-B2 | USB cable/connector strained by the pod twist and by the pod hanging on the loop at removal (R-017) | Small bayonet angle; loop sized to the angle; clamp on the fixed P3; instructions: unplug first; TP-MECH-011/-016 |
-| R-B3 | Kit carrier geometry (A-005) puts parts on the antenna face or the LED where the pipe cannot reach behind the antenna plane | Measure a kit at G1; d fallback N = 2; if the pipe must enter the cone, include it in the coupons (R-018) |
+| R-B3 | Kit carrier geometry (A-005) puts parts on the antenna face or the LED where the pipe cannot reach behind the antenna plane | Measure a kit at G1; d fallback N = 2; if the pipe must enter the cone, include it in the coupons (R-018); quote a source of Makrolon 2407 pipes at prototype volume early |
 | R-B4 | Warm-white finish vs RF: MJF FR colour not stated; paint on the radome adds an unmodelled layer | Leave the radome face unpainted and colour-match by material, or include the paint layer in the coupon stack; owner colour sample at demo |
 | R-B5 | Printed T-bar hook jaws or the bayonet detent creep or crack under the REQ-MECH-015 load at 40 °C | Size at G2 once the safety factor is set; hot pull test (TP-MECH-004/-005 at 40 °C) |
 
@@ -231,11 +237,11 @@ M = meets (by concept), R = at risk, N = not addressed by the enclosure concept 
 |---|---|---|
 | MR60FDA2 kit, 1 and 10+ | US$28.99 | Web, 2026-09-25 (`sensor.unit_price_web_qty*`) |
 | P1-P3, P5 in MJF HP 3D HR PA 12 FR or SLA Formlabs FR | to be quoted | — |
-| P4 light-pipe rod, P6 fixings, P7 cord | to be quoted | — |
+| P4 light pipe in Makrolon 2407, P6 fixings, P7 cord | to be quoted | — |
 | **Prototype** | ≥ 28.99 + quotes; 21.01 left under US$50 | `cost.prototype_max` |
 | **Production (pod only)** | ≥ 28.99 + quotes; 1.01 left under US$30, which is likely unreachable (R-002) | `cost.production_bom_max` |
 
-The RF-first choices (FR-grade MJF material, coupon testing, a bought-in PC pipe) all push cost up, not down.
+The RF-first choices (FR-grade MJF material, coupon testing, a separate Makrolon 2407 pipe) all push cost up, not down.
 
 ## 9. Why it differs from the obvious alternatives
 
