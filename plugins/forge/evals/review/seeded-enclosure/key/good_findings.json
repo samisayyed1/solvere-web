@@ -1,0 +1,9 @@
+{"schema": "forge.findings/1", "findings": [
+ {"file": "params/params.toml", "location": "enclosure.lid_wall", "category": "manufacturability", "severity": "major", "description": "Lid wall 0.8 mm is below the FDM minimum wall of 1.2 mm unsupported (1.0 mm supported) for a 0.4 mm nozzle."},
+ {"file": "params/params.toml", "location": "j1.height / lid.inner_ceiling_z", "category": "interference", "severity": "critical", "description": "J1 top = 4.0 + 1.6 + 3.26 = 8.86 mm above the floor but the lid ceiling is at 8.5 mm: 0.36 mm interference; REQ-MECH-002 needs +0.3 mm clearance."},
+ {"file": "docs/assembly.md", "location": "DC cable / J3", "category": "strain relief", "severity": "major", "description": "Cable is held only by the J3 screw terminal; a 30 N pull (REQ-MECH-004) loads J3 directly. Add a gland or clamp."},
+ {"file": "analysis/stack_report.md", "location": "pcb_slot", "category": "tolerance stack", "severity": "major", "description": "REQ-MECH-003 is worst case: 0.20 -/+ 0.25 = -0.05 to 0.45 mm, below the 0.05 mm minimum. The report skipped the worst case, and even its RSS minimum 0.02 mm fails."},
+ {"file": "requirements/trace.json", "location": "REQ-MECH-006", "category": "untested requirement", "severity": "major", "description": "Drop requirement (Verify: test) has no test in trace.json or tests/test_plan.md."},
+ {"file": "docs/datasheet.md", "location": "IP54 claim", "category": "unsupported claim", "severity": "major", "description": "IP54 splash-proof is claimed but there is no gasket, no requirement and no test evidence."},
+ {"file": "params/params.toml", "location": "lid.screw_hole_edge_offset", "category": "manufacturability", "severity": "major", "description": "3.4 mm hole centred 2.5 mm from the edge leaves a 0.8 mm ligament; it will crack or tear out under screw load."}
+]}

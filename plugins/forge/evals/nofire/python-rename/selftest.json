@@ -1,0 +1,11 @@
+{"variants": {
+ "good": {"edits": {"app/utils.py": [["def get_user(", "def fetch_user("]], "app/main.py": [["import get_user", "import fetch_user"], ["{get_user(user_id)}", "{fetch_user(user_id)}"]]},
+          "tools": [{"tool": "Edit", "input": {"file_path": "/w/app/utils.py"}}, {"tool": "Edit", "input": {"file_path": "/w/app/main.py"}}],
+          "last_message": "Renamed get_user to fetch_user and updated app/main.py.", "expect": "all_pass"},
+ "bad-skill-and-scaffold": {"base": "good",
+   "files": {"forge.toml": "[project]\nname = \"x\"\n"},
+   "tools": [{"tool": "Skill", "input": {"skill": "forge:writing-requirements"}}, {"tool": "Agent", "input": {"subagent_type": "forge:software-architect", "prompt": "rename"}}],
+   "expect": {"no-skill-fired": false, "no-forge-agent": false, "no-forge-scaffolding": false}},
+ "bad-not-renamed": {"base": "good", "edits": {"app/utils.py": [], "app/main.py": []},
+   "expect": {"renamed-definition": false, "old-name-gone": false, "caller-updated": false}}
+}}

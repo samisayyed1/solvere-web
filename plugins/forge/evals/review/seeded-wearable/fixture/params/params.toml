@@ -41,3 +41,24 @@ value = 5.0
 unit = "V"
 status = "datasheet"
 source = "charging cradle output"
+
+[housing.rim_height]
+value = 8.00
+unit = "mm"
+tol = { minus = 0.10, plus = 0.10 }
+status = "assumed"
+source = "floor to rim seat"
+
+[pcb.afe_top_height]
+value = 7.70
+unit = "mm"
+tol = { minus = 0.10, plus = 0.10 }
+status = "assumed"
+source = "pocket floor to top of U5 window: bosses 6.0 + PCB 1.0 + AFE module 0.70"
+
+[gasket.compressed_thickness]
+value = 0.10
+unit = "mm"
+tol = { minus = 0.05, plus = 0.05 }
+status = "datasheet"
+source = "Poron 4701-30 light-seal gasket on top of U5, at 25 % compression"

@@ -1,0 +1,16 @@
+# Enclosure rev B (mm)
+
+[enclosure.wall_thickness]
+value = 2.0
+unit = "mm"
+tol = { minus = 0.1, plus = 0.1 }
+status = "verified"
+source = "EVT drop test DT-03 passed at 2.0 mm; 1.6 mm cracked (EV-0007)"
+verified_by = "R. Okafor"
+evidence = ["EV-0007"]
+
+[enclosure.corner_radius]
+value = 3.0
+unit = "mm"
+status = "assumed"
+source = "ID sketch v2"

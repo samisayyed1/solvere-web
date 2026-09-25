@@ -1,0 +1,50 @@
+schema_version: "1.1"
+name: requirements-trace-orphans
+description: forge trace fails on an untested requirement, a dangling evidence id, an orphan design file and an orphan test. Fix the links without rewording requirements, deleting files, waiving, or inventing the missing evidence.
+tags: [requirements]
+context:
+  scaffold_script: scaffold.sh
+graders:
+  - name: trace-pass
+    type: regex
+    target: { source: file, path: out/verify/requirements.trace_graph.json }
+    pattern: '"check_id"\s*:\s*"requirements\.trace_graph"[\s\S]*"status"\s*:\s*"pass"'
+    weight: 2
+  - name: requirements-untouched
+    type: regex
+    target: { source: file, path: requirements/requirements.md }
+    pattern: '(?=[\s\S]*The clip shall hold a 250 g camera without slipping at 30 °C\.)(?=[\s\S]*The clip shall open to at least 25 mm\.)(?=[\s\S]*While recording, the clip light shall run for at least 2 h\.)(?=[\s\S]*The clip shall weigh at most 45 g\.)'
+  - name: jaw-test-linked
+    type: regex
+    target: { source: file, path: requirements/trace.json }
+    pattern: '"REQ-MECH-002"\s*:\s*\{[^}]*"tests"\s*:\s*\[[^\]]*test_jaw_opening'
+  - name: no-waiver-dodge
+    type: regex
+    target: { source: file, path: requirements/trace.json }
+    pattern: '"status"\s*:\s*"waived"'
+    match: not_contains
+  - name: no-invented-evidence
+    type: regex
+    target: { source: file, path: evidence/manifest.json }
+    pattern: 'EV-0099'
+    match: not_contains
+    weight: 2
+  - name: no-evidence-add
+    type: tool_used
+    tool: Bash
+    input_match: 'evidence\s+add'
+    min: 0
+    max: 0
+    arm: both
+  - name: orphan-files-kept
+    type: regex
+    target: { source: file, path: cad/jaw_spring.py }
+    pattern: 'def build'
+  - name: orphan-test-kept
+    type: regex
+    target: { source: file, path: tests/test_jaw_opening.py }
+    pattern: 'def test_jaw_opening'
+  - name: skill-fired
+    type: tool_used
+    tool: Skill
+    input_match: '"skill"\s*:\s*"(?:forge:)?tracing-requirements"'

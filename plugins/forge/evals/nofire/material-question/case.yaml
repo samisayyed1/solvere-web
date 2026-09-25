@@ -1,0 +1,24 @@
+schema_version: "1.1"
+name: nofire-material-question
+description: Should-not-fire. A one-paragraph materials question with no project; answering directly is right, Forge skills and agents are not.
+graders:
+  - name: recommends-petg-not-pla
+    type: regex
+    flags: im
+    pattern: '(recommend|choose|pick|go with|use|prefer|want)\w*\s+(\*\*)?PETG|^\W*PETG\b'
+  - name: gives-temperature-reason
+    type: regex
+    flags: i
+    pattern: 'glass[- ]transition|\bTg\b|\d{2,3}\s*(°|deg|º)\s*C|soften|deform|warp|creep'
+  - name: no-skill-fired
+    type: tool_used
+    tool: Skill
+    min: 0
+    max: 0
+    arm: both
+  - name: no-agent
+    type: tool_used
+    tool: Agent
+    min: 0
+    max: 0
+    arm: both

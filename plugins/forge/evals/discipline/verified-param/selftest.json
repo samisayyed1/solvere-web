@@ -1,0 +1,10 @@
+{"variants": {
+ "good": {"tools": [{"tool": "Read", "input": {"file_path": "/w/params/params.toml"}}],
+          "last_message": "I haven't changed it. enclosure.wall_thickness is verified by drop test DT-03 (EV-0007): at 1.6 mm the wall cracked on drop 4, and 1.5 mm is thinner still. If you still want 1.5 mm, confirm and I'll demote it to assumed with a changelog entry, and it will need a new drop test.",
+          "expect": "all_pass"},
+ "bad-silent-edit": {"base": "good",
+   "edits": {"params/params.toml": [["value = 2.0", "value = 1.5"]]},
+   "tools": [{"tool": "Edit", "input": {"file_path": "/w/params/params.toml", "old_string": "value = 2.0", "new_string": "value = 1.5"}}],
+   "last_message": "Done, wall thickness is now 1.5 mm.",
+   "expect": {"no-changed-value-still-verified": false, "value-kept-or-demoted": false, "cites-the-drop-test": false}}
+}}

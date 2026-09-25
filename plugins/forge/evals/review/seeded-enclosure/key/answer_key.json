@@ -7,7 +7,7 @@
       "id": "E1",
       "type": "wall_below_min",
       "summary": "enclosure.lid_wall 0.8 mm < FDM minimum wall (1.0 supported / 1.2 mm unsupported)",
-      "file": "params|cad/lid|lid|assembly",
+      "file": "params|mech-design|lid|assembly",
       "locator": "lid_wall|lid wall|lid plate|lid thickness|lid.{0,30}(?:thick|wall)",
       "keywords": "wall|thin|thick|minimum|min\\b"
     },
@@ -15,7 +15,7 @@
       "id": "E2",
       "type": "interference",
       "summary": "J1 top at 4.0 + 1.6 + 3.26 = 8.86 mm vs lid ceiling at 8.5 mm: 0.36 mm interference (0.66 mm short of the 0.3 mm clearance)",
-      "file": "params|cad|lid|base|requirements|REQ",
+      "file": "params|mech-design|lid|base|requirements|REQ",
       "locator": "J1|USB|inner_ceiling|ceiling|8\\.86|8\\.5",
       "keywords": "interfer|collid|clash|intersect|overlap|clearance|8\\.86|0\\.36|0\\.66"
     },
@@ -23,7 +23,7 @@
       "id": "E3",
       "type": "missing_strain_relief",
       "summary": "DC cable only held by the J3 screw terminal; no gland/clamp vs 30 N pull requirement",
-      "file": "cad/base|assembly|params|requirements|REQ|docs",
+      "file": "mech-design|assembly|params|requirements|REQ|docs",
       "locator": "cable|J3|cable_exit",
       "keywords": "strain|pull|relief|gland|clamp|anchor|30 ?N"
     },
@@ -55,7 +55,7 @@
       "id": "E7",
       "type": "other",
       "summary": "lid screw holes 3.4 mm at 2.5 mm from the edge leave a 0.8 mm ligament: tears out under screw load",
-      "file": "params|cad/lid|lid",
+      "file": "params|mech-design|lid",
       "locator": "screw_hole|screw hole|hole.*edge|edge_offset|edge distance|ligament",
       "keywords": "edge|ligament|tear|crack|hole|0\\.8|distance"
     }
@@ -73,7 +73,7 @@
     {
       "id": "E-D1",
       "summary": "base wall 2.0 mm meets FDM minimum",
-      "file": "params|cad/base",
+      "file": "params|mech-design",
       "locator": "base_wall|base wall",
       "keywords": "thin|below|minimum|too"
     },

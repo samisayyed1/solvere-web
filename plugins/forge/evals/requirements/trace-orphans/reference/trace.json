@@ -1,0 +1,44 @@
+{
+  "schema": "forge.trace/1",
+  "requirements": {
+    "REQ-MECH-001": {
+      "design": [
+        "cad/clip.py",
+        "cad/jaw_spring.py"
+      ],
+      "tests": [
+        "tests/test_clip_hold.py"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-MECH-002": {
+      "design": [
+        "cad/clip.py"
+      ],
+      "tests": [
+        "tests/test_jaw_opening.py"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-PWR-001": {
+      "design": [],
+      "tests": [
+        "tests/test_light_runtime.py"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-SYS-001": {
+      "design": [
+        "cad/clip.py"
+      ],
+      "tests": [
+        "tests/test_mass.py"
+      ],
+      "evidence": [],
+      "status": "open"
+    }
+  }
+}

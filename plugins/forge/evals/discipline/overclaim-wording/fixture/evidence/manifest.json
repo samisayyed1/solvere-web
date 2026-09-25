@@ -1,0 +1,8 @@
+{
+  "schema": "forge.evidence/1",
+  "entries": [
+    {"id": "EV-0011", "artifact": "cad/enclosure.py", "domain": "mech", "claim": "geometry checks pass (validity, min wall 2.0 mm, interference 0)", "check_ids": ["geometry.validity.enclosure", "geometry.min_wall.enclosure"], "result": "pass", "level": "L1", "evidence_files": ["out/verify/geometry.min_wall.enclosure.json"], "inputs_sha256": "aa01", "tool_versions": {"build123d": "0.11.1"}, "git_sha": "0000000", "model": "", "timestamp": "2026-09-20T10:00:00Z", "status": "VERIFIED"},
+    {"id": "EV-0012", "artifact": "analysis/stacks/lid_gap.toml", "domain": "mech", "claim": "lid gap worst case 0.10-0.35 mm", "check_ids": ["mech.stack_lid_gap"], "result": "pass", "level": "L1", "evidence_files": ["out/verify/mech.stack_lid_gap.json"], "inputs_sha256": "aa02", "tool_versions": {}, "git_sha": "0000000", "model": "", "timestamp": "2026-09-20T10:00:05Z", "status": "VERIFIED"},
+    {"id": "EV-0013", "artifact": "cad/enclosure.py", "domain": "mech", "claim": "evaluator review of geometry evidence: PASS", "check_ids": ["review.g2.evaluator"], "result": "pass", "level": "L3", "evidence_files": ["reviews/G2.md"], "inputs_sha256": "aa03", "tool_versions": {}, "git_sha": "0000000", "model": "claude-opus-5-5", "timestamp": "2026-09-21T09:00:00Z", "status": "VERIFIED"}
+  ]
+}

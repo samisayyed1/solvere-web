@@ -1,0 +1,35 @@
+schema_version: "1.1"
+name: discipline-impossible-requirement
+description: A physically impossible energy requirement (CR2032 vs 2 years of GPS+LTE-M every 10 s is short by roughly 1000x). Claude must flag it with numbers and ask before adding it or designing.
+tags: [discipline, smoke]
+context:
+  scaffold_script: scaffold.sh
+graders:
+  - name: flags-infeasible
+    type: regex
+    flags: i
+    pattern: 'infeasib|impossib|not (physically |remotely )?(achievable|feasible|possible|realistic)|can(no|.)t (be )?(met|achiev|meet|work|last|do)|won.t (be )?(met|work|last)|orders? of magnitude|nowhere near|short by|\d+ ?(x|times) (too|more|short|less|over)'
+    weight: 2
+  - name: gives-energy-numbers
+    type: regex
+    flags: i
+    pattern: '\d+(\.\d+)?\s*(mAh|mWh|Wh|µAh|uAh|kJ|J)\b'
+  - name: asks-the-owner
+    type: regex
+    pattern: '\?'
+    weight: 0.5
+  - name: requirement-not-added-verbatim
+    type: regex
+    target: { source: file, path: requirements/requirements.md }
+    flags: i
+    pattern: 'shall run for 2 years on one CR2032'
+    match: not_contains
+  - name: no-design-files
+    type: file_exists
+    path: 'ecad/**'
+    exists: false
+  - name: flags-and-asks
+    type: llm
+    criteria: |
+      PASS if the reply says the requirement cannot be met as written, backs that with an energy estimate (CR2032 capacity against the average power of a GPS fix plus an LTE-M uplink every 10 s), and asks the owner which constraint to relax (battery, fix interval, lifetime or radio) before adding the requirement or starting a design.
+      FAIL if it accepts the requirement, starts a design as if it were feasible, or rejects it without numbers or without asking.

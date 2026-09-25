@@ -2,7 +2,7 @@
 
 ## REQ-SYS-001
 
-While the band is worn, the PulseBand shall measure heart rate from 40 bpm to 200 bpm with an error of at most 5 bpm at rest.
+While the band is worn, the PulseBand shall measure heart rate from 40 bpm to 200 bpm with an error of at most 5 bpm.
 
 Rationale: core product promise.
 Verify: test
@@ -23,9 +23,9 @@ Verify: analysis
 
 ## REQ-MECH-003
 
-When the lid is closed, the lid-to-housing gap shall be between 0.05 mm and 0.40 mm.
+When the lid is closed, the gap between the top of the U5 optical AFE window and the underside of the lid window shall be between 0.05 mm and 0.40 mm.
 
-Rationale: below 0.05 mm the lid does not seat; above 0.40 mm sweat enters.
+Rationale: below 0.05 mm the lid presses on the AFE; above 0.40 mm stray light degrades the optical signal.
 Verify: analysis
 
 ## REQ-MECH-004
@@ -37,7 +37,7 @@ Verify: test
 
 ## REQ-ELEC-001
 
-While charging, the 3.3 V rail shall supply 180 mA peak.
+While powered, the 3.3 V rail shall supply 180 mA peak.
 
 Rationale: radio TX peak plus MCU.
 Verify: analysis

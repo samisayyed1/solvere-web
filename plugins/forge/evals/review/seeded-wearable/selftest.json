@@ -1,0 +1,924 @@
+{
+ "variants": {
+  "good": {
+   "files": {
+    "out/review/findings.json": {
+     "schema": "forge.findings/1",
+     "findings": [
+      {
+       "file": "params/params.toml",
+       "location": "lid.window_frame_wall",
+       "category": "manufacturability",
+       "severity": "major",
+       "description": "Optical window frame wall is 0.35 mm; SLA minimum wall is 0.5 mm supported / 1.0 mm unsupported (Tough 2000). Frame will not print or will break."
+      },
+      {
+       "file": "params/params.toml",
+       "location": "housing.pcb_boss_positions (18.0, 8.0)",
+       "category": "fit / interference",
+       "severity": "critical",
+       "description": "Boss at x=18, y=8 (d=3 mm, 6 mm tall) lies inside the 40 x 25 mm cell footprint (x +/-20, y +/-12.5): it collides with and presses on the LiPo cell, violating REQ-MECH-002."
+      },
+      {
+       "file": "docs/mech-notes.md",
+       "location": "tether cable exit",
+       "category": "missing strain relief",
+       "severity": "major",
+       "description": "Tether cores are soldered straight to PCB pads with no boot, clamp or knot; a 20 N pull (REQ-MECH-004) loads the solder joints directly."
+      },
+      {
+       "file": "analysis/lid_gap_report.md",
+       "location": "lid_gap stack",
+       "category": "tolerance stack",
+       "severity": "major",
+       "description": "Worst case is 0.20 +/- 0.25 = -0.05 to 0.45 mm (gasket tolerance omitted); report calls a 0.00 mm minimum a PASS against the 0.05 mm limit of REQ-MECH-003."
+      },
+      {
+       "file": "ecad/power_tree.md",
+       "location": "U3 TLV70018",
+       "category": "thermal",
+       "severity": "critical",
+       "description": "LDO dissipation is (5.0 - 1.8) x 0.150 = 0.48 W, not 0.048 W (150 mA written as 0.015 A); Tj = 40 + 0.48 x 210 = 141 C > 105 C limit of REQ-ELEC-003."
+      },
+      {
+       "file": "ecad/netlist.md",
+       "location": "J2 charging pogo contacts / VBUS",
+       "category": "ESD protection",
+       "severity": "critical",
+       "description": "Exposed charging contacts route straight to U1 with no TVS or ESD clamp; REQ-ELEC-002 requires surviving +/-8 kV IEC 61000-4-2 contact discharge."
+      },
+      {
+       "file": "requirements/trace.json",
+       "location": "REQ-ELEC-002",
+       "category": "traceability",
+       "severity": "major",
+       "description": "Verify: test but tests[] is empty and the test plan has no ESD test; the requirement is untested."
+      },
+      {
+       "file": "docs/marketing.md",
+       "location": "Medical-grade accuracy / atrial fibrillation",
+       "category": "unsupported claim",
+       "severity": "critical",
+       "description": "Claims AFib detection and medical-grade accuracy with no evidence entry; this is a regulated medical device claim with no clinical data."
+      }
+     ]
+    }
+   },
+   "created": [
+    "out/review/findings.json"
+   ],
+   "tools": [
+    {
+     "tool": "Read",
+     "input": {
+      "file_path": "/w/requirements/requirements.md"
+     }
+    },
+    {
+     "tool": "Read",
+     "input": {
+      "file_path": "/w/params/params.toml"
+     }
+    },
+    {
+     "tool": "Agent",
+     "input": {
+      "subagent_type": "forge:verification-evaluator",
+      "prompt": "review"
+     }
+    },
+    {
+     "tool": "Write",
+     "input": {
+      "file_path": "/w/out/review/findings.json",
+      "content": "..."
+     }
+    }
+   ],
+   "last_message": "Review done; findings in out/review/findings.json.",
+   "expect": "all_pass"
+  },
+  "bad-missing-W1": {
+   "base": "good",
+   "files": {
+    "out/review/findings.json": {
+     "schema": "forge.findings/1",
+     "findings": [
+      {
+       "file": "params/params.toml",
+       "location": "housing.pcb_boss_positions (18.0, 8.0)",
+       "category": "fit / interference",
+       "severity": "critical",
+       "description": "Boss at x=18, y=8 (d=3 mm, 6 mm tall) lies inside the 40 x 25 mm cell footprint (x +/-20, y +/-12.5): it collides with and presses on the LiPo cell, violating REQ-MECH-002."
+      },
+      {
+       "file": "docs/mech-notes.md",
+       "location": "tether cable exit",
+       "category": "missing strain relief",
+       "severity": "major",
+       "description": "Tether cores are soldered straight to PCB pads with no boot, clamp or knot; a 20 N pull (REQ-MECH-004) loads the solder joints directly."
+      },
+      {
+       "file": "analysis/lid_gap_report.md",
+       "location": "lid_gap stack",
+       "category": "tolerance stack",
+       "severity": "major",
+       "description": "Worst case is 0.20 +/- 0.25 = -0.05 to 0.45 mm (gasket tolerance omitted); report calls a 0.00 mm minimum a PASS against the 0.05 mm limit of REQ-MECH-003."
+      },
+      {
+       "file": "ecad/power_tree.md",
+       "location": "U3 TLV70018",
+       "category": "thermal",
+       "severity": "critical",
+       "description": "LDO dissipation is (5.0 - 1.8) x 0.150 = 0.48 W, not 0.048 W (150 mA written as 0.015 A); Tj = 40 + 0.48 x 210 = 141 C > 105 C limit of REQ-ELEC-003."
+      },
+      {
+       "file": "ecad/netlist.md",
+       "location": "J2 charging pogo contacts / VBUS",
+       "category": "ESD protection",
+       "severity": "critical",
+       "description": "Exposed charging contacts route straight to U1 with no TVS or ESD clamp; REQ-ELEC-002 requires surviving +/-8 kV IEC 61000-4-2 contact discharge."
+      },
+      {
+       "file": "requirements/trace.json",
+       "location": "REQ-ELEC-002",
+       "category": "traceability",
+       "severity": "major",
+       "description": "Verify: test but tests[] is empty and the test plan has no ESD test; the requirement is untested."
+      },
+      {
+       "file": "docs/marketing.md",
+       "location": "Medical-grade accuracy / atrial fibrillation",
+       "category": "unsupported claim",
+       "severity": "critical",
+       "description": "Claims AFib detection and medical-grade accuracy with no evidence entry; this is a regulated medical device claim with no clinical data."
+      }
+     ]
+    }
+   },
+   "expect": {
+    "defect-W1": false
+   }
+  },
+  "bad-missing-W2": {
+   "base": "good",
+   "files": {
+    "out/review/findings.json": {
+     "schema": "forge.findings/1",
+     "findings": [
+      {
+       "file": "params/params.toml",
+       "location": "lid.window_frame_wall",
+       "category": "manufacturability",
+       "severity": "major",
+       "description": "Optical window frame wall is 0.35 mm; SLA minimum wall is 0.5 mm supported / 1.0 mm unsupported (Tough 2000). Frame will not print or will break."
+      },
+      {
+       "file": "docs/mech-notes.md",
+       "location": "tether cable exit",
+       "category": "missing strain relief",
+       "severity": "major",
+       "description": "Tether cores are soldered straight to PCB pads with no boot, clamp or knot; a 20 N pull (REQ-MECH-004) loads the solder joints directly."
+      },
+      {
+       "file": "analysis/lid_gap_report.md",
+       "location": "lid_gap stack",
+       "category": "tolerance stack",
+       "severity": "major",
+       "description": "Worst case is 0.20 +/- 0.25 = -0.05 to 0.45 mm (gasket tolerance omitted); report calls a 0.00 mm minimum a PASS against the 0.05 mm limit of REQ-MECH-003."
+      },
+      {
+       "file": "ecad/power_tree.md",
+       "location": "U3 TLV70018",
+       "category": "thermal",
+       "severity": "critical",
+       "description": "LDO dissipation is (5.0 - 1.8) x 0.150 = 0.48 W, not 0.048 W (150 mA written as 0.015 A); Tj = 40 + 0.48 x 210 = 141 C > 105 C limit of REQ-ELEC-003."
+      },
+      {
+       "file": "ecad/netlist.md",
+       "location": "J2 charging pogo contacts / VBUS",
+       "category": "ESD protection",
+       "severity": "critical",
+       "description": "Exposed charging contacts route straight to U1 with no TVS or ESD clamp; REQ-ELEC-002 requires surviving +/-8 kV IEC 61000-4-2 contact discharge."
+      },
+      {
+       "file": "requirements/trace.json",
+       "location": "REQ-ELEC-002",
+       "category": "traceability",
+       "severity": "major",
+       "description": "Verify: test but tests[] is empty and the test plan has no ESD test; the requirement is untested."
+      },
+      {
+       "file": "docs/marketing.md",
+       "location": "Medical-grade accuracy / atrial fibrillation",
+       "category": "unsupported claim",
+       "severity": "critical",
+       "description": "Claims AFib detection and medical-grade accuracy with no evidence entry; this is a regulated medical device claim with no clinical data."
+      }
+     ]
+    }
+   },
+   "expect": {
+    "defect-W2": false
+   }
+  },
+  "bad-missing-W3": {
+   "base": "good",
+   "files": {
+    "out/review/findings.json": {
+     "schema": "forge.findings/1",
+     "findings": [
+      {
+       "file": "params/params.toml",
+       "location": "lid.window_frame_wall",
+       "category": "manufacturability",
+       "severity": "major",
+       "description": "Optical window frame wall is 0.35 mm; SLA minimum wall is 0.5 mm supported / 1.0 mm unsupported (Tough 2000). Frame will not print or will break."
+      },
+      {
+       "file": "params/params.toml",
+       "location": "housing.pcb_boss_positions (18.0, 8.0)",
+       "category": "fit / interference",
+       "severity": "critical",
+       "description": "Boss at x=18, y=8 (d=3 mm, 6 mm tall) lies inside the 40 x 25 mm cell footprint (x +/-20, y +/-12.5): it collides with and presses on the LiPo cell, violating REQ-MECH-002."
+      },
+      {
+       "file": "analysis/lid_gap_report.md",
+       "location": "lid_gap stack",
+       "category": "tolerance stack",
+       "severity": "major",
+       "description": "Worst case is 0.20 +/- 0.25 = -0.05 to 0.45 mm (gasket tolerance omitted); report calls a 0.00 mm minimum a PASS against the 0.05 mm limit of REQ-MECH-003."
+      },
+      {
+       "file": "ecad/power_tree.md",
+       "location": "U3 TLV70018",
+       "category": "thermal",
+       "severity": "critical",
+       "description": "LDO dissipation is (5.0 - 1.8) x 0.150 = 0.48 W, not 0.048 W (150 mA written as 0.015 A); Tj = 40 + 0.48 x 210 = 141 C > 105 C limit of REQ-ELEC-003."
+      },
+      {
+       "file": "ecad/netlist.md",
+       "location": "J2 charging pogo contacts / VBUS",
+       "category": "ESD protection",
+       "severity": "critical",
+       "description": "Exposed charging contacts route straight to U1 with no TVS or ESD clamp; REQ-ELEC-002 requires surviving +/-8 kV IEC 61000-4-2 contact discharge."
+      },
+      {
+       "file": "requirements/trace.json",
+       "location": "REQ-ELEC-002",
+       "category": "traceability",
+       "severity": "major",
+       "description": "Verify: test but tests[] is empty and the test plan has no ESD test; the requirement is untested."
+      },
+      {
+       "file": "docs/marketing.md",
+       "location": "Medical-grade accuracy / atrial fibrillation",
+       "category": "unsupported claim",
+       "severity": "critical",
+       "description": "Claims AFib detection and medical-grade accuracy with no evidence entry; this is a regulated medical device claim with no clinical data."
+      }
+     ]
+    }
+   },
+   "expect": {
+    "defect-W3": false
+   }
+  },
+  "bad-missing-W4": {
+   "base": "good",
+   "files": {
+    "out/review/findings.json": {
+     "schema": "forge.findings/1",
+     "findings": [
+      {
+       "file": "params/params.toml",
+       "location": "lid.window_frame_wall",
+       "category": "manufacturability",
+       "severity": "major",
+       "description": "Optical window frame wall is 0.35 mm; SLA minimum wall is 0.5 mm supported / 1.0 mm unsupported (Tough 2000). Frame will not print or will break."
+      },
+      {
+       "file": "params/params.toml",
+       "location": "housing.pcb_boss_positions (18.0, 8.0)",
+       "category": "fit / interference",
+       "severity": "critical",
+       "description": "Boss at x=18, y=8 (d=3 mm, 6 mm tall) lies inside the 40 x 25 mm cell footprint (x +/-20, y +/-12.5): it collides with and presses on the LiPo cell, violating REQ-MECH-002."
+      },
+      {
+       "file": "docs/mech-notes.md",
+       "location": "tether cable exit",
+       "category": "missing strain relief",
+       "severity": "major",
+       "description": "Tether cores are soldered straight to PCB pads with no boot, clamp or knot; a 20 N pull (REQ-MECH-004) loads the solder joints directly."
+      },
+      {
+       "file": "ecad/power_tree.md",
+       "location": "U3 TLV70018",
+       "category": "thermal",
+       "severity": "critical",
+       "description": "LDO dissipation is (5.0 - 1.8) x 0.150 = 0.48 W, not 0.048 W (150 mA written as 0.015 A); Tj = 40 + 0.48 x 210 = 141 C > 105 C limit of REQ-ELEC-003."
+      },
+      {
+       "file": "ecad/netlist.md",
+       "location": "J2 charging pogo contacts / VBUS",
+       "category": "ESD protection",
+       "severity": "critical",
+       "description": "Exposed charging contacts route straight to U1 with no TVS or ESD clamp; REQ-ELEC-002 requires surviving +/-8 kV IEC 61000-4-2 contact discharge."
+      },
+      {
+       "file": "requirements/trace.json",
+       "location": "REQ-ELEC-002",
+       "category": "traceability",
+       "severity": "major",
+       "description": "Verify: test but tests[] is empty and the test plan has no ESD test; the requirement is untested."
+      },
+      {
+       "file": "docs/marketing.md",
+       "location": "Medical-grade accuracy / atrial fibrillation",
+       "category": "unsupported claim",
+       "severity": "critical",
+       "description": "Claims AFib detection and medical-grade accuracy with no evidence entry; this is a regulated medical device claim with no clinical data."
+      }
+     ]
+    }
+   },
+   "expect": {
+    "defect-W4": false
+   }
+  },
+  "bad-missing-W5": {
+   "base": "good",
+   "files": {
+    "out/review/findings.json": {
+     "schema": "forge.findings/1",
+     "findings": [
+      {
+       "file": "params/params.toml",
+       "location": "lid.window_frame_wall",
+       "category": "manufacturability",
+       "severity": "major",
+       "description": "Optical window frame wall is 0.35 mm; SLA minimum wall is 0.5 mm supported / 1.0 mm unsupported (Tough 2000). Frame will not print or will break."
+      },
+      {
+       "file": "params/params.toml",
+       "location": "housing.pcb_boss_positions (18.0, 8.0)",
+       "category": "fit / interference",
+       "severity": "critical",
+       "description": "Boss at x=18, y=8 (d=3 mm, 6 mm tall) lies inside the 40 x 25 mm cell footprint (x +/-20, y +/-12.5): it collides with and presses on the LiPo cell, violating REQ-MECH-002."
+      },
+      {
+       "file": "docs/mech-notes.md",
+       "location": "tether cable exit",
+       "category": "missing strain relief",
+       "severity": "major",
+       "description": "Tether cores are soldered straight to PCB pads with no boot, clamp or knot; a 20 N pull (REQ-MECH-004) loads the solder joints directly."
+      },
+      {
+       "file": "analysis/lid_gap_report.md",
+       "location": "lid_gap stack",
+       "category": "tolerance stack",
+       "severity": "major",
+       "description": "Worst case is 0.20 +/- 0.25 = -0.05 to 0.45 mm (gasket tolerance omitted); report calls a 0.00 mm minimum a PASS against the 0.05 mm limit of REQ-MECH-003."
+      },
+      {
+       "file": "ecad/netlist.md",
+       "location": "J2 charging pogo contacts / VBUS",
+       "category": "ESD protection",
+       "severity": "critical",
+       "description": "Exposed charging contacts route straight to U1 with no TVS or ESD clamp; REQ-ELEC-002 requires surviving +/-8 kV IEC 61000-4-2 contact discharge."
+      },
+      {
+       "file": "requirements/trace.json",
+       "location": "REQ-ELEC-002",
+       "category": "traceability",
+       "severity": "major",
+       "description": "Verify: test but tests[] is empty and the test plan has no ESD test; the requirement is untested."
+      },
+      {
+       "file": "docs/marketing.md",
+       "location": "Medical-grade accuracy / atrial fibrillation",
+       "category": "unsupported claim",
+       "severity": "critical",
+       "description": "Claims AFib detection and medical-grade accuracy with no evidence entry; this is a regulated medical device claim with no clinical data."
+      }
+     ]
+    }
+   },
+   "expect": {
+    "defect-W5": false
+   }
+  },
+  "bad-missing-W6": {
+   "base": "good",
+   "files": {
+    "out/review/findings.json": {
+     "schema": "forge.findings/1",
+     "findings": [
+      {
+       "file": "params/params.toml",
+       "location": "lid.window_frame_wall",
+       "category": "manufacturability",
+       "severity": "major",
+       "description": "Optical window frame wall is 0.35 mm; SLA minimum wall is 0.5 mm supported / 1.0 mm unsupported (Tough 2000). Frame will not print or will break."
+      },
+      {
+       "file": "params/params.toml",
+       "location": "housing.pcb_boss_positions (18.0, 8.0)",
+       "category": "fit / interference",
+       "severity": "critical",
+       "description": "Boss at x=18, y=8 (d=3 mm, 6 mm tall) lies inside the 40 x 25 mm cell footprint (x +/-20, y +/-12.5): it collides with and presses on the LiPo cell, violating REQ-MECH-002."
+      },
+      {
+       "file": "docs/mech-notes.md",
+       "location": "tether cable exit",
+       "category": "missing strain relief",
+       "severity": "major",
+       "description": "Tether cores are soldered straight to PCB pads with no boot, clamp or knot; a 20 N pull (REQ-MECH-004) loads the solder joints directly."
+      },
+      {
+       "file": "analysis/lid_gap_report.md",
+       "location": "lid_gap stack",
+       "category": "tolerance stack",
+       "severity": "major",
+       "description": "Worst case is 0.20 +/- 0.25 = -0.05 to 0.45 mm (gasket tolerance omitted); report calls a 0.00 mm minimum a PASS against the 0.05 mm limit of REQ-MECH-003."
+      },
+      {
+       "file": "ecad/power_tree.md",
+       "location": "U3 TLV70018",
+       "category": "thermal",
+       "severity": "critical",
+       "description": "LDO dissipation is (5.0 - 1.8) x 0.150 = 0.48 W, not 0.048 W (150 mA written as 0.015 A); Tj = 40 + 0.48 x 210 = 141 C > 105 C limit of REQ-ELEC-003."
+      },
+      {
+       "file": "requirements/trace.json",
+       "location": "REQ-ELEC-002",
+       "category": "traceability",
+       "severity": "major",
+       "description": "Verify: test but tests[] is empty and the test plan has no ESD test; the requirement is untested."
+      },
+      {
+       "file": "docs/marketing.md",
+       "location": "Medical-grade accuracy / atrial fibrillation",
+       "category": "unsupported claim",
+       "severity": "critical",
+       "description": "Claims AFib detection and medical-grade accuracy with no evidence entry; this is a regulated medical device claim with no clinical data."
+      }
+     ]
+    }
+   },
+   "expect": {
+    "defect-W6": false
+   }
+  },
+  "bad-missing-W7": {
+   "base": "good",
+   "files": {
+    "out/review/findings.json": {
+     "schema": "forge.findings/1",
+     "findings": [
+      {
+       "file": "params/params.toml",
+       "location": "lid.window_frame_wall",
+       "category": "manufacturability",
+       "severity": "major",
+       "description": "Optical window frame wall is 0.35 mm; SLA minimum wall is 0.5 mm supported / 1.0 mm unsupported (Tough 2000). Frame will not print or will break."
+      },
+      {
+       "file": "params/params.toml",
+       "location": "housing.pcb_boss_positions (18.0, 8.0)",
+       "category": "fit / interference",
+       "severity": "critical",
+       "description": "Boss at x=18, y=8 (d=3 mm, 6 mm tall) lies inside the 40 x 25 mm cell footprint (x +/-20, y +/-12.5): it collides with and presses on the LiPo cell, violating REQ-MECH-002."
+      },
+      {
+       "file": "docs/mech-notes.md",
+       "location": "tether cable exit",
+       "category": "missing strain relief",
+       "severity": "major",
+       "description": "Tether cores are soldered straight to PCB pads with no boot, clamp or knot; a 20 N pull (REQ-MECH-004) loads the solder joints directly."
+      },
+      {
+       "file": "analysis/lid_gap_report.md",
+       "location": "lid_gap stack",
+       "category": "tolerance stack",
+       "severity": "major",
+       "description": "Worst case is 0.20 +/- 0.25 = -0.05 to 0.45 mm (gasket tolerance omitted); report calls a 0.00 mm minimum a PASS against the 0.05 mm limit of REQ-MECH-003."
+      },
+      {
+       "file": "ecad/power_tree.md",
+       "location": "U3 TLV70018",
+       "category": "thermal",
+       "severity": "critical",
+       "description": "LDO dissipation is (5.0 - 1.8) x 0.150 = 0.48 W, not 0.048 W (150 mA written as 0.015 A); Tj = 40 + 0.48 x 210 = 141 C > 105 C limit of REQ-ELEC-003."
+      },
+      {
+       "file": "ecad/netlist.md",
+       "location": "J2 charging pogo contacts / VBUS",
+       "category": "ESD protection",
+       "severity": "critical",
+       "description": "Exposed charging contacts route straight to U1 with no TVS or ESD clamp; REQ-ELEC-002 requires surviving +/-8 kV IEC 61000-4-2 contact discharge."
+      },
+      {
+       "file": "docs/marketing.md",
+       "location": "Medical-grade accuracy / atrial fibrillation",
+       "category": "unsupported claim",
+       "severity": "critical",
+       "description": "Claims AFib detection and medical-grade accuracy with no evidence entry; this is a regulated medical device claim with no clinical data."
+      }
+     ]
+    }
+   },
+   "expect": {
+    "defect-W7": false
+   }
+  },
+  "bad-missing-W8": {
+   "base": "good",
+   "files": {
+    "out/review/findings.json": {
+     "schema": "forge.findings/1",
+     "findings": [
+      {
+       "file": "params/params.toml",
+       "location": "lid.window_frame_wall",
+       "category": "manufacturability",
+       "severity": "major",
+       "description": "Optical window frame wall is 0.35 mm; SLA minimum wall is 0.5 mm supported / 1.0 mm unsupported (Tough 2000). Frame will not print or will break."
+      },
+      {
+       "file": "params/params.toml",
+       "location": "housing.pcb_boss_positions (18.0, 8.0)",
+       "category": "fit / interference",
+       "severity": "critical",
+       "description": "Boss at x=18, y=8 (d=3 mm, 6 mm tall) lies inside the 40 x 25 mm cell footprint (x +/-20, y +/-12.5): it collides with and presses on the LiPo cell, violating REQ-MECH-002."
+      },
+      {
+       "file": "docs/mech-notes.md",
+       "location": "tether cable exit",
+       "category": "missing strain relief",
+       "severity": "major",
+       "description": "Tether cores are soldered straight to PCB pads with no boot, clamp or knot; a 20 N pull (REQ-MECH-004) loads the solder joints directly."
+      },
+      {
+       "file": "analysis/lid_gap_report.md",
+       "location": "lid_gap stack",
+       "category": "tolerance stack",
+       "severity": "major",
+       "description": "Worst case is 0.20 +/- 0.25 = -0.05 to 0.45 mm (gasket tolerance omitted); report calls a 0.00 mm minimum a PASS against the 0.05 mm limit of REQ-MECH-003."
+      },
+      {
+       "file": "ecad/power_tree.md",
+       "location": "U3 TLV70018",
+       "category": "thermal",
+       "severity": "critical",
+       "description": "LDO dissipation is (5.0 - 1.8) x 0.150 = 0.48 W, not 0.048 W (150 mA written as 0.015 A); Tj = 40 + 0.48 x 210 = 141 C > 105 C limit of REQ-ELEC-003."
+      },
+      {
+       "file": "ecad/netlist.md",
+       "location": "J2 charging pogo contacts / VBUS",
+       "category": "ESD protection",
+       "severity": "critical",
+       "description": "Exposed charging contacts route straight to U1 with no TVS or ESD clamp; REQ-ELEC-002 requires surviving +/-8 kV IEC 61000-4-2 contact discharge."
+      },
+      {
+       "file": "requirements/trace.json",
+       "location": "REQ-ELEC-002",
+       "category": "traceability",
+       "severity": "major",
+       "description": "Verify: test but tests[] is empty and the test plan has no ESD test; the requirement is untested."
+      }
+     ]
+    }
+   },
+   "expect": {
+    "defect-W8": false
+   }
+  },
+  "bad-decoy-W-D1": {
+   "base": "good",
+   "files": {
+    "out/review/findings.json": {
+     "schema": "forge.findings/1",
+     "findings": [
+      {
+       "file": "params/params.toml",
+       "location": "lid.window_frame_wall",
+       "category": "manufacturability",
+       "severity": "major",
+       "description": "Optical window frame wall is 0.35 mm; SLA minimum wall is 0.5 mm supported / 1.0 mm unsupported (Tough 2000). Frame will not print or will break."
+      },
+      {
+       "file": "params/params.toml",
+       "location": "housing.pcb_boss_positions (18.0, 8.0)",
+       "category": "fit / interference",
+       "severity": "critical",
+       "description": "Boss at x=18, y=8 (d=3 mm, 6 mm tall) lies inside the 40 x 25 mm cell footprint (x +/-20, y +/-12.5): it collides with and presses on the LiPo cell, violating REQ-MECH-002."
+      },
+      {
+       "file": "docs/mech-notes.md",
+       "location": "tether cable exit",
+       "category": "missing strain relief",
+       "severity": "major",
+       "description": "Tether cores are soldered straight to PCB pads with no boot, clamp or knot; a 20 N pull (REQ-MECH-004) loads the solder joints directly."
+      },
+      {
+       "file": "analysis/lid_gap_report.md",
+       "location": "lid_gap stack",
+       "category": "tolerance stack",
+       "severity": "major",
+       "description": "Worst case is 0.20 +/- 0.25 = -0.05 to 0.45 mm (gasket tolerance omitted); report calls a 0.00 mm minimum a PASS against the 0.05 mm limit of REQ-MECH-003."
+      },
+      {
+       "file": "ecad/power_tree.md",
+       "location": "U3 TLV70018",
+       "category": "thermal",
+       "severity": "critical",
+       "description": "LDO dissipation is (5.0 - 1.8) x 0.150 = 0.48 W, not 0.048 W (150 mA written as 0.015 A); Tj = 40 + 0.48 x 210 = 141 C > 105 C limit of REQ-ELEC-003."
+      },
+      {
+       "file": "ecad/netlist.md",
+       "location": "J2 charging pogo contacts / VBUS",
+       "category": "ESD protection",
+       "severity": "critical",
+       "description": "Exposed charging contacts route straight to U1 with no TVS or ESD clamp; REQ-ELEC-002 requires surviving +/-8 kV IEC 61000-4-2 contact discharge."
+      },
+      {
+       "file": "requirements/trace.json",
+       "location": "REQ-ELEC-002",
+       "category": "traceability",
+       "severity": "major",
+       "description": "Verify: test but tests[] is empty and the test plan has no ESD test; the requirement is untested."
+      },
+      {
+       "file": "docs/marketing.md",
+       "location": "Medical-grade accuracy / atrial fibrillation",
+       "category": "unsupported claim",
+       "severity": "critical",
+       "description": "Claims AFib detection and medical-grade accuracy with no evidence entry; this is a regulated medical device claim with no clinical data."
+      },
+      {
+       "file": "params",
+       "location": "housing.wall_thickness",
+       "category": "review",
+       "severity": "major",
+       "description": "thin"
+      }
+     ]
+    }
+   },
+   "expect": {
+    "decoy-W-D1": false
+   }
+  },
+  "bad-decoy-W-D2": {
+   "base": "good",
+   "files": {
+    "out/review/findings.json": {
+     "schema": "forge.findings/1",
+     "findings": [
+      {
+       "file": "params/params.toml",
+       "location": "lid.window_frame_wall",
+       "category": "manufacturability",
+       "severity": "major",
+       "description": "Optical window frame wall is 0.35 mm; SLA minimum wall is 0.5 mm supported / 1.0 mm unsupported (Tough 2000). Frame will not print or will break."
+      },
+      {
+       "file": "params/params.toml",
+       "location": "housing.pcb_boss_positions (18.0, 8.0)",
+       "category": "fit / interference",
+       "severity": "critical",
+       "description": "Boss at x=18, y=8 (d=3 mm, 6 mm tall) lies inside the 40 x 25 mm cell footprint (x +/-20, y +/-12.5): it collides with and presses on the LiPo cell, violating REQ-MECH-002."
+      },
+      {
+       "file": "docs/mech-notes.md",
+       "location": "tether cable exit",
+       "category": "missing strain relief",
+       "severity": "major",
+       "description": "Tether cores are soldered straight to PCB pads with no boot, clamp or knot; a 20 N pull (REQ-MECH-004) loads the solder joints directly."
+      },
+      {
+       "file": "analysis/lid_gap_report.md",
+       "location": "lid_gap stack",
+       "category": "tolerance stack",
+       "severity": "major",
+       "description": "Worst case is 0.20 +/- 0.25 = -0.05 to 0.45 mm (gasket tolerance omitted); report calls a 0.00 mm minimum a PASS against the 0.05 mm limit of REQ-MECH-003."
+      },
+      {
+       "file": "ecad/power_tree.md",
+       "location": "U3 TLV70018",
+       "category": "thermal",
+       "severity": "critical",
+       "description": "LDO dissipation is (5.0 - 1.8) x 0.150 = 0.48 W, not 0.048 W (150 mA written as 0.015 A); Tj = 40 + 0.48 x 210 = 141 C > 105 C limit of REQ-ELEC-003."
+      },
+      {
+       "file": "ecad/netlist.md",
+       "location": "J2 charging pogo contacts / VBUS",
+       "category": "ESD protection",
+       "severity": "critical",
+       "description": "Exposed charging contacts route straight to U1 with no TVS or ESD clamp; REQ-ELEC-002 requires surviving +/-8 kV IEC 61000-4-2 contact discharge."
+      },
+      {
+       "file": "requirements/trace.json",
+       "location": "REQ-ELEC-002",
+       "category": "traceability",
+       "severity": "major",
+       "description": "Verify: test but tests[] is empty and the test plan has no ESD test; the requirement is untested."
+      },
+      {
+       "file": "docs/marketing.md",
+       "location": "Medical-grade accuracy / atrial fibrillation",
+       "category": "unsupported claim",
+       "severity": "critical",
+       "description": "Claims AFib detection and medical-grade accuracy with no evidence entry; this is a regulated medical device claim with no clinical data."
+      },
+      {
+       "file": "ecad",
+       "location": "U2",
+       "category": "review",
+       "severity": "major",
+       "description": "dissipat"
+      }
+     ]
+    }
+   },
+   "expect": {
+    "decoy-W-D2": false
+   }
+  },
+  "bad-decoy-W-D3": {
+   "base": "good",
+   "files": {
+    "out/review/findings.json": {
+     "schema": "forge.findings/1",
+     "findings": [
+      {
+       "file": "params/params.toml",
+       "location": "lid.window_frame_wall",
+       "category": "manufacturability",
+       "severity": "major",
+       "description": "Optical window frame wall is 0.35 mm; SLA minimum wall is 0.5 mm supported / 1.0 mm unsupported (Tough 2000). Frame will not print or will break."
+      },
+      {
+       "file": "params/params.toml",
+       "location": "housing.pcb_boss_positions (18.0, 8.0)",
+       "category": "fit / interference",
+       "severity": "critical",
+       "description": "Boss at x=18, y=8 (d=3 mm, 6 mm tall) lies inside the 40 x 25 mm cell footprint (x +/-20, y +/-12.5): it collides with and presses on the LiPo cell, violating REQ-MECH-002."
+      },
+      {
+       "file": "docs/mech-notes.md",
+       "location": "tether cable exit",
+       "category": "missing strain relief",
+       "severity": "major",
+       "description": "Tether cores are soldered straight to PCB pads with no boot, clamp or knot; a 20 N pull (REQ-MECH-004) loads the solder joints directly."
+      },
+      {
+       "file": "analysis/lid_gap_report.md",
+       "location": "lid_gap stack",
+       "category": "tolerance stack",
+       "severity": "major",
+       "description": "Worst case is 0.20 +/- 0.25 = -0.05 to 0.45 mm (gasket tolerance omitted); report calls a 0.00 mm minimum a PASS against the 0.05 mm limit of REQ-MECH-003."
+      },
+      {
+       "file": "ecad/power_tree.md",
+       "location": "U3 TLV70018",
+       "category": "thermal",
+       "severity": "critical",
+       "description": "LDO dissipation is (5.0 - 1.8) x 0.150 = 0.48 W, not 0.048 W (150 mA written as 0.015 A); Tj = 40 + 0.48 x 210 = 141 C > 105 C limit of REQ-ELEC-003."
+      },
+      {
+       "file": "ecad/netlist.md",
+       "location": "J2 charging pogo contacts / VBUS",
+       "category": "ESD protection",
+       "severity": "critical",
+       "description": "Exposed charging contacts route straight to U1 with no TVS or ESD clamp; REQ-ELEC-002 requires surviving +/-8 kV IEC 61000-4-2 contact discharge."
+      },
+      {
+       "file": "requirements/trace.json",
+       "location": "REQ-ELEC-002",
+       "category": "traceability",
+       "severity": "major",
+       "description": "Verify: test but tests[] is empty and the test plan has no ESD test; the requirement is untested."
+      },
+      {
+       "file": "docs/marketing.md",
+       "location": "Medical-grade accuracy / atrial fibrillation",
+       "category": "unsupported claim",
+       "severity": "critical",
+       "description": "Claims AFib detection and medical-grade accuracy with no evidence entry; this is a regulated medical device claim with no clinical data."
+      },
+      {
+       "file": "marketing",
+       "location": "5-day",
+       "category": "review",
+       "severity": "major",
+       "description": "unsupported"
+      }
+     ]
+    }
+   },
+   "expect": {
+    "decoy-W-D3": false
+   }
+  },
+  "bad-no-findings": {
+   "base": "good",
+   "files": {
+    "out/review/findings.json": null
+   },
+   "created": [],
+   "tools": [
+    {
+     "tool": "Read",
+     "input": {
+      "file_path": "/w/requirements/requirements.md"
+     }
+    },
+    {
+     "tool": "Read",
+     "input": {
+      "file_path": "/w/params/params.toml"
+     }
+    }
+   ],
+   "expect": {
+    "findings-written": false,
+    "wrote-findings-with-write": false,
+    "defect-W1": false,
+    "defect-W2": false,
+    "defect-W3": false,
+    "defect-W4": false,
+    "defect-W5": false,
+    "defect-W6": false,
+    "defect-W7": false,
+    "defect-W8": false,
+    "decoy-W-D1": false,
+    "decoy-W-D2": false,
+    "decoy-W-D3": false
+   },
+   "why": "a missing file fails every file-target grader, including not_contains decoy graders"
+  },
+  "bad-edited-design": {
+   "base": "good",
+   "tools": [
+    {
+     "tool": "Read",
+     "input": {
+      "file_path": "/w/requirements/requirements.md"
+     }
+    },
+    {
+     "tool": "Read",
+     "input": {
+      "file_path": "/w/params/params.toml"
+     }
+    },
+    {
+     "tool": "Edit",
+     "input": {
+      "file_path": "/w/params/params.toml"
+     }
+    },
+    {
+     "tool": "Write",
+     "input": {
+      "file_path": "/w/out/review/findings.json",
+      "content": "..."
+     }
+    }
+   ],
+   "expect": {
+    "no-design-edits": false
+   }
+  },
+  "bad-no-reviewer-agent": {
+   "base": "good",
+   "expect": {
+    "forge-reviewer-dispatched": false
+   },
+   "why": "good omits the Agent call on purpose; this indicator is with-only",
+   "tools": [
+    {
+     "tool": "Read",
+     "input": {
+      "file_path": "/w/requirements/requirements.md"
+     }
+    },
+    {
+     "tool": "Read",
+     "input": {
+      "file_path": "/w/params/params.toml"
+     }
+    },
+    {
+     "tool": "Write",
+     "input": {
+      "file_path": "/w/out/review/findings.json",
+      "content": "..."
+     }
+    }
+   ]
+  }
+ }
+}

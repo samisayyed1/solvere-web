@@ -3,8 +3,11 @@
 | Ref | Part | Input | Output | Load | Package |
 |---|---|---|---|---|---|
 | U1 | BQ21080 Li-ion charger | VBUS 5.0 V (J2) | VBAT 3.0-4.2 V | 200 mA charge | WCSP-8 |
-| U2 | TPS62840 buck, 90 % eff. | VBUS 5.0 V while charging, else VBAT | 3.3 V | 180 mA peak | SON-6 |
-| U3 | TLV70018 LDO | VBUS 5.0 V while charging, else VBAT | 1.8 V | 150 mA (optical AFE LEDs) | SOT-23-5, theta_JA 210 C/W |
+| Q1 | load switch / power mux | VBUS while charging, else VBAT | VSYS | -- | SOT-563 |
+| U2 | TPS62840 buck, 90 % eff. | VSYS | 3.3 V | 180 mA peak | SON-6 |
+| U3 | TLV70018 LDO | VSYS (5.0 V while charging) | 1.8 V | 150 mA (U5 optical AFE module, LED pulses) | SOT-23-5, theta_JA 210 C/W |
+
+U5 is an optical AFE module with integrated LED drivers: VDD 1.8 V +/-5 %, 150 mA peak during LED pulses (module datasheet p.3), SPI interface.
 
 ## Dissipation at 40 C ambient, charging (worst case)
 

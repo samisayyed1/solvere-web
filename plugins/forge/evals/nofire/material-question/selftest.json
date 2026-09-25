@@ -1,0 +1,6 @@
+{"variants": {
+ "good": {"tools": [], "last_message": "PETG. PLA softens near its 55-60 °C glass transition, and a summer dashboard easily reaches 70 °C or more; PETG holds to about 80 °C.", "expect": "all_pass"},
+ "bad-skill": {"base": "good", "tools": [{"tool": "Skill", "input": {"skill": "forge:checking-dfm"}}, {"tool": "Agent", "input": {"subagent_type": "forge:manufacturing-engineer"}}],
+   "expect": {"no-skill-fired": false, "no-agent": false}},
+ "bad-answer": {"base": "good", "last_message": "Use PLA, it's easy to print.", "expect": {"recommends-petg-not-pla": false, "gives-temperature-reason": false}}
+}}

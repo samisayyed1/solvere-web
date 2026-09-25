@@ -1,0 +1,8 @@
+{"schema": "forge.findings/1", "findings": [
+ {"file": "ecad/power_tree.md", "location": "U1 AMS1117-3.3", "category": "thermal", "severity": "critical", "description": "P = (11.6 - 3.3) x 0.30 = 2.49 W, not 0.25 W; Tj = 60 + 2.49 x 60 = 209 C, far above the 125 C limit of REQ-ELEC-003."},
+ {"file": "ecad/netlist.md", "location": "RS485_A / RS485_B at J2", "category": "ESD", "severity": "critical", "description": "External M12 bus pins go straight to U3 with no TVS; REQ-ELEC-005 requires +/-8 kV IEC 61000-4-2."},
+ {"file": "requirements/trace.json", "location": "REQ-ELEC-004", "category": "untested requirement", "severity": "major", "description": "Reverse-polarity requirement (Verify: test) has no test in the plan or trace."},
+ {"file": "docs/product-sheet.md", "location": "EN 61000-6-2 certification", "category": "unsupported claim", "severity": "major", "description": "Certified claim with no test evidence; certification needs L5 evidence from an accredited lab."},
+ {"file": "ecad/power_tree.md", "location": "C3 (U1 output)", "category": "stability", "severity": "major", "description": "AMS1117 needs >= 22 uF tantalum (ESR >= 0.3 ohm) at the output for stability; C3 is 1 uF X7R, so the regulator may oscillate."},
+ {"file": "docs/assembly.md", "location": "12 V pigtail at J1", "category": "strain relief", "severity": "major", "description": "Pigtail soldered straight into J1 pads through a loose grommet; nothing takes the 20 N pull of REQ-MECH-001."}
+]}

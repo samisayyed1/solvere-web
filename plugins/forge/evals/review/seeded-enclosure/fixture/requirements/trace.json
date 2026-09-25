@@ -1,12 +1,12 @@
 {
   "schema": "forge.trace/1",
   "requirements": {
-    "REQ-MECH-001": {"design": ["cad/base.py", "cad/lid.py"], "tests": ["TP-01"], "evidence": [], "status": "open"},
-    "REQ-MECH-002": {"design": ["cad/base.py", "cad/lid.py"], "tests": ["TP-02"], "evidence": [], "status": "open"},
+    "REQ-MECH-001": {"design": ["docs/mech-design.md"], "tests": ["TP-01"], "evidence": [], "status": "open"},
+    "REQ-MECH-002": {"design": ["docs/mech-design.md"], "tests": ["TP-02"], "evidence": [], "status": "open"},
     "REQ-MECH-003": {"design": ["analysis/stacks/pcb_slot.toml"], "tests": ["TP-02"], "evidence": [], "status": "open"},
-    "REQ-MECH-004": {"design": ["cad/base.py"], "tests": ["TP-03"], "evidence": [], "status": "open"},
-    "REQ-MECH-005": {"design": ["cad/lid.py"], "tests": ["TP-01"], "evidence": [], "status": "open"},
-    "REQ-MECH-006": {"design": ["cad/base.py", "cad/lid.py"], "tests": [], "evidence": [], "status": "open"},
+    "REQ-MECH-004": {"design": ["docs/mech-design.md"], "tests": ["TP-03"], "evidence": [], "status": "open"},
+    "REQ-MECH-005": {"design": ["docs/mech-design.md"], "tests": ["TP-01"], "evidence": [], "status": "open"},
+    "REQ-MECH-006": {"design": ["docs/mech-design.md"], "tests": [], "evidence": [], "status": "open"},
     "REQ-SYS-001": {"design": ["analysis/thermal.md"], "tests": ["TP-04"], "evidence": [], "status": "open"}
   }
 }

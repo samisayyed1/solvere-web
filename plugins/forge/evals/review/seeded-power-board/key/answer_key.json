@@ -66,6 +66,13 @@
       "file": "ecad|netlist|power|REQ|requirements",
       "locator": "D2|SMBJ|TVS",
       "keywords": "reverse|polarity|forward"
+    },
+    {
+      "id": "P-A3",
+      "summary": "loose grommet compromises the IP65 housing seal",
+      "file": "assembly|docs",
+      "locator": "grommet|IP65",
+      "keywords": "IP65|seal|ingress|water|loose"
     }
   ],
   "decoys": [

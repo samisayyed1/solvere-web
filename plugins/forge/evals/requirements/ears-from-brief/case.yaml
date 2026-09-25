@@ -1,0 +1,60 @@
+schema_version: "1.1"
+name: requirements-ears-from-brief
+description: Messy kickoff notes to EARS requirements with verification methods; Forge's EARS lint and trace check must pass (their out/verify results are graded), and every number in the brief must survive.
+tags: [requirements, smoke]
+context:
+  scaffold_script: scaffold.sh
+graders:
+  - name: ears-lint-pass
+    type: regex
+    target: { source: file, path: out/verify/requirements.ears_lint.json }
+    pattern: '"check_id"\s*:\s*"requirements\.ears_lint"[\s\S]*"status"\s*:\s*"pass"'
+    weight: 2
+  - name: trace-pass
+    type: regex
+    target: { source: file, path: out/verify/requirements.trace_graph.json }
+    pattern: '"check_id"\s*:\s*"requirements\.trace_graph"[\s\S]*"status"\s*:\s*"pass"'
+    weight: 2
+  - name: at-least-8-requirements
+    type: regex
+    target: { source: file, path: requirements/requirements.md }
+    flags: m
+    pattern: '(^#+\s*REQ-[A-Z]+-\d{3}\s*$[\s\S]*?){8}'
+  - name: at-least-8-verify-lines
+    type: regex
+    target: { source: file, path: requirements/requirements.md }
+    flags: mi
+    pattern: '(^Verify:\s*(inspection|analysis|demo|test)\s*$[\s\S]*?){8}'
+  - name: covers-range-and-accuracy
+    type: regex
+    target: { source: file, path: requirements/requirements.md }
+    pattern: '(?=[\s\S]*\b11\s*bar)(?=[\s\S]*0\.05\s*bar)'
+  - name: covers-drop-and-ip
+    type: regex
+    target: { source: file, path: requirements/requirements.md }
+    pattern: '(?=[\s\S]*1\.5\s*m\b)(?=[\s\S]*IP54)'
+  - name: covers-mass-and-temp
+    type: regex
+    target: { source: file, path: requirements/requirements.md }
+    pattern: '(?=[\s\S]*\b60\s*g\b)(?=[\s\S]*-\s?10\s*°?\s*C)(?=[\s\S]*\b45\s*°?\s*C)'
+  - name: covers-battery-and-autooff
+    type: regex
+    target: { source: file, path: requirements/requirements.md }
+    pattern: '(?=[\s\S]*\b700\b)(?=[\s\S]*\b60\s*s\b)'
+  - name: no-vague-words
+    type: regex
+    target: { source: file, path: requirements/requirements.md }
+    flags: im
+    pattern: '^(?!Rationale:).*\bshall\b.*\b(quick(ly)?|easy to use|user[- ]friendly|intuitive|fast)\b'
+    match: not_contains
+  - name: no-hand-written-results
+    type: tool_used
+    tool: Write
+    input_match: 'out/verify/'
+    min: 0
+    max: 0
+    arm: both
+  - name: skill-fired
+    type: tool_used
+    tool: Skill
+    input_match: '"skill"\s*:\s*"(?:forge:)?writing-requirements"'

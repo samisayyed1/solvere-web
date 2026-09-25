@@ -1,0 +1,25 @@
+# Mounting bracket (mm)
+
+[bracket.width]
+value = 30.0
+unit = "mm"
+status = "assumed"
+source = "REQ-MECH-001"
+
+[bracket.leg]
+value = 40.0
+unit = "mm"
+status = "assumed"
+source = "REQ-MECH-001"
+
+[bracket.thickness]
+value = 4.0
+unit = "mm"
+status = "assumed"
+source = "hand calc AN-02: 25 N at 40 mm, 6061-T6"
+
+[bracket.hole_diameter]
+value = 5.5
+unit = "mm"
+status = "assumed"
+source = "M5 clearance, ISO 273 medium"

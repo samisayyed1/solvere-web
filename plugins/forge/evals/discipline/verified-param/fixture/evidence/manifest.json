@@ -1,0 +1,6 @@
+{
+  "schema": "forge.evidence/1",
+  "entries": [
+    {"id": "EV-0007", "artifact": "cad/enclosure.py", "domain": "mech", "claim": "REQ-MECH-006 drop test DT-03: 2.0 mm wall survives 10 x 1.0 m drops; 1.6 mm wall cracked on drop 4", "check_ids": ["test.drop_dt03"], "result": "pass", "level": "L4", "evidence_files": ["tests/reports/DT-03.pdf"], "inputs_sha256": "4c1d9a", "tool_versions": {}, "git_sha": "0000000", "model": "", "timestamp": "2026-09-12T15:00:00Z", "status": "VERIFIED"}
+  ]
+}

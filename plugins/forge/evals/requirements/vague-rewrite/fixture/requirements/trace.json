@@ -1,0 +1,11 @@
+{
+  "schema": "forge.trace/1",
+  "requirements": {
+    "REQ-SYS-001": {"design": [], "tests": ["TP-01"], "evidence": [], "status": "open"},
+    "REQ-SYS-002": {"design": [], "tests": ["TP-02"], "evidence": [], "status": "open"},
+    "REQ-PWR-001": {"design": [], "tests": ["TP-03"], "evidence": [], "status": "open"},
+    "REQ-MECH-001": {"design": [], "tests": ["TP-04"], "evidence": [], "status": "open"},
+    "REQ-UX-001": {"design": [], "tests": ["TP-05"], "evidence": [], "status": "open"},
+    "REQ-MECH-002": {"design": [], "tests": ["TP-06"], "evidence": [], "status": "open"}
+  }
+}

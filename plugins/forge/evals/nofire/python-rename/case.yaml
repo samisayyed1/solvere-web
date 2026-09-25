@@ -1,0 +1,37 @@
+schema_version: "1.1"
+name: nofire-python-rename
+description: Should-not-fire. A plain Python refactor in a non-Forge repo; no Forge skill, agent or scaffolding should appear.
+tags: [nofire, smoke]
+context:
+  scaffold_script: scaffold.sh
+graders:
+  - name: renamed-definition
+    type: regex
+    target: { source: file, path: app/utils.py }
+    pattern: 'def fetch_user\('
+  - name: old-name-gone
+    type: regex
+    target: { source: file, path: app/utils.py }
+    pattern: 'def get_user\('
+    match: not_contains
+  - name: caller-updated
+    type: regex
+    target: { source: file, path: app/main.py }
+    pattern: 'fetch_user\(user_id\)'
+  - name: no-skill-fired
+    type: tool_used
+    tool: Skill
+    min: 0
+    max: 0
+    arm: both
+  - name: no-forge-agent
+    type: tool_used
+    tool: Agent
+    input_match: 'forge:'
+    min: 0
+    max: 0
+    arm: both
+  - name: no-forge-scaffolding
+    type: file_exists
+    path: 'forge.toml'
+    exists: false

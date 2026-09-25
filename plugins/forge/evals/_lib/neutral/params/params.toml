@@ -1,0 +1,3 @@
+# Single source of truth for every dimension and value used in cad/, ecad/,
+# firmware/ or analysis/ (CONTRACTS.md §2). Nothing is hard-coded in source.
+# status: assumed | datasheet | measured | verified

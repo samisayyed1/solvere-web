@@ -1,0 +1,47 @@
+schema_version: "1.1"
+name: requirements-vague-rewrite
+description: Five vague requirements to rewrite as testable EARS with the lint passing. IDs must survive, and any number Claude had to choose must be logged as an open assumption rather than invented silently.
+tags: [requirements]
+context:
+  scaffold_script: scaffold.sh
+graders:
+  - name: ears-lint-pass
+    type: regex
+    target: { source: file, path: out/verify/requirements.ears_lint.json }
+    pattern: '"check_id"\s*:\s*"requirements\.ears_lint"[\s\S]*"status"\s*:\s*"pass"'
+    weight: 2
+  - name: ids-kept
+    type: regex
+    target: { source: file, path: requirements/requirements.md }
+    pattern: '(?=[\s\S]*REQ-SYS-001)(?=[\s\S]*REQ-SYS-002)(?=[\s\S]*REQ-PWR-001)(?=[\s\S]*REQ-MECH-001)(?=[\s\S]*REQ-UX-001)(?=[\s\S]*REQ-MECH-002)'
+  - name: unchanged-good-requirement-kept
+    type: regex
+    target: { source: file, path: requirements/requirements.md }
+    pattern: 'The pot shall hold a 12 cm nursery pot\.'
+  - name: no-vague-words
+    type: regex
+    target: { source: file, path: requirements/requirements.md }
+    flags: im
+    pattern: '^(?!Rationale:).*\bshall\b.*\b(accurately|fast|long|robust|easy to use|intuitive)\b'
+    match: not_contains
+  - name: chosen-numbers-logged-as-assumptions
+    type: regex
+    target: { source: file, path: ASSUMPTIONS.md }
+    flags: m
+    pattern: '(^\|\s*A-\d{3}\s*\|[\s\S]*?){3}'
+    weight: 2
+  - name: tells-owner-numbers-are-placeholders
+    type: regex
+    flags: i
+    pattern: 'assum|placeholder|confirm|proposed|pick(ed)?|chose|your call|decide'
+  - name: no-hand-written-results
+    type: tool_used
+    tool: Write
+    input_match: 'out/verify/'
+    min: 0
+    max: 0
+    arm: both
+  - name: skill-fired
+    type: tool_used
+    tool: Skill
+    input_match: '"skill"\s*:\s*"(?:forge:)?writing-requirements"'

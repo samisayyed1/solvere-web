@@ -16,7 +16,8 @@
 # It then copies templates/project/ (minus .claude/settings.json and .mcp.json,
 # which would pull the user's sandbox/MCP config into a run) and the case's
 # fixture/ over it, fills {{PROJECT_NAME}}, and commits the result as the
-# scaffold commit the Stop hook diffs against. Answer keys (key/, reference/,
+# scaffold commit the Stop hook diffs against. The template's worked examples
+# are replaced by the empty stand-ins in _lib/neutral/. Answer keys (key/, reference/,
 # selftest.json) are never copied.
 set -euo pipefail
 
@@ -60,6 +61,11 @@ forge_eval_seed_template() {
   local tpl="$FORGE_REPO_DIR/templates/project"
   [ -d "$tpl" ] || { echo "scaffold: template not found at $tpl" >&2; exit 1; }
   (cd "$tpl" && tar cf - --exclude='./.claude/settings.json' --exclude='./.mcp.json' .) | tar xf -
+  # the template ships worked examples (A-001, R-001, a snap-fit REQ, params, a
+  # sysml requirement, a promoted gardening result); replace them with empty
+  # stand-ins so no case inherits defects or context it did not ask for
+  (cd "$_FE_LIB_DIR/neutral" && tar cf - .) | tar xf -
+  rm -f out/verify/*.json
   local f
   for f in forge.toml CLAUDE.md AGENTS.md; do
     [ -f "$f" ] && sed -i.bak "s/{{PROJECT_NAME}}/$name/g" "$f" && rm -f "$f.bak"
@@ -89,5 +95,13 @@ forge_eval_scaffold() {
     forge_eval_seed_template "$name"
   fi
   forge_eval_copy_fixture "$case_dir"
+  # optional per-case knobs: scaffold.env may set GATE=G<n> (forge.toml [project].gate)
+  if [ -f "$case_dir/scaffold.env" ]; then
+    # shellcheck disable=SC1091
+    . "$case_dir/scaffold.env"
+    if [ -n "${GATE:-}" ] && [ -f forge.toml ]; then
+      sed -i.bak "s/^gate = \"G[0-9]\"/gate = \"$GATE\"/" forge.toml && rm -f forge.toml.bak
+    fi
+  fi
   forge_eval_git_commit
 }
