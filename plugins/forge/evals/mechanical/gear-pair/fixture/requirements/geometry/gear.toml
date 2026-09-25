@@ -1,0 +1,14 @@
+[part]
+name = "gear"
+module = "cad/gear.py"
+
+[[check]]
+family = "geometry.validity"
+requirement = "REQ-MECH-030"
+
+[[check]]
+family = "geometry.bbox"
+requirement = "REQ-MECH-030"
+axis = "y"
+min_mm = 83.6
+max_mm = 84.05

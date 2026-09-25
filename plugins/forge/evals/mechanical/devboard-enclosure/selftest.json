@@ -1,0 +1,191 @@
+{
+ "variants": {
+  "good": {
+   "files": {
+    "out/verify/geometry.min_wall.enclosure_base.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"geometry.min_wall.enclosure_base\",\n  \"target\": \"cad/enclosure_base.py\",\n  \"status\": \"pass\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"min_wall\",\n      \"value\": 1.9999999999999927,\n      \"unit\": \"mm\",\n      \"limit\": {\n        \"min\": 1.6\n      },\n      \"pass\": true,\n      \"requirement\": \"REQ-MECH-003\",\n      \"location\": \"(-18.472062, 8.956871, -5.0)\",\n      \"remediation\": \"Minimum wall 2.0000 mm at (-18.472062, 8.956871, -5.0) is below the 1.6 mm requirement (params: check the wall-thickness key). Thicken the wall there or reduce an intersecting offset/fillet.\"\n    }\n  ],\n  \"tool_versions\": {\n    \"build123d\": \"0.11.1\"\n  },\n  \"git_sha\": \"050726cae4841d62631087cb512b054f39b4ad4a-dirty\",\n  \"started\": \"2026-09-25T09:34:57Z\",\n  \"duration_s\": 0.231\n}\n",
+    "out/verify/geometry.interference.enclosure_usb.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"geometry.interference.enclosure_usb\",\n  \"target\": \"cad/enclosure_base.py\",\n  \"status\": \"pass\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"overlap_volume\",\n      \"value\": 0.0,\n      \"unit\": \"mm3\",\n      \"limit\": {\n        \"equals\": 0.0,\n        \"tol\": 1e-06\n      },\n      \"pass\": true,\n      \"requirement\": \"REQ-MECH-004\",\n      \"remediation\": \"enclosure_usb interferes with cad/fixtures/usbc_plug.py by 0.0000 mm3; move or trim the overlapping feature.\"\n    }\n  ],\n  \"tool_versions\": {\n    \"build123d\": \"0.11.1\"\n  },\n  \"git_sha\": \"050726cae4841d62631087cb512b054f39b4ad4a-dirty\",\n  \"started\": \"2026-09-25T09:34:58Z\",\n  \"duration_s\": 0.01\n}\n",
+    "out/verify/geometry.validity.enclosure_base.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"geometry.validity.enclosure_base\",\n  \"target\": \"cad/enclosure_base.py\",\n  \"status\": \"pass\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"is_valid\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"requirement\": \"REQ-MECH-002\",\n      \"remediation\": \"Shape fails OCP BRepCheck_Analyzer; inspect self-intersections or open wires with the modeling-cad-parts repair-hints tool and rebuild.\"\n    },\n    {\n      \"name\": \"is_manifold\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"requirement\": \"REQ-MECH-002\",\n      \"remediation\": \"Shape is not a manifold solid; check for coincident/duplicate faces.\"\n    }\n  ],\n  \"tool_versions\": {\n    \"build123d\": \"0.11.1\"\n  },\n  \"git_sha\": \"050726cae4841d62631087cb512b054f39b4ad4a-dirty\",\n  \"started\": \"2026-09-25T09:34:57Z\",\n  \"duration_s\": 0.013\n}\n",
+    "out/verify/geometry.interference.lid.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"geometry.interference.lid\",\n  \"target\": \"cad/lid.py\",\n  \"status\": \"pass\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"overlap_volume\",\n      \"value\": 0.0,\n      \"unit\": \"mm3\",\n      \"limit\": {\n        \"equals\": 0.0,\n        \"tol\": 1e-06\n      },\n      \"pass\": true,\n      \"requirement\": \"REQ-MECH-002\",\n      \"remediation\": \"lid interferes with cad/fixtures/board.py by 0.0000 mm3; move or trim the overlapping feature.\"\n    }\n  ],\n  \"tool_versions\": {\n    \"build123d\": \"0.11.1\"\n  },\n  \"git_sha\": \"050726cae4841d62631087cb512b054f39b4ad4a-dirty\",\n  \"started\": \"2026-09-25T09:34:58Z\",\n  \"duration_s\": 0.029\n}\n",
+    "out/verify/dfm.wall_min_supported_mm.lid.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"dfm.wall_min_supported_mm.lid\",\n  \"target\": \"cad/lid.py\",\n  \"status\": \"pass\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"min_wall\",\n      \"value\": 1.1999999999999995,\n      \"unit\": \"mm\",\n      \"limit\": {\n        \"min\": 1.0\n      },\n      \"pass\": true,\n      \"requirement\": \"REQ-MECH-001\",\n      \"location\": \"(2.902582, -12.2, 6.36815)\",\n      \"remediation\": \"wall_min_supported_mm: wall 1.2000 mm at (2.902582, -12.2, 6.36815) is below the 1.0000 mm Protolabs Network 'What is FDM': 0.8-1 mm desktop / 1 mm industrial (hubs.com/knowledge-base/what-is-fdm-3d-printing/). Thicken the wall there.\"\n    }\n  ],\n  \"tool_versions\": {\n    \"build123d\": \"0.11.1\"\n  },\n  \"git_sha\": \"050726cae4841d62631087cb512b054f39b4ad4a-dirty\",\n  \"started\": \"2026-09-25T09:35:01Z\",\n  \"duration_s\": 0.082\n}\n",
+    "out/verify/geometry.interference.enclosure_base.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"geometry.interference.enclosure_base\",\n  \"target\": \"cad/enclosure_base.py\",\n  \"status\": \"pass\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"overlap_volume\",\n      \"value\": 0.0,\n      \"unit\": \"mm3\",\n      \"limit\": {\n        \"equals\": 0.0,\n        \"tol\": 1e-06\n      },\n      \"pass\": true,\n      \"requirement\": \"REQ-MECH-002\",\n      \"remediation\": \"enclosure_base interferes with cad/fixtures/board.py by 0.0000 mm3; move or trim the overlapping feature.\"\n    }\n  ],\n  \"tool_versions\": {\n    \"build123d\": \"0.11.1\"\n  },\n  \"git_sha\": \"050726cae4841d62631087cb512b054f39b4ad4a-dirty\",\n  \"started\": \"2026-09-25T09:34:58Z\",\n  \"duration_s\": 0.026\n}\n",
+    "out/verify/geometry.validity.lid.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"geometry.validity.lid\",\n  \"target\": \"cad/lid.py\",\n  \"status\": \"pass\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"is_valid\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"requirement\": \"REQ-MECH-005\",\n      \"remediation\": \"Shape fails OCP BRepCheck_Analyzer; inspect self-intersections or open wires with the modeling-cad-parts repair-hints tool and rebuild.\"\n    },\n    {\n      \"name\": \"is_manifold\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"requirement\": \"REQ-MECH-005\",\n      \"remediation\": \"Shape is not a manifold solid; check for coincident/duplicate faces.\"\n    }\n  ],\n  \"tool_versions\": {\n    \"build123d\": \"0.11.1\"\n  },\n  \"git_sha\": \"050726cae4841d62631087cb512b054f39b4ad4a-dirty\",\n  \"started\": \"2026-09-25T09:34:58Z\",\n  \"duration_s\": 0.008\n}\n",
+    "out/verify/geometry.interference.lid_usb.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"geometry.interference.lid_usb\",\n  \"target\": \"cad/lid.py\",\n  \"status\": \"pass\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"overlap_volume\",\n      \"value\": 0.0,\n      \"unit\": \"mm3\",\n      \"limit\": {\n        \"equals\": 0.0,\n        \"tol\": 1e-06\n      },\n      \"pass\": true,\n      \"requirement\": \"REQ-MECH-004\",\n      \"remediation\": \"lid_usb interferes with cad/fixtures/usbc_plug.py by 0.0000 mm3; move or trim the overlapping feature.\"\n    }\n  ],\n  \"tool_versions\": {\n    \"build123d\": \"0.11.1\"\n  },\n  \"git_sha\": \"050726cae4841d62631087cb512b054f39b4ad4a-dirty\",\n  \"started\": \"2026-09-25T09:34:58Z\",\n  \"duration_s\": 0.008\n}\n",
+    "out/verify/dfm.snap_fit.lid_latch.lid.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"dfm.snap_fit.lid_latch.lid\",\n  \"target\": \"cad/lid.py\",\n  \"status\": \"pass\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"root_strain_pct\",\n      \"value\": 1.7689331122166942,\n      \"unit\": \"%\",\n      \"limit\": {\n        \"max\": 6.0\n      },\n      \"pass\": true,\n      \"requirement\": \"REQ-MECH-006\",\n      \"remediation\": \"Root strain 1.769% exceeds the ABS allowable 6.000% (BASF Snap-Fit Design Manual, Table IV-I, p.IV-4 [R] (range 6-7%; lower bound kept as conservative)). Increase length, reduce deflection, thicken the root, or switch to a tapered arm (higher k).\"\n    }\n  ],\n  \"tool_versions\": {\n    \"forge_cad.strain\": \"1\"\n  },\n  \"git_sha\": \"050726cae4841d62631087cb512b054f39b4ad4a-dirty\",\n  \"started\": \"2026-09-25T09:35:01Z\",\n  \"duration_s\": 0.006,\n  \"notes\": \"length/thickness = 7.50 < 10.0: BASF's short-arm correction (R5d) applies here -- the plain cantilever formula likely under-predicts root strain; treat this result as optimistic and add margin.\"\n}\n",
+    "out/verify/geometry.watertight.enclosure_base.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"geometry.watertight.enclosure_base\",\n  \"target\": \"cad/enclosure_base.py\",\n  \"status\": \"pass\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"watertight\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"requirement\": \"REQ-MECH-002\",\n      \"remediation\": \"STL export of enclosure_base is not watertight at tolerance 0.05 mm (gap/non-manifold edge in the tessellation or the BREP). Tighten the tessellation tolerance and re-check, then inspect for real gaps.\"\n    }\n  ],\n  \"tool_versions\": {\n    \"build123d\": \"0.11.1\"\n  },\n  \"git_sha\": \"050726cae4841d62631087cb512b054f39b4ad4a-dirty\",\n  \"started\": \"2026-09-25T09:34:57Z\",\n  \"duration_s\": 0.027\n}\n",
+    "out/verify/geometry.interference.lid_fit.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"geometry.interference.lid_fit\",\n  \"target\": \"cad/lid.py\",\n  \"status\": \"pass\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"overlap_volume\",\n      \"value\": 0.0,\n      \"unit\": \"mm3\",\n      \"limit\": {\n        \"equals\": 0.0,\n        \"tol\": 1e-06\n      },\n      \"pass\": true,\n      \"requirement\": \"REQ-MECH-005\",\n      \"remediation\": \"lid_fit interferes with cad/enclosure_base.py by 0.0000 mm3; move or trim the overlapping feature.\"\n    }\n  ],\n  \"tool_versions\": {\n    \"build123d\": \"0.11.1\"\n  },\n  \"git_sha\": \"050726cae4841d62631087cb512b054f39b4ad4a-dirty\",\n  \"started\": \"2026-09-25T09:34:58Z\",\n  \"duration_s\": 0.165\n}\n",
+    "cad/enclosure_base.py": "\"\"\"Enclosure base (reference solution for the eval self-test).\"\"\"\nimport importlib.util\nfrom pathlib import Path\n\nfrom build123d import Align, Box, Cylinder, Part, Pos\n\n_spec = importlib.util.spec_from_file_location(\"_params\", Path(__file__).with_name(\"_params.py\"))\n_m = importlib.util.module_from_spec(_spec); _spec.loader.exec_module(_m); p = _m.p\nA = (Align.MIN, Align.MIN, Align.MIN)\n\n\ndef build() -> Part:\n    t = p(\"enclosure.wall\")\n    x0, x1 = -26.0, 26.0\n    y = p(\"enclosure.cavity_half_width\")\n    floor_top, rim = -p(\"enclosure.standoff_height\"), p(\"enclosure.rim_z\")\n    outer = Pos(x0 - t, -y - t, floor_top - t) * Box(x1 - x0 + 2 * t, 2 * y + 2 * t, rim - floor_top + t, align=A)\n    cavity = Pos(x0, -y, floor_top) * Box(x1 - x0, 2 * y, rim - floor_top + 1, align=A)\n    base = outer - cavity\n    for sx, sy in ((-22.0, -7.0), (-22.0, 7.0), (22.0, -7.0), (22.0, 7.0)):\n        base += Pos(sx, sy, floor_top) * Cylinder(2.25, p(\"enclosure.standoff_height\"), align=(Align.CENTER, Align.CENTER, Align.MIN))\n    zc = 1.6 + 3.16 / 2\n    base -= Pos(x0 - t - 1, -6.6, zc - 3.65) * Box(t + 2, 13.2, rim - zc + 3.65 + 1, align=A)  # USB-C slot, open at the rim\n    for s in (-1, 1):                                                                   # latch windows\n        yw = y if s > 0 else -y - t\n        base -= Pos(-3.3, yw - 0.01, -2.2) * Box(6.6, t + 0.02, 1.6, align=A)\n    return base\n\n\nPART = build()\n",
+    "cad/lid.py": "\"\"\"Snap-fit lid in its closed position (reference solution for the eval self-test).\"\"\"\nimport importlib.util\nfrom pathlib import Path\n\nfrom build123d import Align, Box, Part, Pos\n\n_spec = importlib.util.spec_from_file_location(\"_params\", Path(__file__).with_name(\"_params.py\"))\n_m = importlib.util.module_from_spec(_spec); _spec.loader.exec_module(_m); p = _m.p\nA = (Align.MIN, Align.MIN, Align.MIN)\n\n\ndef build() -> Part:\n    t = p(\"enclosure.wall\")\n    y = p(\"enclosure.cavity_half_width\")\n    rim = p(\"enclosure.rim_z\")\n    L, h, hook = p(\"lid.latch_length\"), p(\"lid.latch_thickness\"), p(\"lid.latch_hook\")\n    lid = Pos(-26.0 - t, -y - t, rim) * Box(52.0 + 2 * t, 2 * y + 2 * t, t, align=A)\n    for s in (-1, 1):\n        y_in = y - 0.3                      # 0.3 mm gap to the wall\n        ya = y_in - h if s > 0 else -y_in\n        arm = Pos(-3.0, ya, rim - L) * Box(6.0, h, L, align=A)\n        yh = y_in if s > 0 else -y_in - hook\n        hk = Pos(-3.0, yh, rim - L) * Box(6.0, hook, 1.2, align=A)\n        lid += arm + hk\n    return lid\n\n\nPART = build()\n",
+    "cad/_params.py": "import tomllib\nfrom pathlib import Path\n\n_P = tomllib.loads((Path(__file__).resolve().parents[1] / \"params\" / \"params.toml\").read_text())\n\n\ndef p(key: str) -> float:\n    group, name = key.split(\".\", 1)\n    return float(_P[group][name][\"value\"])\n",
+    "out/step/enclosure_base.step": "ISO-10303-21;",
+    "out/step/lid.step": "ISO-10303-21;",
+    "out/renders/assembly_iso.png": "PNG"
+   },
+   "edits": {
+    "requirements/dfm/lid.toml": [
+     [
+      "# with the latch's real deflection, length and thickness from params/params.toml.\n",
+      "# with the latch's real deflection, length and thickness from params/params.toml.\n\n[[snap_fit]]\nname = \"lid_latch\"\nrequirement = \"REQ-MECH-006\"\nmaterial = \"abs\"\ndeflection_mm = 0.8\nlength_mm = 9.0\nthickness_mm = 1.2\ntaper = \"constant\"\nfrequent = false\n"
+     ]
+    ],
+    "params/params.toml": [
+     [
+      "source = \"docs/board.md\"\n\n[board.width]",
+      "source = \"docs/board.md\"\n\n[board.width]"
+     ]
+    ]
+   },
+   "tools": [
+    {
+     "tool": "Skill",
+     "input": {
+      "skill": "forge:modeling-cad-parts"
+     }
+    },
+    {
+     "tool": "Write",
+     "input": {
+      "file_path": "/w/cad/enclosure_base.py"
+     }
+    },
+    {
+     "tool": "Bash",
+     "input": {
+      "command": "~/.forge/bin/forge-python /p/plugins/forge/skills/verifying-geometry/scripts/verify.py --project ."
+     }
+    }
+   ],
+   "last_message": "All 11 checks pass; STEP in out/step, render in out/renders.",
+   "expect": "all_pass",
+   "why": "out/verify files are the real verifying-geometry and checking-dfm results for reference/"
+  },
+  "bad-sliver-wall": {
+   "base": "good",
+   "files": {
+    "out/verify/geometry.min_wall.enclosure_base.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"geometry.min_wall.enclosure_base\",\n  \"target\": \"cad/enclosure_base.py\",\n  \"status\": \"fail\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"min_wall\",\n      \"value\": 0.17000000000000015,\n      \"unit\": \"mm\",\n      \"limit\": {\n        \"min\": 1.6\n      },\n      \"pass\": false,\n      \"requirement\": \"REQ-MECH-003\",\n      \"location\": \"(-26.956625, 5.19635, 7.0)\",\n      \"remediation\": \"Minimum wall 0.1700 mm at (-26.956625, 5.19635, 7.0) is below the 1.6 mm requirement (params: check the wall-thickness key). Thicken the wall there or reduce an intersecting offset/fillet.\"\n    }\n  ],\n  \"tool_versions\": {\n    \"build123d\": \"0.11.1\"\n  },\n  \"git_sha\": \"050726cae4841d62631087cb512b054f39b4ad4a-dirty\",\n  \"started\": \"2026-09-25T09:34:38Z\",\n  \"duration_s\": 0.203\n}\n"
+   },
+   "expect": {
+    "base-min-wall-pass": false
+   },
+   "why": "real result: the first reference left a 0.17 mm sliver above the USB opening"
+  },
+  "bad-no-usb-cutout": {
+   "base": "good",
+   "files": {
+    "out/verify/geometry.interference.enclosure_usb.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"geometry.interference.enclosure_usb\",\n  \"target\": \"cad/enclosure_base.py\",\n  \"status\": \"fail\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"overlap_volume\",\n      \"value\": 161.20000000000002,\n      \"unit\": \"mm3\",\n      \"limit\": {\n        \"equals\": 0.0,\n        \"tol\": 1e-06\n      },\n      \"pass\": false,\n      \"requirement\": \"REQ-MECH-004\",\n      \"remediation\": \"enclosure_usb interferes with cad/fixtures/usbc_plug.py by 161.2000 mm3; move or trim the overlapping feature.\"\n    }\n  ],\n  \"tool_versions\": {\n    \"build123d\": \"0.11.1\"\n  },\n  \"git_sha\": \"050726cae4841d62631087cb512b054f39b4ad4a-dirty\",\n  \"started\": \"2026-09-25T09:35:17Z\",\n  \"duration_s\": 0.015\n}\n"
+   },
+   "expect": {
+    "usb-plug-clear-of-base": false
+   },
+   "why": "real result: base without the USB slot overlaps the plug keep-out by 161.2 mm3"
+  },
+  "bad-latch-overstrained": {
+   "base": "good",
+   "files": {
+    "out/verify/dfm.snap_fit.lid_latch.lid.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"dfm.snap_fit.lid_latch.lid\",\n  \"target\": \"cad/lid.py\",\n  \"status\": \"fail\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"root_strain_pct\",\n      \"value\": 14.328358208955224,\n      \"unit\": \"%\",\n      \"limit\": {\n        \"max\": 6.0\n      },\n      \"pass\": false,\n      \"requirement\": \"REQ-MECH-006\",\n      \"remediation\": \"Root strain 14.328% exceeds the ABS allowable 6.000% (BASF Snap-Fit Design Manual, Table IV-I, p.IV-4 [R] (range 6-7%; lower bound kept as conservative)). Increase length, reduce deflection, thicken the root, or switch to a tapered arm (higher k).\"\n    }\n  ],\n  \"tool_versions\": {\n    \"forge_cad.strain\": \"1\"\n  },\n  \"git_sha\": \"050726cae4841d62631087cb512b054f39b4ad4a-dirty\",\n  \"started\": \"2026-09-25T09:35:21Z\",\n  \"duration_s\": 0.005,\n  \"notes\": \"length/thickness = 1.67 < 10.0: BASF's short-arm correction (R5d) applies here -- the plain cantilever formula likely under-predicts root strain; treat this result as optimistic and add margin.\"\n}\n",
+    "out/verify/dfm.wall_min_supported_mm.lid.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"dfm.wall_min_supported_mm.lid\",\n  \"target\": \"cad/lid.py\",\n  \"status\": \"fail\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"min_wall\",\n      \"value\": 0.9999999999999999,\n      \"unit\": \"mm\",\n      \"limit\": {\n        \"min\": 1.0\n      },\n      \"pass\": false,\n      \"requirement\": \"REQ-MECH-001\",\n      \"location\": \"(1.737687, -12.845892, -1.0)\",\n      \"remediation\": \"wall_min_supported_mm: wall 1.0000 mm at (1.737687, -12.845892, -1.0) is below the 1.0000 mm Protolabs Network 'What is FDM': 0.8-1 mm desktop / 1 mm industrial (hubs.com/knowledge-base/what-is-fdm-3d-printing/). Thicken the wall there.\"\n    }\n  ],\n  \"tool_versions\": {\n    \"build123d\": \"0.11.1\"\n  },\n  \"git_sha\": \"050726cae4841d62631087cb512b054f39b4ad4a-dirty\",\n  \"started\": \"2026-09-25T09:34:42Z\",\n  \"duration_s\": 0.083\n}\n"
+   },
+   "expect": {
+    "snap-fit-strain-pass": false,
+    "lid-dfm-wall-pass": false
+   },
+   "why": "real results: 14.3 % root strain vs ABS 6 %, 0.6 mm latch wall"
+  },
+  "bad-checks-missing": {
+   "base": "good",
+   "files": {
+    "out/verify/geometry.min_wall.enclosure_base.json": null,
+    "out/verify/geometry.interference.enclosure_usb.json": null,
+    "out/verify/geometry.validity.enclosure_base.json": null,
+    "out/verify/geometry.interference.lid.json": null,
+    "out/verify/dfm.wall_min_supported_mm.lid.json": null,
+    "out/verify/geometry.interference.enclosure_base.json": null,
+    "out/verify/geometry.validity.lid.json": null,
+    "out/verify/geometry.interference.lid_usb.json": null,
+    "out/verify/dfm.snap_fit.lid_latch.lid.json": null,
+    "out/verify/geometry.watertight.enclosure_base.json": null,
+    "out/verify/geometry.interference.lid_fit.json": null
+   },
+   "expect": {
+    "base-min-wall-pass": false,
+    "base-watertight": false,
+    "board-clear-of-base": false,
+    "usb-plug-clear-of-base": false,
+    "board-clear-of-lid": false,
+    "usb-plug-clear-of-lid": false,
+    "lid-closes-without-interference": false,
+    "snap-fit-strain-pass": false,
+    "lid-dfm-wall-pass": false
+   }
+  },
+  "bad-weakened-specs": {
+   "base": "good",
+   "edits": {
+    "requirements/geometry/enclosure_base.toml": [
+     [
+      "min_mm = 1.6",
+      "min_mm = 0.1"
+     ]
+    ],
+    "requirements/geometry/enclosure_usb.toml": [
+     [
+      "other_module = \"cad/fixtures/usbc_plug.py\"",
+      "other_module = \"cad/fixtures/board.py\""
+     ]
+    ],
+    "cad/fixtures/usbc_plug.py": [
+     [
+      "Box(20.0, 12.4, 6.5, align=A)",
+      "Box(1.0, 1.0, 1.0, align=A)"
+     ]
+    ]
+   },
+   "expect": {
+    "specs-not-weakened": false,
+    "usb-spec-intact": false,
+    "plug-fixture-untouched": false
+   }
+  },
+  "bad-no-step-no-snapfit": {
+   "base": "good",
+   "files": {
+    "out/step/enclosure_base.step": null,
+    "out/step/lid.step": null
+   },
+   "edits": {
+    "requirements/dfm/lid.toml": []
+   },
+   "expect": {
+    "step-exported": false
+   }
+  },
+  "bad-snapfit-wrong-material": {
+   "base": "good",
+   "edits": {
+    "requirements/dfm/lid.toml": [
+     [
+      "# with the latch's real deflection, length and thickness from params/params.toml.\n",
+      "# with the latch's real deflection, length and thickness from params/params.toml.\n\n[[snap_fit]]\nname = \"lid_latch\"\nrequirement = \"REQ-MECH-006\"\nmaterial = \"pc_makrolon\"\ndeflection_mm = 0.8\nlength_mm = 9.0\nthickness_mm = 1.2\ntaper = \"constant\"\nfrequent = false\n"
+     ]
+    ]
+   },
+   "expect": {
+    "snap-fit-declared-in-abs": false
+   }
+  },
+  "bad-no-checker-no-skill": {
+   "base": "good",
+   "tools": [
+    {
+     "tool": "Write",
+     "input": {
+      "file_path": "/w/cad/enclosure_base.py"
+     }
+    }
+   ],
+   "expect": {
+    "geometry-checker-ran": false,
+    "skill-fired": false
+   }
+  }
+ }
+}

@@ -1,0 +1,48 @@
+schema_version: "1.1"
+name: mech-gear-pair
+description: Spur gear pair to a module and ratio (m 1.5, z 18/54, 20 deg). Graded on Forge's bbox checks of both tip diameters and the face width, zero interference in mesh at the computed centre distance (54 mm), the derived numbers in params, and STEP files.
+tags: [mechanical]
+context:
+  scaffold_script: scaffold.sh
+graders:
+  - name: pinion-tip-diameter
+    type: regex
+    target: { source: file, path: out/verify/geometry.bbox.pinion_od.json }
+    pattern: '"status"\s*:\s*"pass"'
+  - name: gear-tip-diameter
+    type: regex
+    target: { source: file, path: out/verify/geometry.bbox.gear.json }
+    pattern: '"status"\s*:\s*"pass"'
+  - name: face-width
+    type: regex
+    target: { source: file, path: out/verify/geometry.bbox.pinion.json }
+    pattern: '"status"\s*:\s*"pass"'
+  - name: meshes-without-interference
+    type: regex
+    target: { source: file, path: out/verify/geometry.interference.gear_mesh.json }
+    pattern: '"status"\s*:\s*"pass"'
+    weight: 2
+  - name: gears-are-valid-solids
+    type: regex
+    target: { source: file, path: out/verify/geometry.validity.gear.json }
+    pattern: '"status"\s*:\s*"pass"'
+  - name: derived-numbers-in-params
+    type: regex
+    target: { source: file, path: params/params.toml }
+    pattern: '(?=[\s\S]*=\s*54(\.0+)?\b[\s\S]*)(?=[\s\S]*=\s*1\.5\b)(?=[\s\S]*=\s*18\b)(?=[\s\S]*=\s*20(\.0+)?\b)'
+  - name: centre-distance-54
+    type: regex
+    target: { source: file, path: params/params.toml }
+    pattern: '(centre|center)[_ .-]?dist[^\[]*?value\s*=\s*54(\.0+)?\b'
+    flags: i
+  - name: step-exported
+    type: file_exists
+    path: 'out/step/*.step'
+  - name: specs-untouched
+    type: regex
+    target: { source: file, path: requirements/geometry/gear_mesh.toml }
+    pattern: 'family = "geometry\.interference"[\s\S]*other_module = "cad/pinion\.py"'
+  - name: geometry-checker-ran
+    type: tool_used
+    tool: Bash
+    input_match: 'verifying-geometry/scripts/verify\.py|forge(\s|\\")+verify'

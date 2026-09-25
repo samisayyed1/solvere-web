@@ -1,0 +1,8 @@
+[part]
+name = "enclosure_usb"
+module = "cad/enclosure_base.py"
+
+[[check]]
+family = "geometry.interference"
+requirement = "REQ-MECH-004"
+other_module = "cad/fixtures/usbc_plug.py"

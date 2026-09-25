@@ -1,0 +1,12 @@
+# Pre-approved by the owner for known artefacts of the tscircuit -> KiCad exporter.
+[[waiver]]
+rule_id = "endpoint_off_grid"
+reason = "tscircuit export places symbols on a 0.1 mm grid, not KiCad's 1.27 mm grid; cosmetic, connectivity unaffected."
+approver = "Sam Ortiz"
+date = "2026-09-25"
+
+[[waiver]]
+rule_id = "lib_symbol_issues"
+reason = "exported symbols are embedded in the schematic, not linked to a configured library."
+approver = "Sam Ortiz"
+date = "2026-09-25"

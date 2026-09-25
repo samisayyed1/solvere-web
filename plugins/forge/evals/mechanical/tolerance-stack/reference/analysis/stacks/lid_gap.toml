@@ -1,0 +1,40 @@
+[stack]
+name = "lid_gap"
+description = "lid underside to J4 top, REQ-MECH-007; tolerances +/-3 sigma"
+
+[requirement]
+unit = "mm"
+gap_min = 0.10
+gap_max = 0.80
+
+[[contributor]]
+id = "A"
+description = "housing inner depth"
+nominal = 10.00
+tol_plus = 0.10
+tol_minus = 0.10
+direction = 1
+
+[[contributor]]
+id = "B"
+description = "standoff height"
+nominal = 3.00
+tol_plus = 0.05
+tol_minus = 0.05
+direction = -1
+
+[[contributor]]
+id = "C"
+description = "PCB thickness"
+nominal = 1.60
+tol_plus = 0.10
+tol_minus = 0.10
+direction = -1
+
+[[contributor]]
+id = "D"
+description = "J4 height"
+nominal = 5.00
+tol_plus = 0.15
+tol_minus = 0.15
+direction = -1

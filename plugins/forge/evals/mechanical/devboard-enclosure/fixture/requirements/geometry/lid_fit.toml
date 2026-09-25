@@ -1,0 +1,8 @@
+[part]
+name = "lid_fit"
+module = "cad/lid.py"
+
+[[check]]
+family = "geometry.interference"
+requirement = "REQ-MECH-005"
+other_module = "cad/enclosure_base.py"

@@ -1,0 +1,11 @@
+[part]
+name = "lid"
+module = "cad/lid.py"
+process = "fdm"
+
+[[check]]
+rule = "wall_min_supported_mm"
+requirement = "REQ-MECH-001"
+
+# Add the lid latch here as a [[snap_fit]] entry named "lid_latch" (material "abs"),
+# with the latch's real deflection, length and thickness from params/params.toml.

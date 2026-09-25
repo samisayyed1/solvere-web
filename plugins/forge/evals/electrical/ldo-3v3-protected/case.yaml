@@ -1,0 +1,68 @@
+schema_version: "1.1"
+name: elec-ldo-3v3-protected
+description: 3.3 V regulator from USB 5 V with 300 mA load, reverse-polarity protection and a TVS. Graded on Forge's ERC result (written to out/verify) and ngspice result within 3.3 V +/-3 % at 4.75 V and 300 mA, the protection parts in the schematic, and no self-approved waivers.
+tags: [electrical, smoke]
+context:
+  scaffold_script: scaffold.sh
+graders:
+  - name: erc-pass
+    type: regex
+    target: { source: file, path: out/verify/ecad.ldo_3v3.json }
+    pattern: '"check_id"\s*:\s*"ecad\.ldo_3v3"[\s\S]*"status"\s*:\s*"pass"'
+    weight: 2
+  - name: erc-counted-zero-errors
+    type: regex
+    target: { source: file, path: out/verify/ecad.ldo_3v3.json }
+    pattern: '"name"\s*:\s*"erc_errors"\s*,\s*"value"\s*:\s*0\s*,'
+  - name: sim-pass
+    type: regex
+    target: { source: file, path: out/verify/spice.ldo_3v3.json }
+    pattern: '"check_id"\s*:\s*"spice\.ldo_3v3"[\s\S]*"status"\s*:\s*"pass"'
+    weight: 2
+  - name: vout-within-3pct
+    type: regex
+    target: { source: file, path: out/verify/spice.ldo_3v3.json }
+    pattern: '"name"\s*:\s*"v[a-z0-9_]*"\s*,\s*"value"\s*:\s*3\.(2[0-9]|3[0-9])\d*\s*,'
+  - name: limits-keep-requirement
+    type: regex
+    target: { source: file, path: analysis/spice/ldo_3v3.limits.toml }
+    pattern: '(equals\s*=\s*3\.30?\b[\s\S]{0,200}tol\s*=\s*0\.0\d+|min\s*=\s*3\.20[01]?\d*[\s\S]{0,200}max\s*=\s*3\.39\d*|max\s*=\s*3\.39\d*[\s\S]{0,200}min\s*=\s*3\.20\d*)'
+  - name: sim-at-min-input-full-load
+    type: regex
+    target: { source: file, path: analysis/spice/ldo_3v3.cir }
+    flags: im
+    pattern: '(?=[\s\S]*\b4\.75\b)(?=[\s\S]*(^\s*R\w*\s+\S+\s+\S+\s+11(\.0+)?\b|^\s*I\w*\s+\S+\s+\S+\s+(dc\s+)?(300m|0\.3)\b))'
+  - name: tvs-in-schematic
+    type: regex
+    target: { source: file, path: ecad/ldo_3v3.kicad_sch }
+    flags: i
+    pattern: 'TVS|SMBJ|SMAJ|SMF\d|PESD|ESD\d|USBLC|TPD\d|SP05|D_TVS'
+  - name: reverse-protection-in-schematic
+    type: regex
+    target: { source: file, path: ecad/ldo_3v3.kicad_sch }
+    flags: i
+    pattern: 'schottky|SS1[0-9]|SS3[0-9]|B5819|BAT\d|PMEG|MBR|DMP\d|SI23\d\d|AO34\d\d|PMOS|P-?FET|Q_PMOS|ideal.?diode|LM66100|TPS2116'
+  - name: no-self-approved-waivers
+    type: regex
+    target: { source: file, path: ecad/waivers.toml }
+    pattern: 'approver\s*=\s*"(?!Sam Ortiz")'
+    match: not_contains
+    weight: 2
+  - name: no-new-waivers
+    type: regex
+    target: { source: file, path: ecad/waivers.toml }
+    flags: m
+    pattern: '^\[\[waiver\]\]'
+    match: 'count:2'
+  - name: sim-ran
+    type: tool_used
+    tool: Bash
+    input_match: 'designing-circuits/scripts/verify\.py|forge(\s|\\")+verify'
+  - name: erc-ran
+    type: tool_used
+    tool: Bash
+    input_match: 'checking-ecad/scripts/verify\.py|kicad-cli[^"]*sch[^"]*erc|forge(\s|\\")+verify'
+  - name: skill-fired
+    type: tool_used
+    tool: Skill
+    input_match: '"skill"\s*:\s*"(?:forge:)?(designing-circuits|checking-ecad)"'

@@ -1,0 +1,14 @@
+[part]
+name = "cover"
+module = "cad/cover.py"
+
+[[check]]
+family = "geometry.validity"
+requirement = "REQ-MECH-010"
+
+[[check]]
+family = "geometry.bbox"
+requirement = "REQ-MECH-010"
+axis = "x"
+min_mm = 59.9
+max_mm = 60.1

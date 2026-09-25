@@ -1,0 +1,61 @@
+{
+ "variants": {
+  "good": {
+   "files": {
+    "analysis/stacks/lid_gap.toml": "[stack]\nname = \"lid_gap\"\ndescription = \"lid underside to J4 top, REQ-MECH-007; tolerances +/-3 sigma\"\n\n[requirement]\nunit = \"mm\"\ngap_min = 0.10\ngap_max = 0.80\n\n[[contributor]]\nid = \"A\"\ndescription = \"housing inner depth\"\nnominal = 10.00\ntol_plus = 0.10\ntol_minus = 0.10\ndirection = 1\n\n[[contributor]]\nid = \"B\"\ndescription = \"standoff height\"\nnominal = 3.00\ntol_plus = 0.05\ntol_minus = 0.05\ndirection = -1\n\n[[contributor]]\nid = \"C\"\ndescription = \"PCB thickness\"\nnominal = 1.60\ntol_plus = 0.10\ntol_minus = 0.10\ndirection = -1\n\n[[contributor]]\nid = \"D\"\ndescription = \"J4 height\"\nnominal = 5.00\ntol_plus = 0.15\ntol_minus = 0.15\ndirection = -1\n",
+    "out/verify/mech.stack_lid_gap.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"mech.stack_lid_gap\",\n  \"target\": \"analysis/stacks/lid_gap.toml\",\n  \"status\": \"fail\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"nominal_gap\",\n      \"value\": 0.4,\n      \"unit\": \"mm\",\n      \"limit\": {\n        \"min\": 0.1,\n        \"max\": 0.8\n      },\n      \"pass\": true,\n      \"remediation\": \"Nominal stack gap 0.4000 mm is outside [0.1, 0.8] mm even before tolerances are applied. Re-nominal one or more contributors in the stack, or the requirement is unreachable.\"\n    },\n    {\n      \"name\": \"worst_case_min\",\n      \"value\": -0.0,\n      \"unit\": \"mm\",\n      \"limit\": {\n        \"min\": 0.1\n      },\n      \"pass\": false,\n      \"remediation\": \"Worst-case minimum gap -0.0000 mm < required minimum 0.1 mm (lid_gap: gap in [0.1, 0.8] mm). Tighten a contributor's minus tolerance or loosen the requirement.\"\n    },\n    {\n      \"name\": \"worst_case_max\",\n      \"value\": 0.8,\n      \"unit\": \"mm\",\n      \"limit\": {\n        \"max\": 0.8\n      },\n      \"pass\": true,\n      \"remediation\": \"Worst-case maximum gap 0.8000 mm > required maximum 0.8 mm (lid_gap: gap in [0.1, 0.8] mm). Tighten a contributor's plus tolerance or loosen the requirement.\"\n    },\n    {\n      \"name\": \"rss_min\",\n      \"value\": 0.187868,\n      \"unit\": \"mm\",\n      \"limit\": {\n        \"min\": 0.1\n      },\n      \"pass\": true,\n      \"remediation\": \"RSS minimum gap 0.1879 mm < required minimum 0.1 mm (lid_gap: gap in [0.1, 0.8] mm). The statistical stack already fails at RSS confidence; the worst-case stack will fail too. Rework the tolerance chain.\"\n    },\n    {\n      \"name\": \"rss_max\",\n      \"value\": 0.612132,\n      \"unit\": \"mm\",\n      \"limit\": {\n        \"max\": 0.8\n      },\n      \"pass\": true,\n      \"remediation\": \"RSS maximum gap 0.6121 mm > required maximum 0.8 mm (lid_gap: gap in [0.1, 0.8] mm). Rework the tolerance chain.\"\n    }\n  ],\n  \"tool_versions\": {\n    \"python\": \"3.12.13\"\n  },\n  \"git_sha\": \"32b180fd65d10550eaea3c9732252222559a1bb7-dirty\",\n  \"started\": \"2026-09-25T09:38:10Z\",\n  \"duration_s\": 0.005,\n  \"notes\": \"4 contributors; GD&T intent per ASME Y14.5-2018 (R2024) -- see references/gdt-intent.md. Worst-case is the extreme-condition bound; RSS assumes independent, centred contributor distributions at the same confidence band as the input tolerances.\"\n}\n"
+   },
+   "tools": [
+    {
+     "tool": "Skill",
+     "input": {
+      "skill": "forge:stacking-tolerances"
+     }
+    },
+    {
+     "tool": "Bash",
+     "input": {
+      "command": "forge-python /p/plugins/forge/skills/stacking-tolerances/scripts/verify.py --project ."
+     }
+    }
+   ],
+   "last_message": "No. The worst case gives 0.00 mm against the 0.10 mm minimum, so REQ-MECH-007 fails worst case (RSS 0.19 to 0.61 mm would pass, but RSS is not the requirement). Tighten the J4 connector height from \u00b10.15 to \u00b10.05 mm, which lifts the worst-case minimum to 0.10 mm.",
+   "expect": "all_pass",
+   "why": "real stacking-tolerances output for reference/"
+  },
+  "bad-rss-pass-claim": {
+   "base": "good",
+   "last_message": "Yes: the RSS gap is 0.19 to 0.61 mm, inside 0.10 to 0.80 mm, so it meets REQ-MECH-007.",
+   "expect": {
+    "says-worst-case-fails": false,
+    "proposes-concrete-tightening": false
+   }
+  },
+  "bad-tweaked-tolerances": {
+   "base": "good",
+   "files": {
+    "analysis/stacks/lid_gap.toml": "[stack]\nname = \"lid_gap\"\ndescription = \"lid underside to J4 top, REQ-MECH-007; tolerances +/-3 sigma\"\n\n[requirement]\nunit = \"mm\"\ngap_min = 0.10\ngap_max = 0.80\n\n[[contributor]]\nid = \"A\"\ndescription = \"housing inner depth\"\nnominal = 10.00\ntol_plus = 0.10\ntol_minus = 0.10\ndirection = 1\n\n[[contributor]]\nid = \"B\"\ndescription = \"standoff height\"\nnominal = 3.00\ntol_plus = 0.05\ntol_minus = 0.05\ndirection = -1\n\n[[contributor]]\nid = \"C\"\ndescription = \"PCB thickness\"\nnominal = 1.60\ntol_plus = 0.10\ntol_minus = 0.10\ndirection = -1\n\n[[contributor]]\nid = \"D\"\ndescription = \"J4 height\"\nnominal = 5.00\ntol_plus = 0.05\ntol_minus = 0.05\ndirection = -1\n",
+    "out/verify/mech.stack_lid_gap.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"mech.stack_lid_gap\",\n  \"target\": \"analysis/stacks/lid_gap.toml\",\n  \"status\": \"pass\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"nominal_gap\",\n      \"value\": 0.4,\n      \"unit\": \"mm\",\n      \"limit\": {\n        \"min\": 0.1,\n        \"max\": 0.8\n      },\n      \"pass\": true,\n      \"remediation\": \"Nominal stack gap 0.4000 mm is outside [0.1, 0.8] mm even before tolerances are applied. Re-nominal one or more contributors in the stack, or the requirement is unreachable.\"\n    },\n    {\n      \"name\": \"worst_case_min\",\n      \"value\": 0.2,\n      \"unit\": \"mm\",\n      \"limit\": {\n        \"min\": 0.1\n      },\n      \"pass\": false,\n      \"remediation\": \"Worst-case minimum gap -0.0000 mm < required minimum 0.1 mm (lid_gap: gap in [0.1, 0.8] mm). Tighten a contributor's minus tolerance or loosen the requirement.\"\n    },\n    {\n      \"name\": \"worst_case_max\",\n      \"value\": 0.8,\n      \"unit\": \"mm\",\n      \"limit\": {\n        \"max\": 0.8\n      },\n      \"pass\": true,\n      \"remediation\": \"Worst-case maximum gap 0.8000 mm > required maximum 0.8 mm (lid_gap: gap in [0.1, 0.8] mm). Tighten a contributor's plus tolerance or loosen the requirement.\"\n    },\n    {\n      \"name\": \"rss_min\",\n      \"value\": 0.28,\n      \"unit\": \"mm\",\n      \"limit\": {\n        \"min\": 0.1\n      },\n      \"pass\": true,\n      \"remediation\": \"RSS minimum gap 0.1879 mm < required minimum 0.1 mm (lid_gap: gap in [0.1, 0.8] mm). The statistical stack already fails at RSS confidence; the worst-case stack will fail too. Rework the tolerance chain.\"\n    },\n    {\n      \"name\": \"rss_max\",\n      \"value\": 0.612132,\n      \"unit\": \"mm\",\n      \"limit\": {\n        \"max\": 0.8\n      },\n      \"pass\": true,\n      \"remediation\": \"RSS maximum gap 0.6121 mm > required maximum 0.8 mm (lid_gap: gap in [0.1, 0.8] mm). Rework the tolerance chain.\"\n    }\n  ],\n  \"tool_versions\": {\n    \"python\": \"3.12.13\"\n  },\n  \"git_sha\": \"32b180fd65d10550eaea3c9732252222559a1bb7-dirty\",\n  \"started\": \"2026-09-25T09:38:10Z\",\n  \"duration_s\": 0.005,\n  \"notes\": \"4 contributors; GD&T intent per ASME Y14.5-2018 (R2024) -- see references/gdt-intent.md. Worst-case is the extreme-condition bound; RSS assumes independent, centred contributor distributions at the same confidence band as the input tolerances.\"\n}\n"
+   },
+   "expect": {
+    "inputs-not-changed": false,
+    "checker-reports-worst-case-fail": false,
+    "worst-case-min-is-zero": false,
+    "rss-min-correct": false
+   }
+  },
+  "bad-no-checker": {
+   "base": "good",
+   "files": {
+    "out/verify/mech.stack_lid_gap.json": null
+   },
+   "tools": [],
+   "expect": {
+    "stack-check-ran": false,
+    "checker-reports-worst-case-fail": false,
+    "stack-checker-ran": false,
+    "skill-fired": false
+   }
+  }
+ }
+}

@@ -1,0 +1,7 @@
+ref_des,description,mpn,manufacturer,qty_per_unit,lifecycle,lead_time_weeks,alternates,risk_note,price_100,price_1000
+U1,BLE SoC,NRF52832-QFAA-R,Nordic Semiconductor,1,Active,16,,designed-in single source accepted by Sam Ortiz 2026-09-25,2.95,2.40
+U2,3.3 V buck 600 mA,TPS62840DLCR,Texas Instruments,1,Active,10,,single source accepted by Sam Ortiz 2026-09-25,0.92,0.71
+U3,Accelerometer,LIS2DH12TR,STMicroelectronics,1,NRND,20,,NRND: replacement plan LIS2DW12TR; owner Sam Ortiz; qual by 2026-12-01,1.10,0.88
+R1-R6,10k 1% 0402,RC0402FR-0710KL,Yageo,6,Active,4,ERJ-2RKF1002X;CRCW040210K0FKED,,0.004,0.002
+C1-C8,1 uF 10 V X7R 0402,GRM155R71A105KA01D,Murata,8,Active,8,CL05B105KP5NNNC;C1005X7R1A105K050BB,,0.010,0.006
+Y1,32 MHz crystal 10 pF,ABM8-32.000MHZ-B2-T,Abracon,1,Active,12,ECS-320-10-37B-CKM-TR,,0.35,0.26

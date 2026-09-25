@@ -1,0 +1,10 @@
+[part]
+name = "pinion_od"
+module = "cad/pinion.py"
+
+[[check]]
+family = "geometry.bbox"
+requirement = "REQ-MECH-030"
+axis = "y"
+min_mm = 29.4
+max_mm = 30.05

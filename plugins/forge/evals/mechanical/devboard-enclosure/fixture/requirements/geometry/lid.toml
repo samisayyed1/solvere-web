@@ -1,0 +1,12 @@
+[part]
+name = "lid"
+module = "cad/lid.py"
+
+[[check]]
+family = "geometry.validity"
+requirement = "REQ-MECH-005"
+
+[[check]]
+family = "geometry.interference"
+requirement = "REQ-MECH-002"
+other_module = "cad/fixtures/board.py"

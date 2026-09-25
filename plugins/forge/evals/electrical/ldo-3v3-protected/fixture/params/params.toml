@@ -1,0 +1,19 @@
+[power.vin]
+value = 5.0
+unit = "V"
+tol = { minus = 0.25, plus = 0.25 }
+status = "datasheet"
+source = "USB 2.0 spec VBUS 4.75-5.25 V"
+
+[power.vout]
+value = 3.3
+unit = "V"
+tol = { minus = 0.099, plus = 0.099 }
+status = "assumed"
+source = "REQ-ELEC-001"
+
+[power.iload]
+value = 0.300
+unit = "A"
+status = "assumed"
+source = "REQ-ELEC-001"

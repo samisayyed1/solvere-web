@@ -1,0 +1,48 @@
+schema_version: "1.1"
+name: mech-bracket-fea
+description: L-bracket with M5 holes under a 200 N tip load, proven by Forge's running-fea (gmsh + CalculiX, hand-calc cross-check, convergence, safety factor). Graded on the FEA result file, the case keeping the brief's numbers, and a STEP export.
+tags: [mechanical, simulation]
+context:
+  scaffold_script: scaffold.sh
+graders:
+  - name: fea-check-pass
+    type: regex
+    target: { source: file, path: out/verify/sim.fea_bracket.json }
+    pattern: '"check_id"\s*:\s*"sim\.fea_bracket"[\s\S]*"status"\s*:\s*"pass"'
+    weight: 2
+  - name: safety-factor-at-least-3
+    type: regex
+    target: { source: file, path: out/verify/sim.fea_bracket.json }
+    pattern: '"name"\s*:\s*"safety_factor"\s*,\s*"value"\s*:\s*([3-9]|[1-9]\d+)(\.\d+)?\s*,'
+    weight: 2
+  - name: hand-calc-agrees
+    type: regex
+    target: { source: file, path: out/verify/sim.fea_bracket.json }
+    pattern: '"name"\s*:\s*"hand_calc_[a-z0-9_]+_diff_pct"[^{}]*\{[^{}]*\}[^{}]*?"pass"\s*:\s*true'
+  - name: mesh-converged
+    type: regex
+    target: { source: file, path: out/verify/sim.fea_bracket.json }
+    pattern: '"name"\s*:\s*"stress_convergence_pct_change"[^{}]*\{[^{}]*\}[^{}]*?"pass"\s*:\s*true'
+  - name: case-keeps-brief-numbers
+    type: regex
+    target: { source: file, path: analysis/fea/bracket.toml }
+    pattern: '(?=[\s\S]*min_safety_factor\s*=\s*3(\.0+)?\b)(?=[\s\S]*200(\.0+)?\b)(?=[\s\S]*\[\[hand_calc\]\])'
+  - name: deflection-checked
+    type: regex
+    target: { source: file, path: analysis/fea/bracket.toml }
+    pattern: 'quantity\s*=\s*"(max_displacement|face_mean_displacement)"'
+  - name: m5-clearance-holes
+    type: regex
+    target: { source: file, path: params/params.toml }
+    pattern: 'hole[^\[]*?value\s*=\s*5\.[3-8]\d*\b'
+  - name: step-exported
+    type: file_exists
+    path: out/step/bracket.step
+  - name: fea-ran
+    type: tool_used
+    tool: Bash
+    input_match: 'running-fea/scripts/verify\.py|forge(\s|\\")+verify'
+  - name: skill-fired
+    type: tool_used
+    tool: Skill
+    input_match: '"skill"\s*:\s*"(?:forge:)?running-fea"'

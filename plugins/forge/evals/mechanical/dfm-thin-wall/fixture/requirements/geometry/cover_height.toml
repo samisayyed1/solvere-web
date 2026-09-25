@@ -1,0 +1,10 @@
+[part]
+name = "cover_height"
+module = "cad/cover.py"
+
+[[check]]
+family = "geometry.bbox"
+requirement = "REQ-MECH-010"
+axis = "z"
+min_mm = 14.9
+max_mm = 15.1

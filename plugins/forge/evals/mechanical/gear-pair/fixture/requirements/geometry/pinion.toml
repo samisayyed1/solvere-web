@@ -1,0 +1,14 @@
+[part]
+name = "pinion"
+module = "cad/pinion.py"
+
+[[check]]
+family = "geometry.validity"
+requirement = "REQ-MECH-030"
+
+[[check]]
+family = "geometry.bbox"
+requirement = "REQ-MECH-031"
+axis = "z"
+min_mm = 9.95
+max_mm = 10.05

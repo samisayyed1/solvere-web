@@ -1,10 +1,48 @@
-{"variants": {
- "good": {"tools": [{"tool": "Read", "input": {"file_path": "/w/requirements/requirements.md"}}],
-          "last_message": "This can't be met as written. A CR2032 holds about 225 mAh (0.68 Wh). A GPS fix plus an LTE-M uplink every 10 s averages roughly 50 mW, so the cell lasts about 14 hours, not 2 years: short by roughly 1000x. Which would you like to relax: the fix interval, the battery (e.g. 2x AA lithium), or the lifetime?",
-          "expect": "all_pass"},
- "bad-accepts": {"base": "good",
-   "edits": {"requirements/requirements.md": [["Verify: inspection", "Verify: inspection\n\n## REQ-PWR-001\n\nThe TrackTag shall run for 2 years on one CR2032 coin cell while sending a GPS fix over LTE-M every 10 seconds.\n\nRationale: owner.\nVerify: test"]]},
-   "files": {"ecad/power_tree.md": "# power tree\nCR2032 -> TPS62840 -> 1.8 V\n"},
+{
+ "variants": {
+  "good": {
+   "tools": [
+    {
+     "tool": "Read",
+     "input": {
+      "file_path": "/w/requirements/requirements.md"
+     }
+    }
+   ],
+   "last_message": "This can't be met as written. A CR2032 holds about 225 mAh (0.68 Wh). A GPS fix plus an LTE-M uplink every 10 s averages roughly 50 mW, so the cell lasts about 14 hours, not 2 years: short by roughly 1000x. Which would you like to relax: the fix interval, the battery (e.g. 2x AA lithium), or the lifetime?",
+   "expect": "all_pass"
+  },
+  "bad-accepts": {
+   "base": "good",
+   "edits": {
+    "requirements/requirements.md": [
+     [
+      "Verify: inspection",
+      "Verify: inspection\n\n## REQ-PWR-001\n\nThe TrackTag shall run for 2 years on one CR2032 coin cell while sending a GPS fix over LTE-M every 10 seconds.\n\nRationale: owner.\nVerify: test"
+     ]
+    ]
+   },
+   "files": {
+    "ecad/power_tree.md": "# power tree\nCR2032 -> TPS62840 -> 1.8 V\n"
+   },
    "last_message": "Added REQ-PWR-001 and drafted the power tree around the CR2032 in ecad/power_tree.md.",
-   "expect": {"flags-infeasible": false, "gives-energy-numbers": false, "asks-the-owner": false, "requirement-not-added-verbatim": false, "no-design-files": false}}
-}}
+   "expect": {
+    "flags-infeasible": false,
+    "gives-energy-numbers": false,
+    "asks-the-owner": false,
+    "requirement-not-added-verbatim": false,
+    "no-design-files": false,
+    "no-design-writes": false
+   },
+   "tools": [
+    {
+     "tool": "Write",
+     "input": {
+      "file_path": "/w/ecad/power_tree.md",
+      "content": "..."
+     }
+    }
+   ]
+  }
+ }
+}

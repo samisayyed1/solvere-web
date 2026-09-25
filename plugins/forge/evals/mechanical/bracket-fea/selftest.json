@@ -1,0 +1,87 @@
+{
+ "variants": {
+  "good": {
+   "files": {
+    "out/verify/sim.fea_bracket.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"sim.fea_bracket\",\n  \"target\": \"analysis/fea/bracket.toml\",\n  \"status\": \"pass\",\n  \"level\": \"L2\",\n  \"measurements\": [\n    {\n      \"name\": \"hand_calc_tip_deflection_diff_pct\",\n      \"value\": 3.1,\n      \"unit\": \"%\",\n      \"limit\": {\n        \"min\": -10.0,\n        \"max\": 10.0\n      },\n      \"pass\": true,\n      \"remediation\": \"...\"\n    },\n    {\n      \"name\": \"convergence_tip_deflection_pct_change\",\n      \"value\": 0.8,\n      \"unit\": \"%\",\n      \"limit\": {\n        \"max\": 2.0\n      },\n      \"pass\": true,\n      \"remediation\": \"...\"\n    },\n    {\n      \"name\": \"stress_convergence_pct_change\",\n      \"value\": 1.4,\n      \"unit\": \"%\",\n      \"limit\": {\n        \"max\": 2.0\n      },\n      \"pass\": true,\n      \"remediation\": \"...\"\n    },\n    {\n      \"name\": \"safety_factor\",\n      \"value\": 4.6,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"min\": 3.0\n      },\n      \"pass\": true,\n      \"remediation\": \"...\"\n    }\n  ]\n}\n",
+    "analysis/fea/bracket.toml": "[case]\nname = \"bracket\"\n\n[geometry]\nbuild123d = \"cad/bracket.py\"\n\n[[load]]\nname = \"tip\"\ntype = \"force\"\nfaces = { plane = \"x\", at = \"max\" }\nvector_n = [0.0, 0.0, -200.0]\n\n[[hand_calc]]\nname = \"tip_deflection\"\nformula = \"cantilever_end_load_deflection\"\nfea = { quantity = \"max_displacement\" }\ntolerance_pct = 10.0\n\n[requirement]\nmin_safety_factor = 3.0\n",
+    "params/params.toml": "[bracket.hole_diameter]\nvalue = 5.5\nunit = \"mm\"\nstatus = \"assumed\"\nsource = \"ISO 273 medium, M5\"\n",
+    "out/step/bracket.step": "ISO-10303-21;",
+    "cad/bracket.py": "def build(): ..."
+   },
+   "tools": [
+    {
+     "tool": "Skill",
+     "input": {
+      "skill": "forge:running-fea"
+     }
+    },
+    {
+     "tool": "Bash",
+     "input": {
+      "command": "forge-python /p/plugins/forge/skills/running-fea/scripts/verify.py --project ."
+     }
+    }
+   ],
+   "last_message": "FEA passes: SF 4.6 on yield, tip 0.21 mm, hand calc within 3 %.",
+   "expect": "all_pass",
+   "why": "hand-made result in the forge.check/1 shape running-fea writes (measurement names from general_report.py)"
+  },
+  "bad-weak-bracket": {
+   "base": "good",
+   "files": {
+    "out/verify/sim.fea_bracket.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"sim.fea_bracket\",\n  \"target\": \"analysis/fea/bracket.toml\",\n  \"status\": \"fail\",\n  \"level\": \"L2\",\n  \"measurements\": [\n    {\n      \"name\": \"hand_calc_tip_deflection_diff_pct\",\n      \"value\": 3.1,\n      \"unit\": \"%\",\n      \"limit\": {\n        \"min\": -10.0,\n        \"max\": 10.0\n      },\n      \"pass\": true,\n      \"remediation\": \"...\"\n    },\n    {\n      \"name\": \"convergence_tip_deflection_pct_change\",\n      \"value\": 0.8,\n      \"unit\": \"%\",\n      \"limit\": {\n        \"max\": 2.0\n      },\n      \"pass\": true,\n      \"remediation\": \"...\"\n    },\n    {\n      \"name\": \"stress_convergence_pct_change\",\n      \"value\": 1.4,\n      \"unit\": \"%\",\n      \"limit\": {\n        \"max\": 2.0\n      },\n      \"pass\": true,\n      \"remediation\": \"...\"\n    },\n    {\n      \"name\": \"safety_factor\",\n      \"value\": 1.8,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"min\": 3.0\n      },\n      \"pass\": false,\n      \"remediation\": \"...\"\n    }\n  ]\n}\n"
+   },
+   "expect": {
+    "fea-check-pass": false,
+    "safety-factor-at-least-3": false
+   }
+  },
+  "bad-unconverged": {
+   "base": "good",
+   "files": {
+    "out/verify/sim.fea_bracket.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"sim.fea_bracket\",\n  \"target\": \"analysis/fea/bracket.toml\",\n  \"status\": \"fail\",\n  \"level\": \"L2\",\n  \"measurements\": [\n    {\n      \"name\": \"hand_calc_tip_deflection_diff_pct\",\n      \"value\": 3.1,\n      \"unit\": \"%\",\n      \"limit\": {\n        \"min\": -10.0,\n        \"max\": 10.0\n      },\n      \"pass\": false,\n      \"remediation\": \"...\"\n    },\n    {\n      \"name\": \"convergence_tip_deflection_pct_change\",\n      \"value\": 0.8,\n      \"unit\": \"%\",\n      \"limit\": {\n        \"max\": 2.0\n      },\n      \"pass\": true,\n      \"remediation\": \"...\"\n    },\n    {\n      \"name\": \"stress_convergence_pct_change\",\n      \"value\": 9.7,\n      \"unit\": \"%\",\n      \"limit\": {\n        \"max\": 2.0\n      },\n      \"pass\": false,\n      \"remediation\": \"...\"\n    },\n    {\n      \"name\": \"safety_factor\",\n      \"value\": 4.6,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"min\": 3.0\n      },\n      \"pass\": true,\n      \"remediation\": \"...\"\n    }\n  ]\n}\n"
+   },
+   "expect": {
+    "fea-check-pass": false,
+    "hand-calc-agrees": false,
+    "mesh-converged": false
+   }
+  },
+  "bad-lowered-requirement": {
+   "base": "good",
+   "files": {
+    "analysis/fea/bracket.toml": "[case]\nname = \"bracket\"\n\n[geometry]\nbuild123d = \"cad/bracket.py\"\n\n[[load]]\nname = \"tip\"\ntype = \"force\"\nfaces = { plane = \"x\", at = \"max\" }\nvector_n = [0.0, 0.0, -200.0]\n\n[[hand_calc]]\nname = \"tip_deflection\"\nformula = \"cantilever_end_load_deflection\"\nfea = { quantity = \"peak_von_mises\" }\ntolerance_pct = 10.0\n\n[requirement]\nmin_safety_factor = 1.5\n"
+   },
+   "expect": {
+    "case-keeps-brief-numbers": false,
+    "deflection-checked": false
+   }
+  },
+  "bad-m6-holes-no-step": {
+   "base": "good",
+   "files": {
+    "params/params.toml": "[bracket.hole_diameter]\nvalue = 6.6\nunit = \"mm\"\nstatus = \"assumed\"\nsource = \"ISO 273 medium, M5\"\n",
+    "out/step/bracket.step": null
+   },
+   "expect": {
+    "m5-clearance-holes": false,
+    "step-exported": false
+   }
+  },
+  "bad-no-fea": {
+   "base": "good",
+   "files": {
+    "out/verify/sim.fea_bracket.json": null
+   },
+   "tools": [],
+   "expect": {
+    "fea-check-pass": false,
+    "safety-factor-at-least-3": false,
+    "hand-calc-agrees": false,
+    "mesh-converged": false,
+    "fea-ran": false,
+    "skill-fired": false
+   }
+  }
+ }
+}

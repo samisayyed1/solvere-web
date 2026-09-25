@@ -1,0 +1,110 @@
+{
+ "variants": {
+  "good": {
+   "files": {
+    "out/verify/geometry.bbox.cover_height.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"geometry.bbox.cover_height\",\n  \"target\": \"cad/cover.py\",\n  \"status\": \"pass\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"bbox_z\",\n      \"value\": 15.0,\n      \"unit\": \"mm\",\n      \"limit\": {\n        \"min\": 14.9,\n        \"max\": 15.1\n      },\n      \"pass\": true,\n      \"requirement\": \"REQ-MECH-010\",\n      \"remediation\": \"Bounding box z=15.0000 mm is outside [14.9, 15.1] mm; check the driving params/params.toml dimension.\"\n    }\n  ],\n  \"tool_versions\": {\n    \"build123d\": \"0.11.1\"\n  },\n  \"git_sha\": \"3587a07a5330918c821d26c006a4a6b630e9cab9-dirty\",\n  \"started\": \"2026-09-25T09:39:16Z\",\n  \"duration_s\": 0.005\n}\n",
+    "out/verify/dfm.wall_min_unsupported_mm.cover.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"dfm.wall_min_unsupported_mm.cover\",\n  \"target\": \"cad/cover.py\",\n  \"status\": \"pass\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"min_wall\",\n      \"value\": 1.5999999999999988,\n      \"unit\": \"mm\",\n      \"limit\": {\n        \"min\": 1.2\n      },\n      \"pass\": true,\n      \"requirement\": \"REQ-MFG-001\",\n      \"location\": \"(16.357756, -12.618278, 15.0)\",\n      \"remediation\": \"wall_min_unsupported_mm: wall 1.6000 mm at (16.357756, -12.618278, 15.0) is below the 1.2000 mm Xometry FDM design guide, 'unsupported (cantilever) walls >= 1.2 mm' (xometry.com/resources/design-guides/design-guide-fused-deposition-modeling-fdm-3d-printing/) [R: behind a form download]. Thicken the wall there.\"\n    }\n  ],\n  \"tool_versions\": {\n    \"build123d\": \"0.11.1\"\n  },\n  \"git_sha\": \"3587a07a5330918c821d26c006a4a6b630e9cab9-dirty\",\n  \"started\": \"2026-09-25T09:39:19Z\",\n  \"duration_s\": 0.108\n}\n",
+    "out/verify/geometry.validity.cover.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"geometry.validity.cover\",\n  \"target\": \"cad/cover.py\",\n  \"status\": \"pass\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"is_valid\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"requirement\": \"REQ-MECH-010\",\n      \"remediation\": \"Shape fails OCP BRepCheck_Analyzer; inspect self-intersections or open wires with the modeling-cad-parts repair-hints tool and rebuild.\"\n    },\n    {\n      \"name\": \"is_manifold\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"requirement\": \"REQ-MECH-010\",\n      \"remediation\": \"Shape is not a manifold solid; check for coincident/duplicate faces.\"\n    }\n  ],\n  \"tool_versions\": {\n    \"build123d\": \"0.11.1\"\n  },\n  \"git_sha\": \"3587a07a5330918c821d26c006a4a6b630e9cab9-dirty\",\n  \"started\": \"2026-09-25T09:39:16Z\",\n  \"duration_s\": 0.011\n}\n",
+    "out/verify/geometry.bbox.cover.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"geometry.bbox.cover\",\n  \"target\": \"cad/cover.py\",\n  \"status\": \"pass\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"bbox_x\",\n      \"value\": 60.0,\n      \"unit\": \"mm\",\n      \"limit\": {\n        \"min\": 59.9,\n        \"max\": 60.1\n      },\n      \"pass\": true,\n      \"requirement\": \"REQ-MECH-010\",\n      \"remediation\": \"Bounding box x=60.0000 mm is outside [59.9, 60.1] mm; check the driving params/params.toml dimension.\"\n    }\n  ],\n  \"tool_versions\": {\n    \"build123d\": \"0.11.1\"\n  },\n  \"git_sha\": \"3587a07a5330918c821d26c006a4a6b630e9cab9-dirty\",\n  \"started\": \"2026-09-25T09:39:16Z\",\n  \"duration_s\": 0.005\n}\n"
+   },
+   "edits": {
+    "params/params.toml": [
+     [
+      "[cover.wall]\nvalue = 0.8",
+      "[cover.wall]\nvalue = 1.6"
+     ]
+    ]
+   },
+   "tools": [
+    {
+     "tool": "Skill",
+     "input": {
+      "skill": "forge:checking-dfm"
+     }
+    },
+    {
+     "tool": "Bash",
+     "input": {
+      "command": "~/.forge/bin/forge-python /p/plugins/forge/skills/checking-dfm/scripts/verify.py --project ."
+     }
+    }
+   ],
+   "last_message": "Raised cover.wall from 0.8 to 1.6 mm; FDM wall rule and both envelope checks pass.",
+   "expect": "all_pass",
+   "why": "real verifying-geometry + checking-dfm results before (bad-unfixed) and after the param change"
+  },
+  "bad-unfixed": {
+   "base": "good",
+   "files": {
+    "out/verify/geometry.bbox.cover_height.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"geometry.bbox.cover_height\",\n  \"target\": \"cad/cover.py\",\n  \"status\": \"pass\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"bbox_z\",\n      \"value\": 15.0,\n      \"unit\": \"mm\",\n      \"limit\": {\n        \"min\": 14.9,\n        \"max\": 15.1\n      },\n      \"pass\": true,\n      \"requirement\": \"REQ-MECH-010\",\n      \"remediation\": \"Bounding box z=15.0000 mm is outside [14.9, 15.1] mm; check the driving params/params.toml dimension.\"\n    }\n  ],\n  \"tool_versions\": {\n    \"build123d\": \"0.11.1\"\n  },\n  \"git_sha\": \"3587a07a5330918c821d26c006a4a6b630e9cab9\",\n  \"started\": \"2026-09-25T09:39:10Z\",\n  \"duration_s\": 0.005\n}\n",
+    "out/verify/dfm.wall_min_unsupported_mm.cover.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"dfm.wall_min_unsupported_mm.cover\",\n  \"target\": \"cad/cover.py\",\n  \"status\": \"fail\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"min_wall\",\n      \"value\": 0.8000000000000003,\n      \"unit\": \"mm\",\n      \"limit\": {\n        \"min\": 1.2\n      },\n      \"pass\": false,\n      \"requirement\": \"REQ-MFG-001\",\n      \"location\": \"(10.633489, 12.90565, 15.0)\",\n      \"remediation\": \"wall_min_unsupported_mm: wall 0.8000 mm at (10.633489, 12.90565, 15.0) is below the 1.2000 mm Xometry FDM design guide, 'unsupported (cantilever) walls >= 1.2 mm' (xometry.com/resources/design-guides/design-guide-fused-deposition-modeling-fdm-3d-printing/) [R: behind a form download]. Thicken the wall there.\"\n    }\n  ],\n  \"tool_versions\": {\n    \"build123d\": \"0.11.1\"\n  },\n  \"git_sha\": \"3587a07a5330918c821d26c006a4a6b630e9cab9\",\n  \"started\": \"2026-09-25T09:39:13Z\",\n  \"duration_s\": 0.088\n}\n",
+    "out/verify/geometry.validity.cover.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"geometry.validity.cover\",\n  \"target\": \"cad/cover.py\",\n  \"status\": \"pass\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"is_valid\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"requirement\": \"REQ-MECH-010\",\n      \"remediation\": \"Shape fails OCP BRepCheck_Analyzer; inspect self-intersections or open wires with the modeling-cad-parts repair-hints tool and rebuild.\"\n    },\n    {\n      \"name\": \"is_manifold\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"requirement\": \"REQ-MECH-010\",\n      \"remediation\": \"Shape is not a manifold solid; check for coincident/duplicate faces.\"\n    }\n  ],\n  \"tool_versions\": {\n    \"build123d\": \"0.11.1\"\n  },\n  \"git_sha\": \"3587a07a5330918c821d26c006a4a6b630e9cab9\",\n  \"started\": \"2026-09-25T09:39:10Z\",\n  \"duration_s\": 0.012\n}\n",
+    "out/verify/geometry.bbox.cover.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"geometry.bbox.cover\",\n  \"target\": \"cad/cover.py\",\n  \"status\": \"pass\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"bbox_x\",\n      \"value\": 60.0,\n      \"unit\": \"mm\",\n      \"limit\": {\n        \"min\": 59.9,\n        \"max\": 60.1\n      },\n      \"pass\": true,\n      \"requirement\": \"REQ-MECH-010\",\n      \"remediation\": \"Bounding box x=60.0000 mm is outside [59.9, 60.1] mm; check the driving params/params.toml dimension.\"\n    }\n  ],\n  \"tool_versions\": {\n    \"build123d\": \"0.11.1\"\n  },\n  \"git_sha\": \"3587a07a5330918c821d26c006a4a6b630e9cab9\",\n  \"started\": \"2026-09-25T09:39:10Z\",\n  \"duration_s\": 0.005\n}\n"
+   },
+   "edits": {
+    "params/params.toml": []
+   },
+   "expect": {
+    "dfm-wall-pass": false,
+    "wall-param-raised": false
+   }
+  },
+  "bad-shrunk-envelope": {
+   "base": "good",
+   "edits": {
+    "params/params.toml": [
+     [
+      "[cover.wall]\nvalue = 0.8",
+      "[cover.wall]\nvalue = 1.6"
+     ],
+     [
+      "[cover.length]\nvalue = 60.0",
+      "[cover.length]\nvalue = 58.4"
+     ],
+     [
+      "[cover.height]\nvalue = 15.0",
+      "[cover.height]\nvalue = 14.0"
+     ]
+    ]
+   },
+   "files": {
+    "out/verify/geometry.bbox.cover.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"geometry.bbox.cover\",\n  \"target\": \"cad/cover.py\",\n  \"status\": \"fail\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"bbox_x\",\n      \"value\": 60.0,\n      \"unit\": \"mm\",\n      \"limit\": {\n        \"min\": 59.9,\n        \"max\": 60.1\n      },\n      \"pass\": true,\n      \"requirement\": \"REQ-MECH-010\",\n      \"remediation\": \"Bounding box x=60.0000 mm is outside [59.9, 60.1] mm; check the driving params/params.toml dimension.\"\n    }\n  ],\n  \"tool_versions\": {\n    \"build123d\": \"0.11.1\"\n  },\n  \"git_sha\": \"3587a07a5330918c821d26c006a4a6b630e9cab9-dirty\",\n  \"started\": \"2026-09-25T09:39:16Z\",\n  \"duration_s\": 0.005\n}\n",
+    "out/verify/geometry.bbox.cover_height.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"geometry.bbox.cover_height\",\n  \"target\": \"cad/cover.py\",\n  \"status\": \"fail\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"bbox_z\",\n      \"value\": 15.0,\n      \"unit\": \"mm\",\n      \"limit\": {\n        \"min\": 14.9,\n        \"max\": 15.1\n      },\n      \"pass\": true,\n      \"requirement\": \"REQ-MECH-010\",\n      \"remediation\": \"Bounding box z=15.0000 mm is outside [14.9, 15.1] mm; check the driving params/params.toml dimension.\"\n    }\n  ],\n  \"tool_versions\": {\n    \"build123d\": \"0.11.1\"\n  },\n  \"git_sha\": \"3587a07a5330918c821d26c006a4a6b630e9cab9-dirty\",\n  \"started\": \"2026-09-25T09:39:16Z\",\n  \"duration_s\": 0.005\n}\n"
+   },
+   "expect": {
+    "length-kept": false,
+    "height-kept": false,
+    "envelope-params-kept": false
+   }
+  },
+  "bad-switched-process": {
+   "base": "good",
+   "edits": {
+    "requirements/dfm/cover.toml": [
+     [
+      "process = \"fdm\"",
+      "process = \"sla\""
+     ]
+    ]
+   },
+   "expect": {
+    "dfm-spec-intact": false
+   }
+  },
+  "bad-no-checker": {
+   "base": "good",
+   "tools": [
+    {
+     "tool": "Edit",
+     "input": {
+      "file_path": "/w/params/params.toml"
+     }
+    }
+   ],
+   "expect": {
+    "dfm-checker-ran": false,
+    "skill-fired": false
+   }
+  }
+ }
+}

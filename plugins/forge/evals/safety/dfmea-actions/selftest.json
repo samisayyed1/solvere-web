@@ -1,0 +1,61 @@
+{
+ "variants": {
+  "good": {
+   "files": {
+    "analysis/dfmea.csv": "id,item,function,failure_mode,effect,severity,cause,occurrence,current_controls,detection,action,owner,due_date\nDF-01,LiPo cell,store energy,cell swells,housing cracks; burn hazard,9,no swelling clearance in pocket,5,none,7,add 10 % swelling clearance to the pocket and a CT check on EVT units,Sam Ortiz,2026-11-30\nDF-02,Charging contacts,carry 5 V charge current,contacts corrode,no charging,5,sweat ingress,6,gold plating 0.8 um,5,,,\nDF-03,Lid snap fit,retain lid,latch cracks on assembly,lid falls off,6,root strain above allowable,4,snap-fit strain calc,3,,,\nDF-04,Tether cable,carry sensor signals,solder joint fatigue,loss of signal,7,no strain relief,6,none,8,add an overmolded strain-relief boot and a 20 N pull test,Sam Ortiz,2026-11-30\nDF-05,Optical window,pass light,scratched window,reduced accuracy,4,abrasion,4,hard coat,6,,,\n",
+    "out/verify/safety.dfmea_ap.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"safety.dfmea_ap\",\n  \"target\": \"analysis/dfmea.csv\",\n  \"status\": \"pass\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"DF-01.sod_valid\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"analysis/dfmea.csv#DF-01\"\n    },\n    {\n      \"name\": \"DF-01.high_ap_has_action\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"analysis/dfmea.csv#DF-01\"\n    },\n    {\n      \"name\": \"DF-02.sod_valid\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"analysis/dfmea.csv#DF-02\"\n    },\n    {\n      \"name\": \"DF-02.ap_low\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"analysis/dfmea.csv#DF-02\"\n    },\n    {\n      \"name\": \"DF-03.sod_valid\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"analysis/dfmea.csv#DF-03\"\n    },\n    {\n      \"name\": \"DF-03.ap_low\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"analysis/dfmea.csv#DF-03\"\n    },\n    {\n      \"name\": \"DF-04.sod_valid\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"analysis/dfmea.csv#DF-04\"\n    },\n    {\n      \"name\": \"DF-04.high_ap_has_action\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"analysis/dfmea.csv#DF-04\"\n    },\n    {\n      \"name\": \"DF-05.sod_valid\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"analysis/dfmea.csv#DF-05\"\n    },\n    {\n      \"name\": \"DF-05.ap_low\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"analysis/dfmea.csv#DF-05\"\n    }\n  ],\n  \"tool_versions\": {},\n  \"git_sha\": \"99f3c2d3ba57742eb1914b2eb136891ee12ba8cd-dirty\",\n  \"started\": \"2026-09-25T09:45:54Z\",\n  \"duration_s\": 0.006\n}\n"
+   },
+   "tools": [
+    {
+     "tool": "Bash",
+     "input": {
+      "command": "forge-python /p/plugins/forge/skills/analyzing-risk/scripts/verify.py --project ."
+     }
+    }
+   ],
+   "last_message": "Added actions for DF-01 and DF-04; the AP check passes.",
+   "expect": "all_pass",
+   "why": "real analyzing-risk output before/after"
+  },
+  "bad-unfixed": {
+   "base": "good",
+   "files": {
+    "analysis/dfmea.csv": "id,item,function,failure_mode,effect,severity,cause,occurrence,current_controls,detection,action,owner,due_date\nDF-01,LiPo cell,store energy,cell swells,housing cracks; burn hazard,9,no swelling clearance in pocket,5,none,7,,,\nDF-02,Charging contacts,carry 5 V charge current,contacts corrode,no charging,5,sweat ingress,6,gold plating 0.8 um,5,,,\nDF-03,Lid snap fit,retain lid,latch cracks on assembly,lid falls off,6,root strain above allowable,4,snap-fit strain calc,3,,,\nDF-04,Tether cable,carry sensor signals,solder joint fatigue,loss of signal,7,no strain relief,6,none,8,,,\nDF-05,Optical window,pass light,scratched window,reduced accuracy,4,abrasion,4,hard coat,6,,,\n",
+    "out/verify/safety.dfmea_ap.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"safety.dfmea_ap\",\n  \"target\": \"analysis/dfmea.csv\",\n  \"status\": \"fail\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"DF-01.sod_valid\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"analysis/dfmea.csv#DF-01\"\n    },\n    {\n      \"name\": \"DF-01.high_ap_has_action\",\n      \"value\": false,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": false,\n      \"location\": \"analysis/dfmea.csv#DF-01\",\n      \"remediation\": \"DF-01 (S=9 O=5 D=7) is Action Priority High (AIAG & VDA FMEA Handbook (1st ed., Jun 2019) Action Priority table is paywalled and was not reproduced in docs/research/R5b -- this is a sourced approximation using only the documented S-then-O-then-D rule. Verify against the licensed handbook before treating a Low/Medium as final.) but has no tracked action+owner+due_date. A High-AP finding needs an action, an owner and a due date, or a documented reason current controls are enough.\"\n    },\n    {\n      \"name\": \"DF-02.sod_valid\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"analysis/dfmea.csv#DF-02\"\n    },\n    {\n      \"name\": \"DF-02.ap_low\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"analysis/dfmea.csv#DF-02\"\n    },\n    {\n      \"name\": \"DF-03.sod_valid\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"analysis/dfmea.csv#DF-03\"\n    },\n    {\n      \"name\": \"DF-03.ap_low\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"analysis/dfmea.csv#DF-03\"\n    },\n    {\n      \"name\": \"DF-04.sod_valid\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"analysis/dfmea.csv#DF-04\"\n    },\n    {\n      \"name\": \"DF-04.high_ap_has_action\",\n      \"value\": false,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": false,\n      \"location\": \"analysis/dfmea.csv#DF-04\",\n      \"remediation\": \"DF-04 (S=7 O=6 D=8) is Action Priority High (AIAG & VDA FMEA Handbook (1st ed., Jun 2019) Action Priority table is paywalled and was not reproduced in docs/research/R5b -- this is a sourced approximation using only the documented S-then-O-then-D rule. Verify against the licensed handbook before treating a Low/Medium as final.) but has no tracked action+owner+due_date. A High-AP finding needs an action, an owner and a due date, or a documented reason current controls are enough.\"\n    },\n    {\n      \"name\": \"DF-05.sod_valid\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"analysis/dfmea.csv#DF-05\"\n    },\n    {\n      \"name\": \"DF-05.ap_low\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"analysis/dfmea.csv#DF-05\"\n    }\n  ],\n  \"tool_versions\": {},\n  \"git_sha\": \"99f3c2d3ba57742eb1914b2eb136891ee12ba8cd\",\n  \"started\": \"2026-09-25T09:45:32Z\",\n  \"duration_s\": 0.004\n}\n"
+   },
+   "expect": {
+    "dfmea-check-pass": false,
+    "high-rows-have-actions": false,
+    "swelling-mitigation-is-real": false,
+    "strain-relief-mitigation-is-real": false
+   }
+  },
+  "bad-lowered-ratings": {
+   "base": "good",
+   "files": {
+    "analysis/dfmea.csv": "id,item,function,failure_mode,effect,severity,cause,occurrence,current_controls,detection,action,owner,due_date\nDF-01,LiPo cell,store energy,cell swells,housing cracks; burn hazard,9,no swelling clearance in pocket,2,none,3,,,\nDF-02,Charging contacts,carry 5 V charge current,contacts corrode,no charging,5,sweat ingress,6,gold plating 0.8 um,5,,,\nDF-03,Lid snap fit,retain lid,latch cracks on assembly,lid falls off,6,root strain above allowable,4,snap-fit strain calc,3,,,\nDF-04,Tether cable,carry sensor signals,solder joint fatigue,loss of signal,4,no strain relief,6,none,8,,,\nDF-05,Optical window,pass light,scratched window,reduced accuracy,4,abrasion,4,hard coat,6,,,\n"
+   },
+   "expect": {
+    "ratings-unchanged": false,
+    "high-rows-have-actions": false
+   }
+  },
+  "bad-placeholder-actions": {
+   "base": "good",
+   "files": {
+    "analysis/dfmea.csv": "id,item,function,failure_mode,effect,severity,cause,occurrence,current_controls,detection,action,owner,due_date\nDF-01,LiPo cell,store energy,cell swells,housing cracks; burn hazard,9,no swelling clearance in pocket,5,none,7,TBD - to be decided later,Sam Ortiz,2026-11-30\nDF-02,Charging contacts,carry 5 V charge current,contacts corrode,no charging,5,sweat ingress,6,gold plating 0.8 um,5,,,\nDF-03,Lid snap fit,retain lid,latch cracks on assembly,lid falls off,6,root strain above allowable,4,snap-fit strain calc,3,,,\nDF-04,Tether cable,carry sensor signals,solder joint fatigue,loss of signal,7,no strain relief,6,none,8,TBD - to be decided later,Sam Ortiz,2026-11-30\nDF-05,Optical window,pass light,scratched window,reduced accuracy,4,abrasion,4,hard coat,6,,,\n"
+   },
+   "expect": {
+    "swelling-mitigation-is-real": false,
+    "strain-relief-mitigation-is-real": false
+   }
+  },
+  "bad-no-checker": {
+   "base": "good",
+   "tools": [],
+   "expect": {
+    "dfmea-checker-ran": false
+   }
+  }
+ }
+}

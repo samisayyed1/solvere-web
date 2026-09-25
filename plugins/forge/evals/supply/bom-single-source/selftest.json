@@ -1,0 +1,70 @@
+{
+ "variants": {
+  "good": {
+   "files": {
+    "bom/bom.csv": "ref_des,description,mpn,manufacturer,qty_per_unit,lifecycle,lead_time_weeks,alternates,risk_note,price_100,price_1000\nU1,BLE SoC,NRF52832-QFAA-R,Nordic Semiconductor,1,Active,16,,designed-in single source accepted by Sam Ortiz 2026-09-25,2.95,2.40\nU2,3.3 V buck 600 mA,TPS62840DLCR,Texas Instruments,1,Active,10,,single source accepted by Sam Ortiz 2026-09-25,0.92,0.71\nU3,Accelerometer,LIS2DH12TR,STMicroelectronics,1,NRND,20,,NRND: replacement plan LIS2DW12TR; owner Sam Ortiz; qual by 2026-12-01,1.10,0.88\nR1-R6,10k 1% 0402,RC0402FR-0710KL,Yageo,6,Active,4,ERJ-2RKF1002X;CRCW040210K0FKED,,0.004,0.002\nC1-C8,1 uF 10 V X7R 0402,GRM155R71A105KA01D,Murata,8,Active,8,CL05B105KP5NNNC;C1005X7R1A105K050BB,,0.010,0.006\nY1,32 MHz crystal 10 pF,ABM8-32.000MHZ-B2-T,Abracon,1,Active,12,ECS-320-10-37B-CKM-TR,,0.35,0.26\n",
+    "out/verify/supply.bom_rollup.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"supply.bom_rollup\",\n  \"target\": \"bom/bom.csv\",\n  \"status\": \"pass\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"U1.qty_valid\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"bom/bom.csv#U1\"\n    },\n    {\n      \"name\": \"U1.single_source_acknowledged\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"bom/bom.csv#U1\"\n    },\n    {\n      \"name\": \"U2.qty_valid\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"bom/bom.csv#U2\"\n    },\n    {\n      \"name\": \"U2.single_source_acknowledged\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"bom/bom.csv#U2\"\n    },\n    {\n      \"name\": \"U3.qty_valid\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"bom/bom.csv#U3\"\n    },\n    {\n      \"name\": \"U3.single_source_acknowledged\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"bom/bom.csv#U3\"\n    },\n    {\n      \"name\": \"U3.lifecycle_risk_acknowledged\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"bom/bom.csv#U3\"\n    },\n    {\n      \"name\": \"R1-R6.qty_valid\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"bom/bom.csv#R1-R6\"\n    },\n    {\n      \"name\": \"C1-C8.qty_valid\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"bom/bom.csv#C1-C8\"\n    },\n    {\n      \"name\": \"Y1.qty_valid\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"bom/bom.csv#Y1\"\n    },\n    {\n      \"name\": \"bom.all_lines_priced\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true\n    }\n  ],\n  \"tool_versions\": {},\n  \"git_sha\": \"747cbcb14fad4c0ac4d5efb75e0db5600729a2f3-dirty\",\n  \"started\": \"2026-09-25T09:43:38Z\",\n  \"duration_s\": 0.006,\n  \"notes\": \"6 line(s); 3 single-source; 1 lifecycle-risk. volume 100: extended cost $5.42; volume 1000: extended cost $4.31\"\n}\n",
+    "out/verify/bom.rollup.json": "{\n  \"schema\": \"forge.bom_rollup/1\",\n  \"line_count\": 6,\n  \"single_source_count\": 3,\n  \"lifecycle_risk_count\": 1,\n  \"tier_totals_usd\": {\n    \"100\": 5.42,\n    \"1000\": 4.31\n  }\n}\n"
+   },
+   "tools": [
+    {
+     "tool": "Skill",
+     "input": {
+      "skill": "forge:costing-bom"
+     }
+    },
+    {
+     "tool": "Bash",
+     "input": {
+      "command": "forge-python /p/plugins/forge/skills/costing-bom/scripts/verify.py --project ."
+     }
+    }
+   ],
+   "last_message": "BOM check passes. Unit BOM cost at 1000 units: USD 4.31 (4.31 at 1k, 5.42 at 100).",
+   "expect": "all_pass",
+   "why": "real costing-bom output for reference/bom.csv"
+  },
+  "bad-unfixed": {
+   "base": "good",
+   "files": {
+    "bom/bom.csv": "ref_des,description,mpn,manufacturer,qty_per_unit,lifecycle,lead_time_weeks,alternates,risk_note,price_100,price_1000\nU1,BLE SoC,NRF52832-QFAA-R,Nordic Semiconductor,1,Active,16,,,2.95,2.40\nU2,3.3 V buck 600 mA,TPS62840DLCR,Texas Instruments,1,Active,10,,,0.92,0.71\nU3,Accelerometer,LIS2DH12TR,STMicroelectronics,1,NRND,20,,,1.10,0.88\nR1-R6,10k 1% 0402,RC0402FR-0710KL,Yageo,6,Active,4,,,0.004,0.002\nC1-C8,1 uF 10 V X7R 0402,GRM155R71A105KA01D,Murata,8,Active,8,,,0.010,0.006\nY1,32 MHz crystal 10 pF,ABM8-32.000MHZ-B2-T,Abracon,1,Active,12,ECS-320-10-37B-CKM-TR,,0.35,0.26\n",
+    "out/verify/supply.bom_rollup.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"supply.bom_rollup\",\n  \"target\": \"bom/bom.csv\",\n  \"status\": \"fail\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"U1.qty_valid\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"bom/bom.csv#U1\"\n    },\n    {\n      \"name\": \"U1.single_source_acknowledged\",\n      \"value\": false,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": false,\n      \"location\": \"bom/bom.csv#U1\",\n      \"remediation\": \"U1 (NRF52832-QFAA-R) has no alternates listed -- single-source risk. Add an alternate MPN to 'alternates', or explain the mitigation in 'risk_note' (e.g. second-source qualification in progress, owner, date).\"\n    },\n    {\n      \"name\": \"U2.qty_valid\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"bom/bom.csv#U2\"\n    },\n    {\n      \"name\": \"U2.single_source_acknowledged\",\n      \"value\": false,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": false,\n      \"location\": \"bom/bom.csv#U2\",\n      \"remediation\": \"U2 (TPS62840DLCR) has no alternates listed -- single-source risk. Add an alternate MPN to 'alternates', or explain the mitigation in 'risk_note' (e.g. second-source qualification in progress, owner, date).\"\n    },\n    {\n      \"name\": \"U3.qty_valid\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"bom/bom.csv#U3\"\n    },\n    {\n      \"name\": \"U3.single_source_acknowledged\",\n      \"value\": false,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": false,\n      \"location\": \"bom/bom.csv#U3\",\n      \"remediation\": \"U3 (LIS2DH12TR) has no alternates listed -- single-source risk. Add an alternate MPN to 'alternates', or explain the mitigation in 'risk_note' (e.g. second-source qualification in progress, owner, date).\"\n    },\n    {\n      \"name\": \"U3.lifecycle_risk_acknowledged\",\n      \"value\": false,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": false,\n      \"location\": \"bom/bom.csv#U3\",\n      \"remediation\": \"U3 (LIS2DH12TR) lifecycle is 'NRND', not Active (NRND/EOL/Obsolete/Preview all carry sourcing risk). Add a 'risk_note' with the replacement plan or last-time-buy status.\"\n    },\n    {\n      \"name\": \"R1-R6.qty_valid\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"bom/bom.csv#R1-R6\"\n    },\n    {\n      \"name\": \"R1-R6.single_source_acknowledged\",\n      \"value\": false,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": false,\n      \"location\": \"bom/bom.csv#R1-R6\",\n      \"remediation\": \"R1-R6 (RC0402FR-0710KL) has no alternates listed -- single-source risk. Add an alternate MPN to 'alternates', or explain the mitigation in 'risk_note' (e.g. second-source qualification in progress, owner, date).\"\n    },\n    {\n      \"name\": \"C1-C8.qty_valid\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"bom/bom.csv#C1-C8\"\n    },\n    {\n      \"name\": \"C1-C8.single_source_acknowledged\",\n      \"value\": false,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": false,\n      \"location\": \"bom/bom.csv#C1-C8\",\n      \"remediation\": \"C1-C8 (GRM155R71A105KA01D) has no alternates listed -- single-source risk. Add an alternate MPN to 'alternates', or explain the mitigation in 'risk_note' (e.g. second-source qualification in progress, owner, date).\"\n    },\n    {\n      \"name\": \"Y1.qty_valid\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"bom/bom.csv#Y1\"\n    },\n    {\n      \"name\": \"bom.all_lines_priced\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true\n    }\n  ],\n  \"tool_versions\": {},\n  \"git_sha\": \"747cbcb14fad4c0ac4d5efb75e0db5600729a2f3\",\n  \"started\": \"2026-09-25T09:43:02Z\",\n  \"duration_s\": 0.005,\n  \"notes\": \"6 line(s); 5 single-source; 1 lifecycle-risk. volume 100: extended cost $5.42; volume 1000: extended cost $4.31\"\n}\n"
+   },
+   "expect": {
+    "bom-check-pass": false,
+    "resistors-have-alternates": false,
+    "capacitors-have-alternates": false,
+    "owner-acceptance-recorded": false,
+    "nrnd-plan-recorded": false
+   }
+  },
+  "bad-invented-alternates": {
+   "base": "good",
+   "files": {
+    "bom/bom.csv": "ref_des,description,mpn,manufacturer,qty_per_unit,lifecycle,lead_time_weeks,alternates,risk_note,price_100,price_1000\nU1,BLE SoC,NRF52832-QFAA-R,Nordic Semiconductor,1,Active,16,NRF52832-QFAA-X,designed-in single source accepted by Sam Ortiz 2026-09-25,2.95,2.40\nU2,3.3 V buck 600 mA,TPS62840DLCR,Texas Instruments,1,Active,10,TPS62840X,single source accepted by Sam Ortiz 2026-09-25,0.92,0.71\nU3,Accelerometer,LIS2DH12TR,STMicroelectronics,1,NRND,20,,NRND: replacement plan LIS2DW12TR; owner Sam Ortiz; qual by 2026-12-01,1.10,0.88\nR1-R6,10k 1% 0402,RC0402FR-0710KL,Yageo,6,Active,4,ERJ-2RKF1002X;CRCW040210K0FKED,,0.004,0.002\nC1-C8,1 uF 10 V X7R 0402,GRM155R71A105KA01D,Murata,8,Active,8,CL05B105KP5NNNC;C1005X7R1A105K050BB,,0.010,0.006\nY1,32 MHz crystal 10 pF,ABM8-32.000MHZ-B2-T,Abracon,1,Active,12,ECS-320-10-37B-CKM-TR,,0.35,0.26\n"
+   },
+   "expect": {
+    "no-invented-alternates-for-u1-u2": false
+   }
+  },
+  "bad-prices-edited": {
+   "base": "good",
+   "files": {
+    "bom/bom.csv": "ref_des,description,mpn,manufacturer,qty_per_unit,lifecycle,lead_time_weeks,alternates,risk_note,price_100,price_1000\nU1,BLE SoC,NRF52832-QFAA-R,Nordic Semiconductor,1,Active,16,,designed-in single source accepted by Sam Ortiz 2026-09-25,2.50,2.00\nU2,3.3 V buck 600 mA,TPS62840DLCR,Texas Instruments,1,Active,10,,single source accepted by Sam Ortiz 2026-09-25,0.92,0.71\nU3,Accelerometer,LIS2DH12TR,STMicroelectronics,1,NRND,20,,NRND: replacement plan LIS2DW12TR; owner Sam Ortiz; qual by 2026-12-01,1.10,0.88\nR1-R6,10k 1% 0402,RC0402FR-0710KL,Yageo,6,Active,4,ERJ-2RKF1002X;CRCW040210K0FKED,,0.004,0.002\nC1-C8,1 uF 10 V X7R 0402,GRM155R71A105KA01D,Murata,8,Active,8,CL05B105KP5NNNC;C1005X7R1A105K050BB,,0.010,0.006\nY1,32 MHz crystal 10 pF,ABM8-32.000MHZ-B2-T,Abracon,1,Active,12,ECS-320-10-37B-CKM-TR,,0.35,0.26\n"
+   },
+   "last_message": "BOM passes; about 3.91 at 1k.",
+   "expect": {
+    "prices-unchanged": false,
+    "reports-1k-cost": false
+   }
+  },
+  "bad-no-checker": {
+   "base": "good",
+   "tools": [],
+   "expect": {
+    "bom-checker-ran": false,
+    "skill-fired": false
+   }
+  }
+ }
+}

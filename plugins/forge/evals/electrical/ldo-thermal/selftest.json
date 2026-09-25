@@ -1,0 +1,73 @@
+{
+ "variants": {
+  "good": {
+   "files": {
+    "out/verify/spice.ldo_thermal.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"spice.ldo_thermal\",\n  \"target\": \"analysis/spice/ldo_thermal.cir\",\n  \"status\": \"fail\",\n  \"level\": \"L2\",\n  \"measurements\": [\n    {\n      \"name\": \"vout_dc\",\n      \"value\": 3.3,\n      \"unit\": \"V\",\n      \"limit\": {\n        \"equals\": 3.3,\n        \"tol\": 0.099\n      },\n      \"pass\": true,\n      \"remediation\": \"...\"\n    },\n    {\n      \"name\": \"dissipation_w\",\n      \"value\": 2.475,\n      \"unit\": \"W\",\n      \"limit\": {\n        \"max\": 1.083\n      },\n      \"pass\": false,\n      \"remediation\": \"...\"\n    }\n  ]\n}\n",
+    "analysis/spice/ldo_thermal.cir": "* AMS1117 worst case\nVIN in 0 DC 13.2\nB1 out 0 V=3.3\nRLOAD out 0 13.2\n.control\nop\nmeas op dissipation_w param='(13.2-3.3)*0.25'\n.endc\n.end\n",
+    "analysis/spice/ldo_thermal.limits.toml": "[[measurement]]\nname = \"dissipation_w\"\nunit = \"W\"\nmax = 1.083\nrequirement = \"REQ-ELEC-011\"\n"
+   },
+   "tools": [
+    {
+     "tool": "Skill",
+     "input": {
+      "skill": "forge:designing-circuits"
+     }
+    },
+    {
+     "tool": "Bash",
+     "input": {
+      "command": "~/.forge/bin/forge-python /p/plugins/forge/skills/designing-circuits/scripts/verify.py --project ."
+     }
+    }
+   ],
+   "last_message": "Not met: U1 dissipates 2.48 W at 13.2 V and 250 mA; the budget is (125 - 60) / 60 = 1.08 W, so Tj would reach about 208 \u00b0C. Replace it with a buck converter (or add a pre-regulator).",
+   "expect": "all_pass",
+   "why": "hand-made forge.check/1 result in designing-circuits' shape; correct physics: (13.2-3.3) x 0.25 = 2.475 W"
+  },
+  "bad-nominal-input-and-pass": {
+   "base": "good",
+   "files": {
+    "out/verify/spice.ldo_thermal.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"spice.ldo_thermal\",\n  \"target\": \"analysis/spice/ldo_thermal.cir\",\n  \"status\": \"pass\",\n  \"level\": \"L2\",\n  \"measurements\": [\n    {\n      \"name\": \"vout_dc\",\n      \"value\": 3.3,\n      \"unit\": \"V\",\n      \"limit\": {\n        \"equals\": 3.3,\n        \"tol\": 0.099\n      },\n      \"pass\": true,\n      \"remediation\": \"...\"\n    },\n    {\n      \"name\": \"dissipation_w\",\n      \"value\": 0.87,\n      \"unit\": \"W\",\n      \"limit\": {\n        \"max\": 5.0\n      },\n      \"pass\": true,\n      \"remediation\": \"...\"\n    }\n  ]\n}\n",
+    "analysis/spice/ldo_thermal.cir": "* AMS1117 worst case\nVIN in 0 DC 12.0\nB1 out 0 V=3.3\nRLOAD out 0 12.0\n.control\nop\nmeas op dissipation_w param='(12.0-3.3)*0.1'\n.endc\n.end\n",
+    "analysis/spice/ldo_thermal.limits.toml": "[[measurement]]\nname = \"dissipation_w\"\nunit = \"W\"\nmax = 5.0\nrequirement = \"REQ-ELEC-011\"\n"
+   },
+   "last_message": "Met: 0.87 W is within the limit.",
+   "expect": {
+    "dissipation-measured-2-4-to-2-5-w": false,
+    "checker-reports-fail": false,
+    "limit-derived-from-tj-budget": false,
+    "simulated-at-worst-case-input": false,
+    "says-not-met": false,
+    "proposes-architectural-fix": false
+   }
+  },
+  "bad-design-changed": {
+   "base": "good",
+   "edits": {
+    "ecad/power.md": [
+     [
+      "U1 AMS1117-3.3 LDO (SOT-223) straight from the 12 V input",
+      "U1 TPS54202 buck from the 12 V input"
+     ]
+    ]
+   },
+   "expect": {
+    "design-unchanged": false
+   }
+  },
+  "bad-no-sim": {
+   "base": "good",
+   "files": {
+    "out/verify/spice.ldo_thermal.json": null
+   },
+   "tools": [],
+   "expect": {
+    "sim-check-ran": false,
+    "dissipation-measured-2-4-to-2-5-w": false,
+    "checker-reports-fail": false,
+    "sim-ran": false,
+    "skill-fired": false
+   }
+  }
+ }
+}

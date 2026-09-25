@@ -1,0 +1,30 @@
+[power.vin]
+value = 12.0
+unit = "V"
+tol = { minus = 1.2, plus = 1.2 }
+status = "assumed"
+source = "customer spec"
+
+[power.iload]
+value = 0.250
+unit = "A"
+status = "assumed"
+source = "REQ-ELEC-010"
+
+[thermal.ambient_max]
+value = 60
+unit = "C"
+status = "assumed"
+source = "REQ-ELEC-011"
+
+[u1.theta_ja]
+value = 60
+unit = "C/W"
+status = "datasheet"
+source = "AMS1117 datasheet p.2, SOT-223 on 1 in^2 copper"
+
+[u1.tj_max]
+value = 125
+unit = "C"
+status = "datasheet"
+source = "AMS1117 datasheet p.2"

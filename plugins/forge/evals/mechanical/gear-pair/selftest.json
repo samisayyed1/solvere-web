@@ -1,0 +1,78 @@
+{
+ "variants": {
+  "good": {
+   "files": {
+    "out/verify/geometry.bbox.pinion_od.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"geometry.bbox.pinion_od\",\n  \"target\": \"cad/x.py\",\n  \"status\": \"pass\",\n  \"level\": \"L1\",\n  \"measurements\": []\n}\n",
+    "out/verify/geometry.bbox.gear.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"geometry.bbox.gear\",\n  \"target\": \"cad/x.py\",\n  \"status\": \"pass\",\n  \"level\": \"L1\",\n  \"measurements\": []\n}\n",
+    "out/verify/geometry.bbox.pinion.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"geometry.bbox.pinion\",\n  \"target\": \"cad/x.py\",\n  \"status\": \"pass\",\n  \"level\": \"L1\",\n  \"measurements\": []\n}\n",
+    "out/verify/geometry.interference.gear_mesh.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"geometry.interference.gear_mesh\",\n  \"target\": \"cad/x.py\",\n  \"status\": \"pass\",\n  \"level\": \"L1\",\n  \"measurements\": []\n}\n",
+    "out/verify/geometry.validity.gear.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"geometry.validity.gear\",\n  \"target\": \"cad/x.py\",\n  \"status\": \"pass\",\n  \"level\": \"L1\",\n  \"measurements\": []\n}\n",
+    "out/verify/geometry.validity.pinion.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"geometry.validity.pinion\",\n  \"target\": \"cad/x.py\",\n  \"status\": \"pass\",\n  \"level\": \"L1\",\n  \"measurements\": []\n}\n",
+    "params/params.toml": "[gear.module]\nvalue = 1.5\nunit = \"mm\"\n\n[gear.pressure_angle]\nvalue = 20.0\nunit = \"deg\"\n\n[gear.pinion_teeth]\nvalue = 18\nunit = \"1\"\n\n[gear.gear_teeth]\nvalue = 54\nunit = \"1\"\n\n[gear.centre_distance]\nvalue = 54.0\nunit = \"mm\"\n",
+    "out/step/pinion.step": "ISO",
+    "out/step/gear.step": "ISO",
+    "cad/pinion.py": "def build(): ...",
+    "cad/gear.py": "def build(): ..."
+   },
+   "tools": [
+    {
+     "tool": "Bash",
+     "input": {
+      "command": "~/.forge/bin/forge-python /p/plugins/forge/skills/verifying-geometry/scripts/verify.py --project ."
+     }
+    }
+   ],
+   "last_message": "z2 = 54, a = 1.5 x (18 + 54) / 2 = 54.0 mm; all geometry checks pass.",
+   "expect": "all_pass",
+   "why": "hand-made forge.check/1 results; file names follow verifying-geometry's check_id = <family>.<part name>"
+  },
+  "bad-wrong-module": {
+   "base": "good",
+   "files": {
+    "out/verify/geometry.bbox.pinion_od.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"geometry.bbox.pinion_od\",\n  \"target\": \"cad/x.py\",\n  \"status\": \"fail\",\n  \"level\": \"L1\",\n  \"measurements\": []\n}\n",
+    "out/verify/geometry.bbox.gear.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"geometry.bbox.gear\",\n  \"target\": \"cad/x.py\",\n  \"status\": \"fail\",\n  \"level\": \"L1\",\n  \"measurements\": []\n}\n",
+    "params/params.toml": "[gear.module]\nvalue = 1.0\nunit = \"mm\"\n\n[gear.pressure_angle]\nvalue = 20.0\nunit = \"deg\"\n\n[gear.pinion_teeth]\nvalue = 18\nunit = \"1\"\n\n[gear.gear_teeth]\nvalue = 54\nunit = \"1\"\n\n[gear.centre_distance]\nvalue = 36.0\nunit = \"mm\"\n"
+   },
+   "expect": {
+    "pinion-tip-diameter": false,
+    "gear-tip-diameter": false,
+    "derived-numbers-in-params": false,
+    "centre-distance-54": false
+   }
+  },
+  "bad-teeth-clash": {
+   "base": "good",
+   "files": {
+    "out/verify/geometry.interference.gear_mesh.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"geometry.interference.gear_mesh\",\n  \"target\": \"cad/x.py\",\n  \"status\": \"fail\",\n  \"level\": \"L1\",\n  \"measurements\": []\n}\n",
+    "out/verify/geometry.bbox.pinion.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"geometry.bbox.pinion\",\n  \"target\": \"cad/x.py\",\n  \"status\": \"fail\",\n  \"level\": \"L1\",\n  \"measurements\": []\n}\n",
+    "out/verify/geometry.validity.gear.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"geometry.validity.gear\",\n  \"target\": \"cad/x.py\",\n  \"status\": \"fail\",\n  \"level\": \"L1\",\n  \"measurements\": []\n}\n"
+   },
+   "expect": {
+    "meshes-without-interference": false,
+    "face-width": false,
+    "gears-are-valid-solids": false
+   }
+  },
+  "bad-spec-edited-no-step": {
+   "base": "good",
+   "edits": {
+    "requirements/geometry/gear_mesh.toml": [
+     [
+      "other_module = \"cad/pinion.py\"",
+      "other_module = \"cad/gear.py\""
+     ]
+    ]
+   },
+   "files": {
+    "out/step/pinion.step": null,
+    "out/step/gear.step": null
+   },
+   "tools": [],
+   "expect": {
+    "specs-untouched": false,
+    "step-exported": false,
+    "geometry-checker-ran": false
+   }
+  }
+ }
+}

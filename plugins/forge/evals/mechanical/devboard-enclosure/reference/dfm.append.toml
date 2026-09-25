@@ -1,0 +1,10 @@
+
+[[snap_fit]]
+name = "lid_latch"
+requirement = "REQ-MECH-006"
+material = "abs"
+deflection_mm = 0.8
+length_mm = 9.0
+thickness_mm = 1.2
+taper = "constant"
+frequent = false

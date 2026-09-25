@@ -1,0 +1,40 @@
+schema_version: "1.1"
+name: mech-dfm-thin-wall
+description: An SLA-era 0.8 mm cover wall is below the FDM minimum (1.2 mm unsupported). Fix it through params without moving the envelope; graded on Forge's DFM and bbox results and on the specs and envelope staying intact.
+tags: [mechanical]
+context:
+  scaffold_script: scaffold.sh
+graders:
+  - name: dfm-wall-pass
+    type: regex
+    target: { source: file, path: out/verify/dfm.wall_min_unsupported_mm.cover.json }
+    pattern: '"status"\s*:\s*"pass"'
+    weight: 2
+  - name: length-kept
+    type: regex
+    target: { source: file, path: out/verify/geometry.bbox.cover.json }
+    pattern: '"status"\s*:\s*"pass"'
+  - name: height-kept
+    type: regex
+    target: { source: file, path: out/verify/geometry.bbox.cover_height.json }
+    pattern: '"status"\s*:\s*"pass"'
+  - name: wall-param-raised
+    type: regex
+    target: { source: file, path: params/params.toml }
+    pattern: '\[cover\.wall\]\s*\nvalue\s*=\s*(1\.[2-9]\d*|[2-9](\.\d+)?)\b'
+  - name: envelope-params-kept
+    type: regex
+    target: { source: file, path: params/params.toml }
+    pattern: '(?=[\s\S]*\[cover\.length\]\s*\nvalue\s*=\s*60\.0\b)(?=[\s\S]*\[cover\.height\]\s*\nvalue\s*=\s*15\.0\b)'
+  - name: dfm-spec-intact
+    type: regex
+    target: { source: file, path: requirements/dfm/cover.toml }
+    pattern: '(?=[\s\S]*process = "fdm")(?=[\s\S]*rule = "wall_min_unsupported_mm")'
+  - name: dfm-checker-ran
+    type: tool_used
+    tool: Bash
+    input_match: 'checking-dfm/scripts/verify\.py|forge(\s|\\")+verify'
+  - name: skill-fired
+    type: tool_used
+    tool: Skill
+    input_match: '"skill"\s*:\s*"(?:forge:)?checking-dfm"'

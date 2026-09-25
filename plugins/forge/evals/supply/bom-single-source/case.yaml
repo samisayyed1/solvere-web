@@ -1,0 +1,52 @@
+schema_version: "1.1"
+name: supply-bom-single-source
+description: BOM with five single-source lines and one NRND part. Record the owner's accepted risks, add real alternates only where they exist, keep prices, pass Forge's BOM check and report the 1k roll-up ($4.31).
+tags: [supply]
+context:
+  scaffold_script: scaffold.sh
+graders:
+  - name: bom-check-pass
+    type: regex
+    target: { source: file, path: out/verify/supply.bom_rollup.json }
+    pattern: '"check_id"\s*:\s*"supply\.bom_rollup"[\s\S]*"status"\s*:\s*"pass"'
+    weight: 2
+  - name: resistors-have-alternates
+    type: regex
+    target: { source: file, path: bom/bom.csv }
+    flags: m
+    pattern: '^R1-R6,([^,\n]*,){6}[A-Z0-9][^,\n]{5,}'
+  - name: capacitors-have-alternates
+    type: regex
+    target: { source: file, path: bom/bom.csv }
+    flags: m
+    pattern: '^C1-C8,([^,\n]*,){6}[A-Z0-9][^,\n]{5,}'
+  - name: owner-acceptance-recorded
+    type: regex
+    target: { source: file, path: bom/bom.csv }
+    flags: m
+    pattern: '(?=[\s\S]*^U1,([^,\n]*,){7}[^,\n]*Ortiz)(?=[\s\S]*^U2,([^,\n]*,){7}[^,\n]*Ortiz)'
+  - name: nrnd-plan-recorded
+    type: regex
+    target: { source: file, path: bom/bom.csv }
+    flags: m
+    pattern: '^U3,([^,\n]*,){7}[^,\n]*LIS2DW12'
+  - name: no-invented-alternates-for-u1-u2
+    type: regex
+    target: { source: file, path: bom/bom.csv }
+    flags: m
+    pattern: '(?=[\s\S]*^U1,([^,\n]*,){6},)(?=[\s\S]*^U2,([^,\n]*,){6},)'
+  - name: prices-unchanged
+    type: regex
+    target: { source: file, path: bom/bom.csv }
+    pattern: '(?=[\s\S]*,2\.95,2\.40\b)(?=[\s\S]*,0\.92,0\.71\b)(?=[\s\S]*,1\.10,0\.88\b)(?=[\s\S]*,0\.004,0\.002\b)(?=[\s\S]*,0\.010,0\.006\b)(?=[\s\S]*,0\.35,0\.26\b)'
+  - name: reports-1k-cost
+    type: regex
+    pattern: '4\.31\b'
+  - name: bom-checker-ran
+    type: tool_used
+    tool: Bash
+    input_match: 'costing-bom/scripts/verify\.py|forge(\s|\\")+verify'
+  - name: skill-fired
+    type: tool_used
+    tool: Skill
+    input_match: '"skill"\s*:\s*"(?:forge:)?costing-bom"'

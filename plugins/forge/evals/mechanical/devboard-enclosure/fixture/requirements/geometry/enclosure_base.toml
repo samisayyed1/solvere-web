@@ -1,0 +1,21 @@
+[part]
+name = "enclosure_base"
+module = "cad/enclosure_base.py"
+
+[[check]]
+family = "geometry.validity"
+requirement = "REQ-MECH-002"
+
+[[check]]
+family = "geometry.watertight"
+requirement = "REQ-MECH-002"
+
+[[check]]
+family = "geometry.min_wall"
+requirement = "REQ-MECH-003"
+min_mm = 1.6
+
+[[check]]
+family = "geometry.interference"
+requirement = "REQ-MECH-002"
+other_module = "cad/fixtures/board.py"

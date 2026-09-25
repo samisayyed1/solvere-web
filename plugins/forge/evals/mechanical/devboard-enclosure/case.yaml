@@ -1,0 +1,86 @@
+schema_version: "1.1"
+name: mech-devboard-enclosure
+description: Parametric FDM enclosure with USB-C access and a snap-fit lid for a fixed dev board. Graded on Forge's own out/verify results (min wall, board and USB-plug keep-out interference, lid fit, snap-fit strain, DFM wall), a STEP export, specs left intact, the checkers having run, and a render judged against a written rubric.
+tags: [mechanical, smoke]
+context:
+  scaffold_script: scaffold.sh
+graders:
+  - name: base-min-wall-pass
+    type: regex
+    target: { source: file, path: out/verify/geometry.min_wall.enclosure_base.json }
+    pattern: '"status"\s*:\s*"pass"'
+    weight: 2
+  - name: base-watertight
+    type: regex
+    target: { source: file, path: out/verify/geometry.watertight.enclosure_base.json }
+    pattern: '"status"\s*:\s*"pass"'
+    weight: 1
+  - name: board-clear-of-base
+    type: regex
+    target: { source: file, path: out/verify/geometry.interference.enclosure_base.json }
+    pattern: '"status"\s*:\s*"pass"'
+    weight: 1
+  - name: usb-plug-clear-of-base
+    type: regex
+    target: { source: file, path: out/verify/geometry.interference.enclosure_usb.json }
+    pattern: '"status"\s*:\s*"pass"'
+    weight: 2
+  - name: board-clear-of-lid
+    type: regex
+    target: { source: file, path: out/verify/geometry.interference.lid.json }
+    pattern: '"status"\s*:\s*"pass"'
+    weight: 1
+  - name: usb-plug-clear-of-lid
+    type: regex
+    target: { source: file, path: out/verify/geometry.interference.lid_usb.json }
+    pattern: '"status"\s*:\s*"pass"'
+    weight: 1
+  - name: lid-closes-without-interference
+    type: regex
+    target: { source: file, path: out/verify/geometry.interference.lid_fit.json }
+    pattern: '"status"\s*:\s*"pass"'
+    weight: 1
+  - name: snap-fit-strain-pass
+    type: regex
+    target: { source: file, path: out/verify/dfm.snap_fit.lid_latch.lid.json }
+    pattern: '"status"\s*:\s*"pass"'
+    weight: 2
+  - name: lid-dfm-wall-pass
+    type: regex
+    target: { source: file, path: out/verify/dfm.wall_min_supported_mm.lid.json }
+    pattern: '"status"\s*:\s*"pass"'
+    weight: 1
+  - name: step-exported
+    type: file_exists
+    path: 'out/step/*.step'
+  - name: specs-not-weakened
+    type: regex
+    target: { source: file, path: requirements/geometry/enclosure_base.toml }
+    pattern: '(?=[\s\S]*family = "geometry\.min_wall"\s*\nrequirement = "REQ-MECH-003"\s*\nmin_mm = 1\.6\b)(?=[\s\S]*other_module = "cad/fixtures/board\.py")'
+  - name: usb-spec-intact
+    type: regex
+    target: { source: file, path: requirements/geometry/enclosure_usb.toml }
+    pattern: 'other_module = "cad/fixtures/usbc_plug\.py"'
+  - name: plug-fixture-untouched
+    type: regex
+    target: { source: file, path: cad/fixtures/usbc_plug.py }
+    pattern: 'Box\(20\.0, 12\.4, 6\.5, align=A\)'
+  - name: snap-fit-declared-in-abs
+    type: regex
+    target: { source: file, path: requirements/dfm/lid.toml }
+    pattern: '\[\[snap_fit\]\]\s*\nname = "lid_latch"[\s\S]*material = "abs"'
+  - name: geometry-checker-ran
+    type: tool_used
+    tool: Bash
+    input_match: 'verifying-geometry/scripts/verify\.py|forge(\s|\\")+verify'
+  - name: render-matches-rubric
+    type: llm
+    focus: { source: file, path: out/renders/assembly_iso.png }
+    criteria: |
+      The image should be a render of a closed two-part electronics enclosure.
+      PASS only if all hold: (1) a single closed box-shaped enclosure is visible (a base with a lid on top, not an open tray and not a bare circuit board); (2) one end wall has a rectangular opening sized for a USB-C plug; (3) no part floats detached from the assembly.
+      FAIL if the image is blank or unreadable, shows only one part or only the board, or shows no end-wall opening.
+  - name: skill-fired
+    type: tool_used
+    tool: Skill
+    input_match: '"skill"\s*:\s*"(?:forge:)?(modeling-cad-parts|verifying-geometry)"'

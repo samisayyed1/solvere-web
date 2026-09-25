@@ -1,0 +1,31 @@
+# Sensor cover (mm)
+
+[cover.length]
+value = 60.0
+unit = "mm"
+status = "assumed"
+source = "REQ-MECH-010 envelope"
+
+[cover.width]
+value = 40.0
+unit = "mm"
+status = "assumed"
+source = "REQ-MECH-010 envelope"
+
+[cover.height]
+value = 15.0
+unit = "mm"
+status = "assumed"
+source = "REQ-MECH-010 envelope"
+
+[cover.wall]
+value = 0.8
+unit = "mm"
+status = "assumed"
+source = "copied from the SLA prototype"
+
+[cover.vent_width]
+value = 2.0
+unit = "mm"
+status = "assumed"
+source = "airflow estimate"

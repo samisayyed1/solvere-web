@@ -1,0 +1,6 @@
+id,item,function,failure_mode,effect,severity,cause,occurrence,current_controls,detection,action,owner,due_date
+DF-01,LiPo cell,store energy,cell swells,housing cracks; burn hazard,9,no swelling clearance in pocket,5,none,7,,,
+DF-02,Charging contacts,carry 5 V charge current,contacts corrode,no charging,5,sweat ingress,6,gold plating 0.8 um,5,,,
+DF-03,Lid snap fit,retain lid,latch cracks on assembly,lid falls off,6,root strain above allowable,4,snap-fit strain calc,3,,,
+DF-04,Tether cable,carry sensor signals,solder joint fatigue,loss of signal,7,no strain relief,6,none,8,,,
+DF-05,Optical window,pass light,scratched window,reduced accuracy,4,abrasion,4,hard coat,6,,,

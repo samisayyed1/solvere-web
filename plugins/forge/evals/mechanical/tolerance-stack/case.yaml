@@ -1,0 +1,45 @@
+schema_version: "1.1"
+name: mech-tolerance-stack
+description: A four-contributor stack whose worst case misses the requirement (0.00 mm vs 0.10 mm) while RSS passes. Graded on Forge's stack result, the inputs being untouched, and an honest worst-case answer with a concrete fix.
+tags: [mechanical]
+context:
+  scaffold_script: scaffold.sh
+graders:
+  - name: stack-check-ran
+    type: regex
+    target: { source: file, path: out/verify/mech.stack_lid_gap.json }
+    pattern: '"check_id"\s*:\s*"mech\.stack_lid_gap"'
+  - name: checker-reports-worst-case-fail
+    type: regex
+    target: { source: file, path: out/verify/mech.stack_lid_gap.json }
+    pattern: '"status"\s*:\s*"fail"'
+    weight: 2
+  - name: worst-case-min-is-zero
+    type: regex
+    target: { source: file, path: out/verify/mech.stack_lid_gap.json }
+    pattern: '"name"\s*:\s*"worst_case_min"\s*,\s*"value"\s*:\s*-?0(\.0+)?\s*,'
+  - name: rss-min-correct
+    type: regex
+    target: { source: file, path: out/verify/mech.stack_lid_gap.json }
+    pattern: '"name"\s*:\s*"rss_min"\s*,\s*"value"\s*:\s*0\.18[78]\d*\s*,'
+  - name: inputs-not-changed
+    type: regex
+    target: { source: file, path: analysis/stacks/lid_gap.toml }
+    pattern: '(?=[\s\S]*gap_min\s*=\s*0\.10?\b)(?=[\s\S]*gap_max\s*=\s*0\.80?\b)(?=[\s\S]*=\s*0\.15\b)(?=[\s\S]*=\s*5\.0+\b)(?=[\s\S]*=\s*1\.60?\b)(?![\s\S]*gap_min\s*=\s*0\.0\b)'
+  - name: says-worst-case-fails
+    type: regex
+    flags: i
+    pattern: 'worst[- ]case[^.\n]{0,120}(fail|not met|does not|doesn.t|violat|below|short|miss)|(fail|not met|does not|doesn.t|miss)[^.\n]{0,80}worst[- ]case'
+    weight: 2
+  - name: proposes-concrete-tightening
+    type: regex
+    flags: i
+    pattern: '(tighten|reduc|narrow|change)\w*[^.\n]{0,150}(J4|connector|standoff|PCB|housing)[^.\n]{0,150}(±|\+/-)\s?0\.\d+'
+  - name: stack-checker-ran
+    type: tool_used
+    tool: Bash
+    input_match: 'stacking-tolerances/scripts/verify\.py|forge(\s|\\")+verify'
+  - name: skill-fired
+    type: tool_used
+    tool: Skill
+    input_match: '"skill"\s*:\s*"(?:forge:)?stacking-tolerances"'

@@ -1,0 +1,8 @@
+[part]
+name = "cover"
+module = "cad/cover.py"
+process = "fdm"
+
+[[check]]
+rule = "wall_min_unsupported_mm"
+requirement = "REQ-MFG-001"

@@ -1,0 +1,42 @@
+
+[enclosure.wall]
+value = 2.0
+unit = "mm"
+status = "assumed"
+source = "REQ-MECH-003 1.6 mm min; FDM"
+
+[enclosure.cavity_half_width]
+value = 12.5
+unit = "mm"
+status = "assumed"
+source = "board 10.5 + 0.5 gap + 1.2 latch + 0.3 gap"
+
+[enclosure.standoff_height]
+value = 3.0
+unit = "mm"
+status = "assumed"
+source = "clearance under the board"
+
+[enclosure.rim_z]
+value = 7.0
+unit = "mm"
+status = "assumed"
+source = "above USB plug top 6.43 mm"
+
+[lid.latch_length]
+value = 9.0
+unit = "mm"
+status = "assumed"
+source = "cantilever length"
+
+[lid.latch_thickness]
+value = 1.2
+unit = "mm"
+status = "assumed"
+source = "cantilever root thickness"
+
+[lid.latch_hook]
+value = 0.8
+unit = "mm"
+status = "assumed"
+source = "hook depth = deflection"

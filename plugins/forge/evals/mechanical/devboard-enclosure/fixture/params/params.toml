@@ -1,0 +1,13 @@
+# Dev-board enclosure. Add every enclosure dimension here (value, unit, status, source).
+
+[board.length]
+value = 51.0
+unit = "mm"
+status = "datasheet"
+source = "docs/board.md"
+
+[board.width]
+value = 21.0
+unit = "mm"
+status = "datasheet"
+source = "docs/board.md"

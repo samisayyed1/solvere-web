@@ -1,0 +1,9 @@
+# The pinion is centred on the origin; cad/gear.py places the gear at the standard centre distance on +X.
+[part]
+name = "gear_mesh"
+module = "cad/gear.py"
+
+[[check]]
+family = "geometry.interference"
+requirement = "REQ-MECH-032"
+other_module = "cad/pinion.py"
