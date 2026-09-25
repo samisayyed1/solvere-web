@@ -48,6 +48,28 @@ def test_init_does_not_double_add_gitignore_lines_on_rerun(tmp_path, init_mod, t
     assert first == second
 
 
+def test_init_never_copies_gitignored_or_generated_template_files(
+    tmp_path, init_mod, templates_dir, forge_root
+):
+    """D3, review #2: same guarantee as new-project's scaffolder."""
+    stray = templates_dir / "out" / "verify" / "seeded_stray.json"
+    stray.parent.mkdir(parents=True, exist_ok=True)
+    stray.write_text("{}")
+    try:
+        target = tmp_path / "existing-repo-6"
+        target.mkdir()
+        report = init_mod.init(target, name="X", forge_root=forge_root, templates_dir=templates_dir)
+        assert not (target / "out").exists()
+        assert not any(p.name == "seeded_stray.json" for p in report.written)
+    finally:
+        stray.unlink()
+        for d in (stray.parent, stray.parent.parent):
+            try:
+                d.rmdir()
+            except OSError:
+                pass
+
+
 def test_init_multiple_existing_files_all_survive(tmp_path, init_mod, templates_dir, forge_root):
     target = tmp_path / "existing-repo-5"
     target.mkdir()

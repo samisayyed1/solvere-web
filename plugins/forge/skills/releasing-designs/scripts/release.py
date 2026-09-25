@@ -40,6 +40,7 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "lib"))
 
+from forge import evidence as _evidence  # noqa: E402
 from forge.checkresult import git_sha as _repo_git_sha  # noqa: E402
 from forge.tools import find_tool  # noqa: E402
 
@@ -84,12 +85,35 @@ def check_evidence_clean(project: Path) -> None:
     human hand-edited) and release.py never looked at it. This checks both
     of the release's evidence sources:
 
-    1. ``evidence/manifest.json``: any entry with ``status: "UNVERIFIED"``,
-       or any entry recording ``result: "fail"``, blocks the release.
+    1. ``evidence/manifest.json``.
     2. ``out/verify/*.json`` (``forge.check/1`` results): any check whose
        ``status`` is ``fail`` or ``error`` blocks the release, even if it
        was never rolled up into an evidence entry at all -- a release must
        never ship past a check nobody journaled.
+
+    **N7 (review #2).** The manifest is append-only, so a naive "any entry
+    ever fail/UNVERIFIED blocks release" refuses every project that ever had
+    a normal development failure, permanently -- even after the issue was
+    fixed and re-verified. Instead:
+
+    - **``forge verify`` run entries** (``recorded_by: "forge verify"``,
+      identified by their ``(domain, entrypoint)``): only the *newest* entry
+      of each ``(domain, entrypoint)`` is judged (manifest order, same
+      "newest wins" rule ``evidence.newest_verify_entry`` uses for the Stop
+      gate, M6/review #1). An older ``fail`` or ``UNVERIFIED`` run for that
+      same ``(domain, entrypoint)`` is **superseded** -- defined precisely as:
+      a later entry exists in the manifest for the *same* ``(domain,
+      entrypoint)`` that is itself the newest one and records a passing,
+      VERIFIED run. Concretely: only the newest run of each
+      ``(domain, entrypoint)`` can block; every earlier run of that same pair
+      is by definition superseded by it, whatever it says. This is exactly
+      "judge only the newest entry per (domain, entrypoint), and any
+      UNVERIFIED entry not yet superseded" from review #2's fix note.
+    - **Claim entries** (``forge evidence add``/``from-checks``, not a bound
+      ``forge verify`` run): still block on any ``fail`` or ``UNVERIFIED``
+      entry, unconditionally -- a claim is a one-off record, not a repeatable
+      run with a "newest of the series" to fall back to, so there is nothing
+      for it to be superseded by.
     """
     manifest_path = project / "evidence" / "manifest.json"
     if manifest_path.exists():
@@ -97,9 +121,35 @@ def check_evidence_clean(project: Path) -> None:
             manifest = json.loads(manifest_path.read_text())
         except (OSError, json.JSONDecodeError) as exc:
             raise ReleaseRefused(f"{manifest_path} is not valid JSON: {exc}") from exc
-        for entry in manifest.get("entries", []) if isinstance(manifest, dict) else []:
-            if not isinstance(entry, dict):
+        entries = manifest.get("entries", []) if isinstance(manifest, dict) else []
+
+        verify_pairs = sorted({
+            (e.get("domain"), e.get("entrypoint")) for e in entries
+            if isinstance(e, dict) and e.get("recorded_by") == "forge verify" and e.get("entrypoint")
+        })
+        for domain, entrypoint in verify_pairs:
+            newest = _evidence.newest_verify_entry(manifest, domain, entrypoint)
+            if newest is None:
                 continue
+            entry_id = newest.get("id", "?")
+            artifact = newest.get("artifact", "?")
+            if newest.get("status") == "UNVERIFIED":
+                raise ReleaseRefused(
+                    f"evidence/manifest.json: the newest `forge verify` run of {domain}/{entrypoint} "
+                    f"({entry_id!r}, {artifact}) is UNVERIFIED, and no later run of {domain}/{entrypoint} "
+                    "supersedes it -- ADR-001 SS11: UNVERIFIED evidence blocks releases. Re-run "
+                    "`forge verify` for it so the newest entry records a real, passing result."
+                )
+            if newest.get("result") == "fail":
+                raise ReleaseRefused(
+                    f"evidence/manifest.json: the newest `forge verify` run of {domain}/{entrypoint} "
+                    f"({entry_id!r}, {artifact}) failed -- fix the underlying issue and re-run "
+                    "`forge verify` before releasing."
+                )
+
+        for entry in entries:
+            if not isinstance(entry, dict) or entry.get("recorded_by") == "forge verify":
+                continue  # handled above, by (domain, entrypoint), newest-only
             entry_id = entry.get("id", "?")
             artifact = entry.get("artifact", "?")
             if entry.get("status") == "UNVERIFIED":

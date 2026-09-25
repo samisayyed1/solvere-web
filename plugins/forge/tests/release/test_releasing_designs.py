@@ -201,6 +201,111 @@ def test_builds_when_evidence_is_all_verified_and_passing(release_mod, project):
     assert manifest_path.exists()
 
 
+def _verify_run_entry(**overrides):
+    """A bound `forge verify` run entry (CONTRACTS.md §4), the shape N7 cares about."""
+    entry = _valid_evidence_entry(artifact="entrypoint:verifying-geometry")
+    entry.update({
+        "recorded_by": "forge verify", "entrypoint": "verifying-geometry",
+        "returncode": 0, "mode": "full", "scope": None, "evidence_sha256": {},
+    })
+    entry.update(overrides)
+    return entry
+
+
+def test_n7_fixed_then_fixed_project_can_release(release_mod, project):
+    """N7: a project that failed a `forge verify` run and was later fixed
+    (a newer, passing run of the *same* (domain, entrypoint)) must be
+    releasable -- the manifest is append-only, so the old failure is
+    permanent history, but it is superseded."""
+    proj, sha = project
+    _write_approval(proj, git_sha=sha, gate="G2")
+    _write_gate(proj, "G2", PASS_SIGNOFF)
+    _write_evidence(proj, [
+        _verify_run_entry(id="EV-0001", result="fail", status="VERIFIED"),
+        _verify_run_entry(id="EV-0002", result="pass", status="VERIFIED"),  # later, same (domain, entrypoint)
+    ])
+    rc = release_mod.main(["--project", str(proj), "--version", "0.1.0"])
+    assert rc == 0
+    assert (proj / "release" / "0.1.0" / "RELEASE-MANIFEST.json").exists()
+
+
+def test_n7_unresolved_failure_blocks_release(release_mod, project):
+    """N7: when the *newest* run of a (domain, entrypoint) is still failing,
+    release is refused (this did not change from before N7)."""
+    proj, sha = project
+    _write_approval(proj, git_sha=sha, gate="G2")
+    _write_gate(proj, "G2", PASS_SIGNOFF)
+    _write_evidence(proj, [
+        _verify_run_entry(id="EV-0001", result="pass", status="VERIFIED"),
+        _verify_run_entry(id="EV-0002", result="fail", status="VERIFIED"),  # newest: still failing
+    ])
+    rc = release_mod.main(["--project", str(proj), "--version", "0.1.0"])
+    assert rc == 1
+    assert not list((proj / "release").glob("0.1.0/RELEASE-MANIFEST.json"))
+
+
+def test_n7_unsuperseded_unverified_entry_blocks_release(release_mod, project):
+    """N7: an UNVERIFIED verify-run entry that is the *newest* of its
+    (domain, entrypoint) -- i.e. nothing later supersedes it -- still blocks."""
+    proj, sha = project
+    _write_approval(proj, git_sha=sha, gate="G2")
+    _write_gate(proj, "G2", PASS_SIGNOFF)
+    _write_evidence(proj, [
+        _verify_run_entry(id="EV-0001", result="pass", status="VERIFIED"),
+        _verify_run_entry(id="EV-0002", result="fail", status="UNVERIFIED"),  # newest: errored, unsuperseded
+    ])
+    rc = release_mod.main(["--project", str(proj), "--version", "0.1.0"])
+    assert rc == 1
+    assert not list((proj / "release").glob("0.1.0/RELEASE-MANIFEST.json"))
+
+
+def test_n7_superseded_unverified_entry_does_not_block(release_mod, project):
+    """The other half: an UNVERIFIED run that is *not* the newest of its
+    (domain, entrypoint) -- a later passing run of the same pair supersedes
+    it -- must not block release."""
+    proj, sha = project
+    _write_approval(proj, git_sha=sha, gate="G2")
+    _write_gate(proj, "G2", PASS_SIGNOFF)
+    _write_evidence(proj, [
+        _verify_run_entry(id="EV-0001", result="fail", status="UNVERIFIED"),
+        _verify_run_entry(id="EV-0002", result="pass", status="VERIFIED"),  # later: supersedes EV-0001
+    ])
+    rc = release_mod.main(["--project", str(proj), "--version", "0.1.0"])
+    assert rc == 0
+    assert (proj / "release" / "0.1.0" / "RELEASE-MANIFEST.json").exists()
+
+
+def test_n7_a_different_entrypoints_failure_does_not_block_another(release_mod, project):
+    """A failing newest run of one (domain, entrypoint) must not block release
+    over an unrelated, cleanly-passing (domain, entrypoint)."""
+    proj, sha = project
+    _write_approval(proj, git_sha=sha, gate="G2")
+    _write_gate(proj, "G2", PASS_SIGNOFF)
+    other = _verify_run_entry(id="EV-0002", entrypoint="checking-dfm",
+                              artifact="entrypoint:checking-dfm", domain="mech", result="pass")
+    _write_evidence(proj, [
+        _verify_run_entry(id="EV-0001", result="fail", status="VERIFIED"),  # verifying-geometry: still failing
+        other,
+    ])
+    rc = release_mod.main(["--project", str(proj), "--version", "0.1.0"])
+    assert rc == 1  # still refused: verifying-geometry's newest run is a fail, unrelated to checking-dfm
+
+
+def test_n7_claim_entries_still_block_unconditionally(release_mod, project):
+    """A non-verify-run claim entry (no `entrypoint`/`recorded_by`) has no
+    "newest of a series" to be superseded by, so any UNVERIFIED or fail claim
+    still blocks release regardless of other entries -- unchanged by N7."""
+    proj, sha = project
+    _write_approval(proj, git_sha=sha, gate="G2")
+    _write_gate(proj, "G2", PASS_SIGNOFF)
+    _write_evidence(proj, [
+        _verify_run_entry(id="EV-0001", result="pass", status="VERIFIED"),
+        _valid_evidence_entry(id="EV-0002", status="UNVERIFIED"),  # a hand-made claim, not a verify run
+    ])
+    rc = release_mod.main(["--project", str(proj), "--version", "0.1.0"])
+    assert rc == 1
+
+
 def test_signoff_detector_rejects_blank_and_accepts_filled(release_mod):
     filled_ok, decision = release_mod.gate_signed_off(f"# Gate G2\n{PASS_SIGNOFF}\n")
     assert filled_ok is True and decision == "PASS"
