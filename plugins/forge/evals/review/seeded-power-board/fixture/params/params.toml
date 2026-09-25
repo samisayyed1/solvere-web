@@ -1,0 +1,26 @@
+# NodeLink power board rev A (V, A, W, C/W)
+
+[power.vin]
+value = 12.0
+unit = "V"
+tol = { minus = 1.2, plus = 1.2 }
+status = "assumed"
+source = "customer spec"
+
+[power.rail_3v3_load]
+value = 0.300
+unit = "A"
+status = "assumed"
+source = "REQ-ELEC-001"
+
+[power.rail_1v8_load]
+value = 0.050
+unit = "A"
+status = "assumed"
+source = "REQ-ELEC-002"
+
+[thermal.ambient_max]
+value = 60
+unit = "C"
+status = "assumed"
+source = "REQ-ELEC-003"

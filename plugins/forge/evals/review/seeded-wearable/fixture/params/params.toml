@@ -1,0 +1,43 @@
+# PulseBand rev B -- single source of truth (mm, V, A, W unless stated)
+
+[housing.wall_thickness]
+value = 1.6
+unit = "mm"
+status = "assumed"
+source = "SLA Tough 2000; Formlabs design guide min unsupported wall 1.0 mm"
+
+[lid.window_frame_wall]
+value = 0.35
+unit = "mm"
+status = "assumed"
+source = "thin frame around the optical window to maximise the window aperture"
+
+[housing.battery_pocket]
+value = [41.0, 26.0, 6.0]
+unit = "mm"
+status = "assumed"
+source = "402530 cell 40 x 25 x 5.3 (EOL) plus clearance; pocket centred at origin, floor at z = 0"
+
+[housing.pcb_boss_positions]
+value = [[-17.0, 14.5], [17.0, 14.5], [18.0, 8.0], [-17.0, -14.5]]
+unit = "mm"
+status = "assumed"
+source = "PCB mounting holes, board centred over the cell"
+
+[housing.pcb_boss]
+value = [3.0, 6.0]
+unit = "mm"
+status = "assumed"
+source = "diameter, height above pocket floor"
+
+[housing.cable_exit_diameter]
+value = 3.2
+unit = "mm"
+status = "assumed"
+source = "3.0 mm OD tether cable + 0.2 mm clearance"
+
+[power.vbus]
+value = 5.0
+unit = "V"
+status = "datasheet"
+source = "charging cradle output"

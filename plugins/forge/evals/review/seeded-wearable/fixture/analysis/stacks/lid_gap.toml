@@ -1,0 +1,32 @@
+[stack]
+name = "lid_gap"
+description = "lid-to-housing gap, lid closed (REQ-MECH-003), tolerances are +/-3 sigma"
+
+[requirement]
+unit = "mm"
+gap_min = 0.05
+gap_max = 0.40
+
+[[contributor]]
+id = "A"
+description = "housing rim height"
+nominal = 8.00
+tol_plus = 0.10
+tol_minus = 0.10
+direction = 1
+
+[[contributor]]
+id = "B"
+description = "lid lip depth"
+nominal = 7.70
+tol_plus = 0.10
+tol_minus = 0.10
+direction = -1
+
+[[contributor]]
+id = "C"
+description = "gasket compressed thickness"
+nominal = 0.10
+tol_plus = 0.05
+tol_minus = 0.05
+direction = -1

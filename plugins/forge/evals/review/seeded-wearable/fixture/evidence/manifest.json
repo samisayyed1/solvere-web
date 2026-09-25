@@ -1,0 +1,6 @@
+{
+  "schema": "forge.evidence/1",
+  "entries": [
+    {"id": "EV-0003", "artifact": "firmware/power.c", "domain": "fw", "claim": "REQ-SW-001 >= 5 days per charge on 5 rev B units (TP-06)", "check_ids": ["tp06.battery_life"], "result": "pass", "level": "L4", "evidence_files": ["tests/reports/TP-06.csv"], "inputs_sha256": "9f1c0d2e", "tool_versions": {}, "git_sha": "a1b2c3d", "model": "", "timestamp": "2026-09-10T12:00:00Z", "status": "VERIFIED"}
+  ]
+}

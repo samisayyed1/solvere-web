@@ -1,0 +1,24 @@
+[stack]
+name = "lid_fit"
+description = "lid overhang to base outer wall, per side"
+
+[requirement]
+unit = "mm"
+gap_min = -1.0
+gap_max = 1.0
+
+[[contributor]]
+id = "A"
+description = "lid length 64.2"
+nominal = 64.20
+tol_plus = 0.10
+tol_minus = 0.10
+direction = 1
+
+[[contributor]]
+id = "B"
+description = "base outer length 64.2"
+nominal = 64.20
+tol_plus = 0.10
+tol_minus = 0.10
+direction = -1

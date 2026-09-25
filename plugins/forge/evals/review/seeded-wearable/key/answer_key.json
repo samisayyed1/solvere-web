@@ -1,0 +1,38 @@
+{
+  "schema": "forge.eval.answer_key/1",
+  "case": "review-seeded-wearable",
+  "findings_path": "out/review/findings.json",
+  "note": "Regexes are case-insensitive and use the JS/Python common subset. A finding matches an entry when its 'file' matches `file` and its whole flat object text matches both `locator` and `keywords`.",
+  "defects": [
+    {"id": "W1", "type": "wall_below_min", "summary": "lid.window_frame_wall 0.35 mm < SLA minimum wall (0.5 mm supported / 1.0 mm unsupported)",
+     "file": "params|cad/lid|mech-notes|lid", "locator": "window|frame", "keywords": "wall|thin|thick|minimum|min\\b|0\\.35"},
+    {"id": "W2", "type": "interference", "summary": "PCB boss at (18, 8) sits inside the 40 x 25 mm cell footprint and collides with the cell",
+     "file": "params|cad/housing|mech-notes|housing", "locator": "boss|standoff", "keywords": "interfer|collid|clash|intersect|overlap|contact|touch|inside|within|footprint|18"},
+    {"id": "W3", "type": "missing_strain_relief", "summary": "tether soldered straight to PCB pads through a plain hole; no boot/clamp/knot vs 20 N pull requirement",
+     "file": "cad/housing|mech-notes|params|REQ|requirements", "locator": "tether|cable|exit", "keywords": "strain|pull|relief|boot|clamp|anchor|20 ?N|solder"},
+    {"id": "W4", "type": "tolerance_stack", "summary": "lid_gap worst case is -0.05..0.45 mm (report dropped the gasket tolerance and passed a 0.00 mm min against a 0.05 mm limit)",
+     "file": "analysis|lid_gap|stack", "locator": "lid.?gap|stack|gasket|REQ-MECH-003", "keywords": "worst|tolerance|stack|gap|0\\.0|-0\\.05|0\\.45|gasket"},
+    {"id": "W5", "type": "regulator_dissipation", "summary": "U3 LDO 5.0->1.8 V at 150 mA dissipates 0.48 W, not 0.048 W; Tj ~141 C > 105 C",
+     "file": "ecad|power", "locator": "U3|TLV70018|1\\.8 ?V|1V8|LDO", "keywords": "dissipat|thermal|junction|temperature|heat|0\\.48|141|power loss|watt"},
+    {"id": "W6", "type": "missing_esd_path", "summary": "exposed charging pogo contacts J2 connect straight to U1 with no TVS/ESD clamp vs 8 kV requirement",
+     "file": "ecad|netlist|REQ|requirements", "locator": "J2|pogo|charging contact|VBUS", "keywords": "ESD|TVS|transient|8 ?kV|61000-4-2|clamp|discharge|surge"},
+    {"id": "W7", "type": "untested_requirement", "summary": "REQ-ELEC-002 (8 kV ESD, Verify: test) has no test in trace.json or the test plan",
+     "file": "trace|requirements|test", "locator": "REQ-ELEC-002", "keywords": "test|trace|untested|verif|coverage|no .*plan"},
+    {"id": "W8", "type": "unsupported_claim", "summary": "marketing claims medical-grade accuracy and AFib detection with no evidence (and a regulated medical claim)",
+     "file": "marketing|docs", "locator": "atrial|fibrillation|AFib|medical|stroke", "keywords": "claim|unsupported|evidence|substantiat|regulat|medical|FDA|MDR|clearance"}
+  ],
+  "acceptable": [
+    {"id": "W-A1", "summary": "REQ-MECH-003 gap limits vs worst-case output also fail the upper limit",
+     "file": "analysis|requirements", "locator": "0\\.45|upper|gap_max", "keywords": "gap|stack"},
+    {"id": "W-A2", "summary": "U3 fed from VBUS instead of VBAT while charging (root cause of the dissipation)",
+     "file": "ecad", "locator": "U3|1V8|1\\.8", "keywords": "VBAT|VBUS|input|headroom|source"}
+  ],
+  "decoys": [
+    {"id": "W-D1", "summary": "housing.wall_thickness 1.6 mm meets SLA minimum",
+     "file": "params|cad/housing", "locator": "housing\\.wall_thickness|housing wall|1\\.6 ?mm", "keywords": "thin|below|minimum|too"},
+    {"id": "W-D2", "summary": "U2 buck dissipation 0.066 W is correct",
+     "file": "ecad|power", "locator": "U2|TPS62840|buck|3\\.3 ?V", "keywords": "dissipat|thermal|junction|overheat"},
+    {"id": "W-D3", "summary": "5-day battery claim is backed by EV-0003 (L4)",
+     "file": "marketing|docs", "locator": "5-day|battery", "keywords": "unsupported|no evidence|unsubstantiat"}
+  ]
+}

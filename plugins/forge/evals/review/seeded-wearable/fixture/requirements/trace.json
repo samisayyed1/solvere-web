@@ -1,0 +1,14 @@
+{
+  "schema": "forge.trace/1",
+  "requirements": {
+    "REQ-SYS-001": {"design": ["firmware/hr.c"], "tests": ["TP-01"], "evidence": [], "status": "open"},
+    "REQ-MECH-001": {"design": ["cad/housing.py"], "tests": ["TP-02"], "evidence": [], "status": "open"},
+    "REQ-MECH-002": {"design": ["cad/housing.py"], "tests": ["TP-03"], "evidence": [], "status": "open"},
+    "REQ-MECH-003": {"design": ["analysis/stacks/lid_gap.toml"], "tests": ["TP-03"], "evidence": [], "status": "open"},
+    "REQ-MECH-004": {"design": ["cad/housing.py"], "tests": ["TP-04"], "evidence": [], "status": "open"},
+    "REQ-ELEC-001": {"design": ["ecad/power_tree.md"], "tests": ["TP-05"], "evidence": [], "status": "open"},
+    "REQ-ELEC-002": {"design": ["ecad/netlist.md"], "tests": [], "evidence": [], "status": "open"},
+    "REQ-ELEC-003": {"design": ["ecad/power_tree.md"], "tests": ["TP-05"], "evidence": [], "status": "open"},
+    "REQ-SW-001": {"design": ["firmware/power.c"], "tests": ["TP-06"], "evidence": ["EV-0003"], "status": "verified"}
+  }
+}

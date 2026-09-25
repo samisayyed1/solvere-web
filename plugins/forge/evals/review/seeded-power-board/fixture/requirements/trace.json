@@ -1,0 +1,11 @@
+{
+  "schema": "forge.trace/1",
+  "requirements": {
+    "REQ-ELEC-001": {"design": ["ecad/power_tree.md"], "tests": ["TP-01"], "evidence": [], "status": "open"},
+    "REQ-ELEC-002": {"design": ["ecad/power_tree.md"], "tests": ["TP-01"], "evidence": [], "status": "open"},
+    "REQ-ELEC-003": {"design": ["ecad/power_tree.md"], "tests": ["TP-02"], "evidence": [], "status": "open"},
+    "REQ-ELEC-004": {"design": ["ecad/netlist.md"], "tests": [], "evidence": [], "status": "open"},
+    "REQ-ELEC-005": {"design": ["ecad/netlist.md"], "tests": ["TP-04"], "evidence": [], "status": "open"},
+    "REQ-MECH-001": {"design": ["docs/assembly.md"], "tests": ["TP-05"], "evidence": [], "status": "open"}
+  }
+}

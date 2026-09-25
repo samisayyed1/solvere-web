@@ -1,0 +1,94 @@
+{
+  "schema": "forge.eval.answer_key/1",
+  "case": "review-seeded-power-board",
+  "findings_path": "out/review/findings.json",
+  "defects": [
+    {
+      "id": "P1",
+      "type": "regulator_dissipation",
+      "summary": "U1 dissipates (11.6-3.3) x 0.30 = 2.49 W, not 0.25 W: Tj ~209 C >> 125 C",
+      "file": "ecad|power",
+      "locator": "U1|AMS1117|3\\.3 ?V|3V3|LDO",
+      "keywords": "dissipat|thermal|junction|temperature|heat|2\\.4|2\\.5|209|watt|power loss"
+    },
+    {
+      "id": "P2",
+      "type": "missing_esd_path",
+      "summary": "RS485_A/B on external M12 J2 go straight to U3 with no TVS/ESD clamp vs 8 kV requirement",
+      "file": "ecad|netlist|REQ|requirements",
+      "locator": "J2|RS-?485|RS485_[AB]|M12|U3|MAX3485",
+      "keywords": "ESD|TVS|transient|8 ?kV|61000-4-2|clamp|surge|discharge"
+    },
+    {
+      "id": "P3",
+      "type": "untested_requirement",
+      "summary": "REQ-ELEC-004 (reverse polarity, Verify: test) has no test",
+      "file": "trace|requirements|test",
+      "locator": "REQ-ELEC-004|reverse",
+      "keywords": "test|trace|untested|verif|coverage|no .*plan"
+    },
+    {
+      "id": "P4",
+      "type": "unsupported_claim",
+      "summary": "'Certified to EN 61000-6-2/-6-4' with no test evidence (and certification needs L5)",
+      "file": "product|docs",
+      "locator": "EN ?61000|certif|immunity|emission",
+      "keywords": "claim|unsupported|evidence|substantiat|certif|no test|L5"
+    },
+    {
+      "id": "P5",
+      "type": "other",
+      "summary": "U1 output C3 is 1 uF ceramic; AMS1117 needs >= 22 uF tantalum (ESR >= 0.3 ohm) for stability",
+      "file": "ecad|power|datasheet",
+      "locator": "C3|output cap|U1|AMS1117",
+      "keywords": "stabil|oscillat|22 ?uF|tantalum|ESR|capacit"
+    },
+    {
+      "id": "P6",
+      "type": "missing_strain_relief",
+      "summary": "12 V pigtail soldered straight into J1 pads through a loose grommet; nothing takes the 20 N pull",
+      "file": "assembly|docs|REQ|requirements",
+      "locator": "pigtail|J1|grommet|cable|wire",
+      "keywords": "strain|pull|relief|clamp|tie|anchor|20 ?N|solder"
+    }
+  ],
+  "acceptable": [
+    {
+      "id": "P-A1",
+      "summary": "D1 Schottky drop/efficiency or U1 dropout margin comments tied to the U1 thermal problem",
+      "file": "ecad|power",
+      "locator": "D1|U1",
+      "keywords": "buck|switching|dropout|efficien"
+    },
+    {
+      "id": "P-A2",
+      "summary": "unidirectional TVS D2 sits before D1, so a reversed supply forward-biases D2 (REQ-ELEC-004 not actually met)",
+      "file": "ecad|netlist|power|REQ|requirements",
+      "locator": "D2|SMBJ|TVS",
+      "keywords": "reverse|polarity|forward"
+    }
+  ],
+  "decoys": [
+    {
+      "id": "P-D1",
+      "summary": "U2 1.8 V LDO dissipation 0.075 W is correct",
+      "file": "ecad|power",
+      "locator": "U2|TLV70018|1\\.8 ?V|1V8",
+      "keywords": "dissipat|thermal|junction|overheat"
+    },
+    {
+      "id": "P-D2",
+      "summary": "input TVS D2 is present",
+      "file": "ecad|netlist|power",
+      "locator": "D2|SMBJ|VIN_RAW|J1",
+      "keywords": "no TVS|missing TVS|unprotected input"
+    },
+    {
+      "id": "P-D3",
+      "summary": "reverse polarity protection exists (D1 series Schottky)",
+      "file": "ecad|netlist|power|product",
+      "locator": "reverse|D1|polarity",
+      "keywords": "no reverse|missing reverse|unprotected|not protected"
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+# SensorHub rev A (mm unless stated). Base floor top is z = 0.
+
+[enclosure.base_wall]
+value = 2.0
+unit = "mm"
+status = "assumed"
+source = "FDM PETG; R5d min unsupported wall 1.2 mm"
+
+[enclosure.lid_wall]
+value = 0.8
+unit = "mm"
+status = "assumed"
+source = "thin lid to save print time"
+
+[pcb.standoff_height]
+value = 4.0
+unit = "mm"
+status = "assumed"
+source = "boss height above base floor"
+
+[pcb.thickness]
+value = 1.6
+unit = "mm"
+status = "datasheet"
+source = "PCB fab stackup"
+
+[j1.height]
+value = 3.26
+unit = "mm"
+status = "datasheet"
+source = "USB-C receptacle GCT USB4105 drawing p.1, height above PCB"
+
+[lid.inner_ceiling_z]
+value = 8.5
+unit = "mm"
+status = "assumed"
+source = "lid underside height above base floor when closed"
+
+[lid.screw_hole_diameter]
+value = 3.4
+unit = "mm"
+status = "assumed"
+source = "M3 clearance"
+
+[lid.screw_hole_edge_offset]
+value = 2.5
+unit = "mm"
+status = "assumed"
+source = "hole centre to lid outer edge, corners"
+
+[base.cable_exit_diameter]
+value = 5.0
+unit = "mm"
+status = "assumed"
+source = "4.5 mm OD DC cable"
+
+[base.pcb_slot_width]
+value = 60.20
+unit = "mm"
+tol = { minus = 0.10, plus = 0.10 }
+status = "assumed"
+source = "printed slot"
+
+[pcb.length]
+value = 60.00
+unit = "mm"
+tol = { minus = 0.15, plus = 0.15 }
+status = "datasheet"
+source = "PCB fab routing tolerance +/-0.15 mm"
