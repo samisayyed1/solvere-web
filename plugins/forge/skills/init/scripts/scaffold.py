@@ -33,6 +33,7 @@ _DEFAULT_FORGE_ROOT = _PLUGIN_ROOT.parent.parent  # repo root
 _DEFAULT_TEMPLATES = _DEFAULT_FORGE_ROOT / "templates" / "project"
 sys.path.insert(0, str(_PLUGIN_ROOT / "lib"))
 from forge.gitbaseline import BaselineError, ensure_baseline  # noqa: E402
+from forge.template_files import list_template_files  # noqa: E402
 
 _PLACEHOLDER_NAME = "{{PROJECT_NAME}}"
 _PLACEHOLDER_ROOT = "${FORGE_ROOT}"
@@ -113,12 +114,12 @@ def init(target: Path, *, name: str | None = None, forge_root: Path = _DEFAULT_F
     project_name = name or target.name
     report = InitReport()
 
-    for src in sorted(templates_dir.rglob("*")):
-        rel = src.relative_to(templates_dir)
+    # D3 (review #2): only files the template actually tracks (or, outside
+    # git, that aren't in the generated/cache exclude list) are ever copied
+    # -- never out/, __pycache__/, .pytest_cache/ etc. See lib/forge/template_files.py.
+    for rel in list_template_files(templates_dir):
+        src = templates_dir / rel
         dst = target / rel
-        if src.is_dir():
-            dst.mkdir(parents=True, exist_ok=True)
-            continue
         dst.parent.mkdir(parents=True, exist_ok=True)
 
         if src.name in _MERGE_FILES:

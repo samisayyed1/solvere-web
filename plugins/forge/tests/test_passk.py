@@ -53,13 +53,14 @@ def test_compute_end_to_end_matches_known_answer():
     assert report["summary"]["cases_scored"] == 1
 
 
-def test_dropped_runs_error_aborted_partial_skipped_paid_graders():
+def test_dropped_runs_aborted_partial_skipped_paid_graders_and_infra_errors():
     result = _agg([{
         "name": "drops",
         "arms": {"with": [
             {"passed": True},
             {"passed": True},
-            {"passed": False, "error": "timeout"},
+            {"passed": False, "error": "timed out after 300s"},   # agent's failure: counted
+            {"passed": False, "error": "API error: 429 rate limit exceeded"},  # infrastructure: dropped
             {"passed": True, "aborted": True},
             {"passed": False, "partial": True},
             {"passed": False, "skippedPaidGraders": True},
@@ -67,9 +68,11 @@ def test_dropped_runs_error_aborted_partial_skipped_paid_graders():
     }])
     report = passk.compute(result, 2)
     row = report["cases"][0]
-    # only the first two runs are counted
-    assert (row["n"], row["c"]) == (2, 2)
-    assert row["pass_at_k"] == pytest.approx(1.0)
+    assert (row["n"], row["c"]) == (3, 2)
+    assert row["arms"]["with"]["dropped"] == {
+        "infrastructure_error": 1, "aborted": 1, "partial": 1, "skipped_paid_graders": 1}
+    assert row["pass_at_k"] == pytest.approx(1.0)          # 1 - C(1,2)/C(3,2) = 1
+    assert row["pass_pow_k"] == pytest.approx(1 / 3)       # C(2,2)/C(3,2)
 
 
 def test_insufficient_runs_reported_not_silently_dropped():

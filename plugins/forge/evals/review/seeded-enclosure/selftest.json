@@ -737,7 +737,9 @@
     {
      "tool": "Edit",
      "input": {
-      "file_path": "/w/params/params.toml"
+      "file_path": "/w/params/params.toml",
+      "old_string": "a",
+      "new_string": "b"
      }
     },
     {

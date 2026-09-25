@@ -1,0 +1,15 @@
+{
+  "schema": "forge.pugh-criteria/1",
+  "agreed_by": "product owner, in chat, 2026-09-25, before any scoring",
+  "datum": {"name": "datum-plain-puck", "description": "The bare MR60FDA2 kit in a plain two-piece printed puck, screwed to the ceiling through its base."},
+  "criteria": [
+    {"name": "radar_rf_performance", "weight": 0.20},
+    {"name": "printability_manufacturability", "weight": 0.20},
+    {"name": "appearance", "weight": 0.15},
+    {"name": "install_and_removal", "weight": 0.15},
+    {"name": "cost_vs_30usd_bom", "weight": 0.15},
+    {"name": "cable_strain_and_thermal_robustness", "weight": 0.10},
+    {"name": "bathroom_variant_readiness", "weight": 0.05}
+  ],
+  "sensitivity": "each weight +/-25%, per exploring-concepts"
+}

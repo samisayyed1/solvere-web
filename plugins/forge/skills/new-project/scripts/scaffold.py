@@ -30,6 +30,7 @@ _SKILL_DIR = _SCRIPT.parent.parent            # plugins/forge/skills/new-project
 _PLUGIN_ROOT = _SKILL_DIR.parent.parent        # plugins/forge
 sys.path.insert(0, str(_PLUGIN_ROOT / "lib"))
 from forge.gitbaseline import BaselineError, ensure_baseline  # noqa: E402
+from forge.template_files import list_template_files  # noqa: E402
 _DEFAULT_FORGE_ROOT = _PLUGIN_ROOT.parent.parent  # repo root
 _DEFAULT_TEMPLATES = _DEFAULT_FORGE_ROOT / "templates" / "project"
 
@@ -58,13 +59,13 @@ def _substitute(text: str, *, name: str, forge_root: Path) -> str:
 
 
 def _copy_and_substitute(templates_dir: Path, target: Path, *, name: str, forge_root: Path) -> list[Path]:
+    # D3 (review #2): only files the template actually tracks (or, outside
+    # git, that aren't in the generated/cache exclude list) are ever copied
+    # -- never out/, __pycache__/, .pytest_cache/ etc. See lib/forge/template_files.py.
     written: list[Path] = []
-    for src in sorted(templates_dir.rglob("*")):
-        rel = src.relative_to(templates_dir)
+    for rel in list_template_files(templates_dir):
+        src = templates_dir / rel
         dst = target / rel
-        if src.is_dir():
-            dst.mkdir(parents=True, exist_ok=True)
-            continue
         dst.parent.mkdir(parents=True, exist_ok=True)
         if _is_text_file(src):
             text = src.read_text(encoding="utf-8")

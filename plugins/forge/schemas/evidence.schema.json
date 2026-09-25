@@ -73,7 +73,8 @@
         "result": {
           "enum": [
             "pass",
-            "fail"
+            "fail",
+            "na"
           ]
         },
         "level": {

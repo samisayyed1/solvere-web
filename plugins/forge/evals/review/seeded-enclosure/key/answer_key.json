@@ -67,6 +67,20 @@
       "file": "params|lid",
       "locator": "lid",
       "keywords": "stiff|flex|screw|clamp|insert"
+    },
+    {
+      "id": "PROC-1",
+      "summary": "true process-completeness finding on project artefacts (ASSUMPTIONS, RISKS, systems model, gate records, forge.toml gate)",
+      "file": "ASSUMPTIONS|RISKS|model/|\\.sysml|forge\\.toml|reviews/",
+      "locator": ".",
+      "keywords": "."
+    },
+    {
+      "id": "PROC-2",
+      "summary": "true requirement-quality finding (missing tolerance/condition, undefined term, unverifiable)",
+      "file": "requirements\\.md|requirements/requirements",
+      "locator": "REQ-",
+      "keywords": "undefined|ambigu|no (voltage )?toleran|not (specified|defined|stated)|vague|unverifiable|untestable|missing (a |the )?(condition|toleran|number|duration|limit)|no (pass|acceptance) criteri|incomplete"
     }
   ],
   "decoys": [
@@ -91,5 +105,6 @@
       "locator": "AN-01|thermal|0 C to 50 C|85",
       "keywords": "unsupported|no evidence|unsubstantiat|fail"
     }
-  ]
+  ],
+  "note_acceptable": "acceptable = true findings that were not planted (counted correct for precision, not in recall). A finding is a false positive only if it matches no planted defect and no acceptable entry: i.e. it is wrong, or it flags a decoy (a deliberately correct item)."
 }

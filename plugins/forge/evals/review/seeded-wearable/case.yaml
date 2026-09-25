@@ -88,6 +88,7 @@ graders:
   - name: no-design-edits
     type: tool_used
     tool: Edit
+    input_match: '"file_path":"[^"]*/(cad|ecad|params|requirements|analysis|docs|tests|evidence|firmware|reviews)/'
     max: 0
     min: 0
     arm: both

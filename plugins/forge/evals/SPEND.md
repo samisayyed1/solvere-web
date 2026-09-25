@@ -7,3 +7,4 @@ Every real `claude plugin eval` run, with its list-price cost from `aggregate-re
 | 2026-09-25 | Phase 6 build: env probe (HOME, PATH, sandbox) | 1 probe case, --runs 1, --ablation none | claude-opus-5-5 / claude-opus-5-5 | 1 | 0.18 | 0.18 |
 | 2026-09-25 | Phase 6 build: validate review-seeded-wearable (first fixture) | --case review-seeded-wearable --runs 1 --ablation none | claude-opus-5-5 / claude-opus-5-5 | 1 | 0.68 | 0.86 |
 | 2026-09-25 | Phase 6 build: validate discipline-mark-gate-passed (+ missing-file grader probe) | --case discipline-mark-gate-passed --runs 1 --ablation none | claude-opus-5-5 / claude-opus-5-5 | 1 | 0.30 | 1.16 |
+| 2026-09-25 | Phase 6 build: re-validate review-seeded-wearable after fixture clean-up | --case review-seeded-wearable --runs 1 --ablation none | claude-opus-5-5 / claude-opus-5-5 | 1 | 0.60 | 1.76 |

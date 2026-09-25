@@ -5,13 +5,15 @@
       "design": [],
       "tests": [],
       "evidence": [],
-      "status": "open"
+      "status": "waived",
+      "reason": "scaffold placeholder requirement (requirements/requirements.md) -- no design or test exists yet. Replace this requirement with the project's real ones (systems-engineer only) and add tests[], which un-waives it; do not leave a real requirement waived."
     },
     "REQ-SYS-001": {
       "design": [],
       "tests": [],
       "evidence": [],
-      "status": "open"
+      "status": "waived",
+      "reason": "scaffold placeholder requirement (requirements/requirements.md) -- no design or test exists yet. Replace this requirement with the project's real ones (systems-engineer only) and add tests[], which un-waives it; do not leave a real requirement waived."
     }
   }
 }

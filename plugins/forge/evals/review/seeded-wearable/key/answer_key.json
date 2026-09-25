@@ -97,6 +97,27 @@
       "file": "evidence|manifest",
       "locator": "EV-0003",
       "keywords": "provenance|git|sha|trace|hash"
+    },
+    {
+      "id": "PROC-1",
+      "summary": "true process-completeness finding on project artefacts (ASSUMPTIONS, RISKS, systems model, gate records, forge.toml gate)",
+      "file": "ASSUMPTIONS|RISKS|model/|\\.sysml|forge\\.toml|reviews/",
+      "locator": ".",
+      "keywords": "."
+    },
+    {
+      "id": "PROC-2",
+      "summary": "true requirement-quality finding (missing tolerance/condition, undefined term, unverifiable)",
+      "file": "requirements\\.md|requirements/requirements",
+      "locator": "REQ-",
+      "keywords": "undefined|ambigu|no (voltage )?toleran|not (specified|defined|stated)|vague|unverifiable|untestable|missing (a |the )?(condition|toleran|number|duration|limit)|no (pass|acceptance) criteri|incomplete"
+    },
+    {
+      "id": "W-A5",
+      "summary": "pcb.afe_top_height is itself a sum of toleranced parts; the stack should expand it",
+      "file": "params|analysis|stack",
+      "locator": "afe_top_height|boss|PCB",
+      "keywords": "toleran|stack|sum|contributor"
     }
   ],
   "decoys": [
@@ -121,5 +142,6 @@
       "locator": "5-day|battery",
       "keywords": "unsupported|no evidence|unsubstantiat"
     }
-  ]
+  ],
+  "note_acceptable": "acceptable = true findings that were not planted (counted correct for precision, not in recall). A finding is a false positive only if it matches no planted defect and no acceptable entry: i.e. it is wrong, or it flags a decoy (a deliberately correct item)."
 }

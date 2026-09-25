@@ -34,6 +34,8 @@ Standard library only -- this module runs under the plain ``forge`` CLI
 from __future__ import annotations
 
 import argparse
+import inspect
+import json
 import os
 import subprocess
 import sys
@@ -105,6 +107,18 @@ def _snapshot_verify_dir(project: Path) -> dict[Path, int]:
     return {p: p.stat().st_mtime_ns for p in out_dir.glob("*.json")}
 
 
+def _is_check_result(path: Path) -> bool:
+    """True if ``path`` parses as a ``forge.check/1`` result (CONTRACTS.md
+    §3). Used only to tell a real check result apart from other JSON an
+    entrypoint may drop in ``out/verify/`` (there should be none, but this
+    mirrors ``evidence._read_check``'s own filter defensively)."""
+    try:
+        data = json.loads(path.read_text())
+    except (OSError, UnicodeDecodeError, ValueError):
+        return False
+    return isinstance(data, dict) and data.get("schema") == "forge.check/1"
+
+
 def _run_entrypoint(skill: str, *, plugin_root: Path, forge_python: Path, project: Path,
                      changed: list[str] | None, fast: bool) -> dict[str, Any]:
     script = plugin_root / "skills" / skill / "scripts" / "verify.py"
@@ -135,6 +149,14 @@ def _run_entrypoint(skill: str, *, plugin_root: Path, forge_python: Path, projec
     reason = None
     if status == "ERROR":
         reason = f"{skill} verify.py exited {proc.returncode}"
+    elif status == "PASS" and not any(_is_check_result(p) for p in touched):
+        # D1 (vacuous pass, review #2): an entrypoint that exits 0 without
+        # writing a single forge.check/1 result (e.g. an empty cad/) verified
+        # nothing. It must never be reported or recorded as a pass -- it is
+        # its own status, N/A ("no inputs"): never a green result to cite,
+        # and never counted toward last-green (see _record_last_green).
+        status = "NA"
+        reason = f"{skill} verify.py exited 0 but wrote no out/verify/*.json check result (nothing to verify)"
     return {
         "skill": skill, "status": status, "returncode": proc.returncode,
         "stdout": proc.stdout, "stderr": proc.stderr, "check_files": touched, "reason": reason,
@@ -198,11 +220,21 @@ def _run_blocks(toml_data: dict[str, Any], *, plugin_root: Path, forge_python: P
             if res["status"] == "SKIP" or "returncode" not in res and res["status"] != "ERROR":
                 continue  # the entrypoint does not exist: nothing ran, nothing to record
             try:
-                res["evidence_id"] = evidence.add_verify_entry(
-                    project, domain=domain, entrypoint=skill, returncode=res.get("returncode", 2),
+                add_kwargs: dict[str, Any] = dict(
+                    domain=domain, entrypoint=skill, returncode=res.get("returncode", 2),
                     check_files=res.get("check_files", []),
                     patterns=_patterns_for(toml_data, domain, skill), scope=scope, fast=fast,
                     rung=block.get("rung"), model=os.environ.get("FORGE_MODEL"), files=files)
+                if res["status"] == "NA" and "na" in inspect.signature(evidence.add_verify_entry).parameters:
+                    # Interface note (D1): once evidence.add_verify_entry grows an
+                    # ``na: bool = False`` kwarg, this starts recording the run
+                    # with result="na" instead of "pass" -- see the report for the
+                    # exact change. Until then this degrades to today's behaviour
+                    # (recorded as a passing [SKIP] claim), which is why the N/A
+                    # status is still enforced independently here for printing and
+                    # last-green, regardless of what evidence.py does with it.
+                    add_kwargs["na"] = True
+                res["evidence_id"] = evidence.add_verify_entry(project, **add_kwargs)
             except (evidence.EvidenceError, OSError, ValueError) as exc:
                 res["status"] = "ERROR"
                 res["reason"] = f"evidence for {domain}/{skill} not recorded: {exc}"
@@ -213,7 +245,14 @@ def _run_blocks(toml_data: dict[str, Any], *, plugin_root: Path, forge_python: P
 def _record_last_green(toml_data: dict[str, Any], project: Path, results: list[dict[str, Any]],
                        fast: bool) -> list[str]:
     """Set last-green for every domain whose every entrypoint ran here, in
-    full mode and without a --changed scope, and passed."""
+    full mode and without a --changed scope, and passed -- or was N/A (D1:
+    nothing to check is not a failure).
+
+    A domain whose entrypoints are *all* N/A is deliberately excluded: an
+    empty domain (no inputs at all) has nothing green to cite. Without this,
+    a domain nobody ever put a file into would get last-green recorded from
+    ``forge verify --all`` on a bare scaffold, and that SHA could then be
+    misread elsewhere as "this domain was verified" when nothing was."""
     if fast:
         return []
     head = _head(project)
@@ -227,11 +266,20 @@ def _record_last_green(toml_data: dict[str, Any], project: Path, results: list[d
         ran = {(r["domain"], r["skill"]): r for r in results if r.get("domain") == domain}
         if not needed or set(ran) != needed:
             continue
-        if all(r["status"] == "PASS" and r.get("evidence_id") for r in ran.values()):
-            state.set_last_green(project, domain, sha=head,
-                                 evidence_ids=[r["evidence_id"] for r in ran.values()])
-            green.append(domain)
+        statuses = {r["status"] for r in ran.values()}
+        if statuses - {"PASS", "NA"}:
+            continue  # any FAIL/ERROR (or an entrypoint that didn't run): never green
+        if "PASS" not in statuses:
+            continue  # every entrypoint was N/A: nothing was actually verified (D1)
+        if not all(r.get("evidence_id") for r in ran.values()):
+            continue
+        state.set_last_green(project, domain, sha=head,
+                             evidence_ids=[r["evidence_id"] for r in ran.values()])
+        green.append(domain)
     return green
+
+
+_PRINT_LABELS = {"NA": "N/A"}  # internal status -> printed label (D1: never printed as PASS)
 
 
 def _print_report(results: list[dict[str, Any]]) -> None:
@@ -239,7 +287,8 @@ def _print_report(results: list[dict[str, Any]]) -> None:
         print("[SKIP] forge verify: nothing matched (no [[verify]] blocks, or nothing under --changed)")
         return
     for r in results:
-        line = f"[{r['status']}] {r.get('domain', '?')}/{r['skill']} ({r.get('rung', '?')})"
+        label = _PRINT_LABELS.get(r["status"], r["status"])
+        line = f"[{label}] {r.get('domain', '?')}/{r['skill']} ({r.get('rung', '?')})"
         if r.get("reason"):
             line += f" -- {r['reason']}"
         print(line)

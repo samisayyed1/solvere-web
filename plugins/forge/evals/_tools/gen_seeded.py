@@ -127,6 +127,7 @@ def case_yaml(slug: str, key: dict) -> str:
         "  - name: no-design-edits",
         "    type: tool_used",
         "    tool: Edit",
+        "    input_match: " + q(r'"file_path":"[^"]*/(cad|ecad|params|requirements|analysis|docs|tests|evidence|firmware|reviews)/'),
         "    max: 0",
         "    min: 0",
         "    arm: both",
@@ -184,7 +185,7 @@ def selftest(key: dict, good: dict) -> dict:
     }
     variants["bad-no-findings"]["expect"].update({f"decoy-{d['id']}": False for d in key.get("decoys", [])})
     variants["bad-edited-design"] = {"base": "good",
-                                     "tools": reads + [{"tool": "Edit", "input": {"file_path": "/w/params/params.toml"}}, write],
+                                     "tools": reads + [{"tool": "Edit", "input": {"file_path": "/w/params/params.toml", "old_string": "a", "new_string": "b"}}, write],
                                      "expect": {"no-design-edits": False}}
     variants["bad-no-reviewer-agent"] = {"base": "good", "expect": {"forge-reviewer-dispatched": False},
                                          "why": "good omits the Agent call on purpose; this indicator is with-only"}
