@@ -78,6 +78,52 @@
 - Desktop-bundled Claude Code is 2.1.280, which gives a doctor warning only.
 - Peer sessions "Fix conftest.py module-name collisions" and "Fix forge-python symlink" duplicate fixes that are already in this worktree. **Don't merge them.**
 
+## STOPPED 2026-09-25 ~11:00 UTC: cloud credit exhausted (session spend $218.11 of the $218.88 limit)
+
+The last two Phase 3 finishers (core, mech) were stopped mid-task. Their partial edits are in the last WIP commit, so **the tree is not green**. Resume on the Mac in this order:
+
+**Done and committed**
+- **Linux toolchain:** installer path with the same pins (ADR §8.L); doctor 31 pass / 0 fail; MCP lock rewritten (owner-approved).
+- **Phase 3:**
+  - review #1 C1–C3, M1–M9 and m1–m5 are fixed;
+  - reviews #2 (FAIL) and the can't-fail sweep are saved in `docs/reviews/`;
+  - finished by the finishers: S1–S5, S9, S10, S13, S15, S16, S20, K1 (mapping-compliance via capturing-failures, `docs/failures/FAIL-0001..4`), and the eval defects "EARS units" and "tscircuit ERC noise".
+- **G0:** complete; owner answers in `docs/intake/`.
+- **G1:** complete. The owner chose **Concept D** (`products/solvere-sense/concepts/decision.md`).
+- **Evals:** the suite is built (26 cases). The Mac commands are in the section above; the evals have not been run.
+
+**Left for the Mac** (Sonnet for building, Opus only for the final check). The target for each item is in `docs/reviews/phase3-review-2*.md`:
+1. **Finish Phase 3, core:**
+   - N1 (ask on deleting forge.toml, fail closed);
+   - N3, N5, N6, N9, N11 (`.forge/base_sha`), N12, N15;
+   - S18 (params lint: page ref, units, numeric value, evidence ids);
+   - S19 (evidence status per entrypoint);
+   - D1 (N/A status end to end);
+   - D3 (scaffolder skips gitignored files);
+   - D4 (`forge sync-template`);
+   - N4 (judge `git -O`);
+   - ADR §16: threat-model paragraph plus residuals N2 and N8.
+2. **Finish Phase 3, mech:** S6, S7, S8, S11, S12, S14, S17, and the eval defect "params edits never re-checked" (verifying-geometry and checking-dfm `--changed params/params.toml`, plus unique out/verify filenames per spec).
+3. **Then:**
+   - the full suite, run once: `~/.forge/bin/forge-python -m pytest plugins/forge/tests -q -p no:cacheprovider --ignore=plugins/forge/tests/evals`;
+   - `forge lint all`;
+   - `claude plugin validate`;
+   - one short read-only Opus re-check limited to the fixed items. Close Phase 3.
+4. **Phase 5:** verify ladder (`docs/standards/verification-ladder.md`, a fixture project, seeded failures per rung). It was not started, because its agent was lost.
+5. **G2 for Concept D:** CAD, geometry, DFM, tolerances (including the antenna-gap stack across the bayonet), FEA, drawings, renders, a BOM with dated prices, and a gate review with the sign-off left BLANK. Carry-overs are in `concepts/decision.md`.
+6. **Evals:** smoke, then full, on the Mac (commands above). Then `forge passk`, seeded recall/precision, and `evals/BASELINE.md`.
+7. **Phases 7–8:**
+   - the weekly routine, written but NOT enabled (ask the owner first);
+   - acceptance;
+   - README;
+   - the final report (proven, unproven, top-5 risks).
+
+**Owner to-dos**
+- `rm /kicad-demos` on the cloud box (a stray symlink; a safety check stopped the agent removing it).
+- Approve `forge lock files --write`.
+- Confirm dropping the kit's own printed case (raised by concept B; relevant only if B is revisited).
+- Q-13 (the in-box cable) and Q-17 (the named qualified human) are still open.
+
 ## Evals: run on the owner's Mac (not in the cloud)
 
 The cloud host can't run Claude Code's sandboxed Bash as root, and `claude plugin eval` refuses `enableWeakerNestedSandbox` by design (details in ADR §10). So the evals run on the Mac, under the owner's plan limits or API key. Run each block in order and check the noted output before the next.

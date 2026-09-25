@@ -9,8 +9,8 @@ allowed-tools: Read, Write, Edit, Grep, Glob, Bash(${CLAUDE_SKILL_DIR}/scripts/v
 # Costing the BOM
 
 **Non-negotiable rules, read first:**
-1. Every line item needs an MPN, a manufacturer, a lifecycle status and at least one volume-tier price — a BOM line with no price cannot be rolled up and is not done.
-2. A part with no alternate listed is single-sourced. A part not `Active` (NRND, EOL, Obsolete, Preview) carries lifecycle risk. Both are gate-blocking unless `risk_note` records the accepted mitigation (an alternate qualification plan, a last-time-buy, an owner and date) — this mirrors DFMEA action tracking (`analyzing-risk`): a flag with no owner is not a managed risk.
+1. Every line item needs a non-blank MPN, a manufacturer, a lifecycle status, a non-blank lead time and at least one volume-tier price — a BOM line with no price cannot be rolled up and is not done. No price may be negative. `ref_des` must be unique across lines (a duplicate double-counts cost/qty).
+2. A part with no *real* alternate listed is single-sourced. Listing the part's own MPN as its `alternates` doesn't count — `verify.py` FAILs that as hiding the risk it's supposed to disclose (a genuinely different alternate, or an empty field covered by `risk_note`, are the only two honest states). A part not `Active` (NRND, EOL, Obsolete, Preview) carries lifecycle risk. Both are gate-blocking unless `risk_note` records the accepted mitigation (an alternate qualification plan, a last-time-buy, an owner and date) — this mirrors DFMEA action tracking (`analyzing-risk`): a flag with no owner is not a managed risk.
 3. Never silently invent a price, MPN or lifecycle status. If the datasheet or distributor page is unread, say so and ask, or mark the field clearly incomplete — don't fabricate a plausible-looking number.
 4. This skill never makes a compliance claim (RoHS/REACH/CE) about a part — that is `mapping-compliance`'s job, from the same BOM data.
 

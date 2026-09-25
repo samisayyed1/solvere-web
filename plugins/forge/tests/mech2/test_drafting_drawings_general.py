@@ -477,6 +477,10 @@ def test_FAILS_when_views_do_not_fit_the_sheet(project):
     ('id = "width"\nparam = "bracket.width"\nrequirement = "REQ-MECH-004"\nview = "top"',
      'id = "width"\nparam = "bracket.width"\nrequirement = "REQ-MECH-004"\nview = "front"', "axis not in view plane"),
     ('tol = { plus = 0.1, minus = 0.1 }', 'tol = { plus = 0.1, minus = 0.1 }\ndecimals = 1', "too few decimals for 0.01 mm"),
+    # S14: a negative tol.minus (or .plus) must FAIL even when plus+minus still nets
+    # positive -- 0.3 + (-0.1) = 0.2 > 0 used to slip past the old plus+minus <= 0 check.
+    ('tol = { plus = 0.1, minus = 0.1 }', 'tol = { plus = 0.3, minus = -0.1 }', "negative tolerance magnitude"),
+    ('scale = "1:1"', 'scale = "1:0"', "zero in scale"),
     ('param = "bracket.height"', 'param = "bracket.no_such_key"', "unknown params key"),
     ('views = ["front", "top", "right", "iso"]', 'views = ["front", "top", "iso"]', "view not placed on a sheet"),
     ('tol = { plus = 0.1, minus = 0.1 }', 'tol = { plus = 0.1, minus = 0.1 }\ndecimals = "x"', "non-numeric decimals"),

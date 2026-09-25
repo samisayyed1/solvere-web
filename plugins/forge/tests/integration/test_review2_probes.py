@@ -250,7 +250,10 @@ def test_n2_assume_unchanged_after_green_is_still_gated(green, flag):
     assert bash(project, f"git update-index {flag} cad/dims.py").decision == "deny"
     sh(project, f"git update-index {flag} cad/dims.py")
     (project / "cad" / "dims.py").write_text("W = 0.1\n")
-    assert _git(project, "status", "--porcelain").strip() == ""  # git no longer reports it
+    # git no longer reports THIS file (evidence/manifest.json is legitimately
+    # dirty here: fake_green() writes it without committing, unrelated to
+    # the index flag under test).
+    assert "cad/dims.py" not in _git(project, "status", "--porcelain")
     r = stop(project)
     assert r.code == 2, r.reason
     assert "mech/" in r.reason and "inputs" in r.reason

@@ -17,7 +17,9 @@ evaluated). Text fields must be ASCII (FreeCAD writes DXF R2000).
 ## Top level
 
 ```toml
-schema = "forge.drawing/2"      # required; without it the old single-view plate path runs
+schema = "forge.drawing/2"      # required; without it verify.py refuses the spec (S14: the
+                                 # legacy single-view plate schema is refused with a migration
+                                 # message, never silently run through its own weaker path)
 ```
 
 ## `[drawing]` -- title block (every field required unless marked)

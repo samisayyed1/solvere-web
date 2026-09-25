@@ -67,10 +67,67 @@ def test_doctor_PASSES_on_a_correct_fixture(tmp_path):
         manifest_path=manifest,
         terminal_binary=str(terminal_cli),
         home=_empty_home(tmp_path),
+        project_dir=repo_root,  # deterministic (not the test runner's own cwd); not a product project: skip
     )
     assert report.exit_code == 0
-    assert all(r.status in ("pass", "warn") for r in report.results)
+    # "skip" (D4's template:drift, correctly, since repo_root has no forge.toml) is as
+    # healthy as "pass"/"warn" here -- it is a pre-existing CheckResult status (lock.py,
+    # version_check.py already use it for "not applicable").
+    assert all(r.status in ("pass", "warn", "skip") for r in report.results)
     assert any(r.status == "pass" for r in report.results)
+
+
+# --------------------------------------------------------------------------
+# D4: template:drift
+# --------------------------------------------------------------------------
+
+def test_template_drift_check_skips_a_non_product_directory(tmp_path):
+    r = doctor._template_drift_check(tmp_path, tmp_path)
+    assert r.status == "skip" and r.id == "template:drift"
+
+
+def test_template_drift_check_seeded_wrong_reports_warn_on_drift(tmp_path):
+    """Seeded wrong: the project's file was never touched since scaffold,
+    but the template it came from has since changed -- template:drift must
+    warn, not silently pass."""
+    from forge import gitbaseline
+
+    tpl = tmp_path / "templates" / "project"
+    tpl.mkdir(parents=True)
+    (tpl / "CLAUDE.md").write_text("# {{PROJECT_NAME}}\n")
+    project = tmp_path / "product"
+    project.mkdir()
+    (project / "forge.toml").write_text('[project]\nname = "x"\n')
+    (project / "CLAUDE.md").write_text("# Widget\n")
+    # the manifest records the template dir used, so diff() finds it even
+    # though the `repo_root` passed below is unrelated to `tpl`.
+    gitbaseline.write_scaffold_manifest(project, templates_dir=tpl, written=[project / "CLAUDE.md"],
+                                        project_name="Widget", forge_root=tpl)
+
+    r = doctor._template_drift_check(tmp_path, project)
+    assert r.status == "pass"  # nothing has changed yet
+
+    (tpl / "CLAUDE.md").write_text("# {{PROJECT_NAME}}\nnew guidance\n")
+    r = doctor._template_drift_check(tmp_path, project)
+    assert r.status == "warn" and r.id == "template:drift"
+    assert "1 new/changed" in r.measured
+
+
+def test_template_drift_check_passes_when_up_to_date(tmp_path):
+    from forge import gitbaseline
+
+    tpl = tmp_path / "templates" / "project"
+    tpl.mkdir(parents=True)
+    (tpl / "CLAUDE.md").write_text("# {{PROJECT_NAME}}\n")
+    project = tmp_path / "product"
+    project.mkdir()
+    (project / "forge.toml").write_text('[project]\nname = "x"\n')
+    (project / "CLAUDE.md").write_text("# Widget\n")
+    gitbaseline.write_scaffold_manifest(project, templates_dir=tpl, written=[project / "CLAUDE.md"],
+                                        project_name="Widget", forge_root=tpl)
+
+    r = doctor._template_drift_check(tmp_path, project)
+    assert r.status == "pass" and r.id == "template:drift"
 
 
 # --------------------------------------------------------------------------

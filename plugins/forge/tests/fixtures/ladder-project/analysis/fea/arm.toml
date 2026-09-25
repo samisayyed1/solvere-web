@@ -31,3 +31,12 @@ stress_tolerance_pct = 15.0
 [requirement]
 min_safety_factor = 1.5
 max_reaction_imbalance_pct = 2.0
+
+[waiver]
+# S8: stress_tolerance_pct = 15.0 is above the 10% hand-calc ceiling (see
+# plugins/forge/skills/running-fea/scripts/verify.py HARD_MIN_SAFETY_FACTOR
+# et al.). The legacy box path has no stress-exclusion zone for the
+# clamped-root singularity 1-D Euler-Bernoulli beam theory doesn't model
+# (see tests/mech2/fixtures/smoke_cantilever.toml, same geometry).
+signed_by = "forge maintainers (fixture)"
+reason = "legacy box path has no stress-exclusion zone for the clamped-root singularity; 15% covers that known 1-D-vs-3-D gap"

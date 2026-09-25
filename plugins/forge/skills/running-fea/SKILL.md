@@ -97,12 +97,18 @@ fea = { quantity = "peak_principal" }           # peak_von_mises | peak_principa
 tolerance_pct = 10.0                            # face_mean_displacement (faces, component x|y|z|-x|..|magnitude) |
                                                 # face_rotation (faces, axis, center_mm?)
 [requirement]
-min_safety_factor = 1.5
+min_safety_factor = 1.5                # hard floor: refused if < 1.0, never waivable (S8)
 # max_reaction_imbalance_pct = 0.5   # may tighten, never loosen
 
 # [validity]
 # max_displacement_ratio = 0.1       # max |u| / smallest bbox dimension (small-deflection proxy)
+
+# [waiver]                           # required only if a hand_calc tolerance_pct > 10% or a
+# signed_by = "Jane Doe"             # convergence_tol_pct/stress_convergence_tol_pct > 5% (S8)
+# reason = "..."                     # (>= 10 chars: why the looser bound is accepted)
 ```
+
+**S8 bounds (`load_case`, both schemas).** `min_safety_factor` has a hard floor of 1.0 -- a case asking for less is refused, waiver or not, because it would accept a part predicted to yield. `tolerance_pct` on every `[[hand_calc]]`, and `convergence_tol_pct`/`stress_convergence_tol_pct`, have a ceiling (10% and 5% respectively); above the ceiling the case is refused unless it carries a `[waiver]` naming a human (`signed_by`) and a reason (>= 10 characters) -- a maker agent can no longer choose its own acceptance bounds to make a bad run pass. `[material]`'s `E` (MPa) is also checked against a plausibility band for material families the name matches (steel, aluminum, titanium, ...; `material_bands.py`, cited published ranges) -- this catches a GPa/MPa unit slip (e.g. `E_MPa = 210` for steel, meant 210 000) without inventing a value for a family it doesn't recognise.
 
 **Face selectors** are written `faces = { ... }`. They accept `plane` + `at`, outward `normal`, `cylinder_radius_mm` (+ `axis`), `within_box_mm`, `contains_point_mm`, `type`, `tol_mm`, `angle_tol_deg` and `expect_count`. A list of selectors means their union. A selector that matches no face is an error that lists every face of the part. See `references/face-selectors.md`.
 
@@ -194,6 +200,7 @@ Reaction imbalance was ≤ 0.0012 % in every case. Seeded-wrong cases fail as th
 ## What this skill refuses
 
 - A case without a hand calc, with fewer than 3 mesh levels, with refinement steps below a ratio of 1.2, with unknown keys, or with a material value that has no `source`: exit 2.
+- `min_safety_factor` below 1.0 (never waivable); a hand-calc `tolerance_pct` above 10% or a convergence tolerance above 5% with no signed `[waiver]`; an `E` implausible for a recognised material family (S8): exit 2.
 - A selector that matches nothing, or a face that is both loaded and supported: exit 2.
 - An under-constrained model: exit 2, before solving, naming the free rigid-body modes.
 - Assemblies or multiple solids (no contact), plasticity, large deflection, buckling, modal/dynamic, fatigue, thermal and gravity loads. See `references/limits-and-extension.md`.

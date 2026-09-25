@@ -181,5 +181,11 @@ is seen edge-on or as a circle.
 ## Legacy specs
 
 Specs without `schema = "forge.drawing/2"` (the original single top view of a
-plate with one hole, `[part]` + `[[dimension]] value_mm`) still run through
-`scripts/make_drawing.py` unchanged. Do not write new ones.
+plate with one hole, `[part]` + `[[dimension]] value_mm`) are **refused**
+(exit 2, `verify.py`'s `_run_one`) with a migration message: they predate
+`[model]` (a real part to measure the drawing against) and the v2 checks
+(tolerance >= 0, a valid scale, GD&T, reproducibility), so they are never
+silently run through their own weaker path (S14). Migrate them to v2 --
+see "File format" above and `references/spec-schema.md`. `scripts/make_drawing.py`
+(the old FreeCAD generator for this schema) is unused dead code, kept only
+so the migration message's history is easy to find; do not write new legacy specs.

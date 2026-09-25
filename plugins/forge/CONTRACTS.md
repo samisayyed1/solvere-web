@@ -29,6 +29,7 @@ params/params.toml  (single source of truth for every dimension/value)
 cad/  ecad/  firmware/  app/  analysis/  mfg/  bom/  compliance/  tests/
 evidence/manifest.json   reviews/  (G0.md … G6.md, verdicts are in the gate records)
 docs/decisions/   release/   out/  (build + check outputs; gitignored except out/verify/*.json when promoted to evidence)
+.forge/  (gitignored, host-local: state.json, base_sha (N11, the pinned scaffold-base commit), scaffold.json (D4))
 ```
 
 ## 2. Params (`params/params.toml`)
@@ -53,7 +54,9 @@ evidence = []                 # evidence entry ids, required when status = "veri
   - Re-verification is a separate `set --status verified --verified-by <human> --evidence EV-…`, and it must cite passing, VERIFIED manifest entries.
   - Every value change is appended to `params/CHANGELOG.md`, and `set` edits the leaf in place, so file comments survive.
 - **Enforcement:** the PreToolUse hook blocks direct edits to verified leaves, and it blocks every shell write to `params/params.toml`. The Stop hook re-checks the file against the last green commit, however it was changed. A verified value that changed must have been demoted and logged in `params/CHANGELOG.md`.
+- **Verification is CLI-only (N6, review #2).** A Write/Edit (or an inline shell/Python one-liner) may never promote a leaf to `status = "verified"`, and may never change `verified_by` or `evidence` directly -- PreToolUse denies all of that, and the Stop hook re-checks it against the last green commit independently. Only `forge params set --status verified --verified-by "<name>" --evidence EV-…` may verify a param (`ask` on the main thread, `deny` for subagents), and its evidence must be *tied* to that exact param (`artifact == "param:<key>"`), pass, and VERIFIED -- an unrelated passing check (e.g. a sysml check) does not count.
 - Units must be explicit. Unitless values use `unit = "1"`.
+- **`forge params lint` (S18, review #2 addendum)** also rejects: a `status = "datasheet"` leaf whose `source` has no page/table/figure reference; a `unit` outside the recognised vocabulary (`forge.commands.params.UNIT_VOCAB`); a `value` that isn't numeric or boolean (a unit must never be embedded in it as a string); and an `evidence` id that doesn't exist in `evidence/manifest.json`.
 
 ## 3. Check result (`schemas/check-result.schema.json`)
 
@@ -75,7 +78,8 @@ evidence = []                 # evidence entry ids, required when status = "veri
 ## 4. Evidence manifest (`evidence/manifest.json`, `schemas/evidence.schema.json`)
 
 - It is append-only, written only through `lib/forge/evidence.py`. The PreToolUse hook denies every tool and shell write to `evidence/`.
-- Each entry records: `id` (EV-0001…), `artifact`, `domain` (mech|elec|fw|sw|sys|sim|mfg|compliance|docs), `claim`, `check_ids[]`, `result` (pass|fail), `level` (L0–L5), `evidence_files[]`, `inputs_sha256`, `tool_versions{}`, `git_sha`, `model`, `timestamp`, and `status` (VERIFIED|UNVERIFIED).
+- Each entry records: `id` (EV-0001…), `artifact`, `domain` (mech|elec|fw|sw|sys|sim|mfg|compliance|docs), `claim`, `check_ids[]`, `result` (pass|fail|na), `level` (L0–L5), `evidence_files[]`, `inputs_sha256`, `tool_versions{}`, `git_sha`, `model`, `timestamp`, and `status` (VERIFIED|UNVERIFIED).
+- **`result = "na"` (D1, review #2):** an entrypoint that exited 0 but wrote no `out/verify/*.json` result verified nothing, and is recorded that way -- never as `"pass"`. It never satisfies the Stop gate's binding rules below (they require `result == "pass"`), it never contributes to a domain's last-green SHA, and `forge evidence status`'s roll-up (below) treats it as worse than a pass. Reports and gate-review agents must print it as `N/A`, never fold it into a pass count.
 - **Two kinds of entry.** Claims (`forge evidence add|from-checks`) are records for traceability and gate records. They never satisfy the Stop gate. Verify-run entries are written only by `forge verify` (`evidence.add_verify_entry`), one per (domain, entrypoint) run. They also carry:
 
   | Field | Contents |
@@ -99,7 +103,9 @@ evidence = []                 # evidence entry ids, required when status = "veri
   - its `scope` is null or covers every changed file;
   - every evidence file exists, parses as `forge.check/1`, has status `pass`, a `check_id` listed in the entry, a hash equal to its `evidence_sha256`, a `started` time not in the future, and an mtime no older than the change;
   - `inputs_sha256` equals the digest of the domain's files now.
-- **The base** is the domain's last-green SHA from `.forge/state.json`. `forge verify --all` sets it for each domain whose every entrypoint passed, and it is trusted only when passing verify entries recorded on that SHA vouch for it. Otherwise the base is the commit that added `forge.toml`, so committing a change never hides it.
+- **The base** is the domain's last-green SHA from `.forge/state.json`. `forge verify --all` sets it for each domain whose every entrypoint passed, and it is trusted only when passing verify entries recorded on that SHA vouch for it. Otherwise the base is `.forge/base_sha` (N11), the *pinned* commit that added `forge.toml` -- pinned once at scaffold (or bootstrapped by the first hook that runs) rather than re-derived from git history every time, so a later `git commit --amend`/reset that rewrites that commit cannot silently erase what the gate diffs against. PreToolUse denies amending or resetting past the pinned commit; a missing pin (once one existed) fails the gate closed rather than re-pinning silently.
+- **Gitignored files are still inputs (N3).** A domain's `inputs_sha256` and "what changed" both cover every file under its `forge.toml` globs whether or not `.gitignore` excludes it, and `.gitignore` itself is an input of every domain -- adding a path to it can never hide a design-file change from the gate.
+- **`forge evidence status`** reports the newest entry of every `(domain, entrypoint)` pair (S19, review #2 addendum) -- never just the domain's single newest entry, which could be an unrelated, later-run sibling entrypoint's N/A or pass hiding an earlier FAIL. Each domain is rolled up to the worst of its entrypoints (FAIL/UNVERIFIED worst, then N/A, then a clean pass).
 
 | Level | Meaning |
 |---|---|
@@ -154,7 +160,12 @@ evidence = []                 # evidence entry ids, required when status = "veri
 - **Self-check:** SessionStart verifies that every script and module `hooks.json` names exists and is executable, and prints `FORGE HOOK SELF-CHECK FAILED …` first if not.
 - **Timeouts:** every hook sets a timeout. PreToolUse runs in ≤ 1 s, and PostToolUse checks in ≤ 30 s.
 - **Identity:** `agent_type` values for Forge agents look like `forge:<name>`.
-- **Tests:** every hook has fixture tests in `tests/hooks/` that pipe JSON to stdin and assert the exit code and output. That includes a sabotaged input that must block.
+- **Project discovery (N5, review #2).** A hook finds the project root by walking up from the payload `cwd`, then `$CLAUDE_PROJECT_DIR`, then (PreToolUse only) the tool's own target path(s) -- a Write/Edit's `file_path`, or absolute paths found in a Bash command -- so a `cd` or an out-of-project `cwd` cannot switch the guardrails off. A judge (`forge:verification-evaluator`, `forge:red-team`) is denied Write/Edit/Bash-with-a-write regardless of whether a project is found at all.
+- **`forge.toml` cannot be turned off by deleting it (N1, review #2).** Deleting, moving, or restoring an old copy of `forge.toml` (`rm`, `unlink`, `mv`, `git rm/checkout/restore`, an inline `os.remove(...)`, ...) is `ask` on the main thread and `deny` for subagents, the same as writing it. If `forge.toml` is missing but the directory still looks like a Forge project (a `.forge/` dir, `evidence/manifest.json`, or git history that once added `forge.toml`), every hook fails closed instead of silently no-op'ing.
+- **`.mcp.json`, `Makefile` and `.github/workflows/**` (N9, review #2)** get the same `ask`-on-main/`deny`-for-subagents treatment as `forge.toml`: they configure the guardrails or the CI layer ADR-001 §16 relies on.
+- **Judges' read-only Bash (N4, review #2)** denies path-qualified command names (`./forge`, could shadow the real one), `git grep -O`/`--open-files-in-pager`, `sort --compress-program`, `rg --hostname-bin`, `file -C`/`--compile`, and `tree -H`, on top of the existing redirection/substitution/heredoc ban -- all of them can run an arbitrary program.
+
+
 
 ## 9. Verify entrypoints, `forge.toml` and `make verify`
 
@@ -229,9 +240,16 @@ New subcommands are modules `lib/forge/commands/<name>.py` defining `NAME`, `HEL
 | Command | Owner |
 |---|---|
 | `lint` (agents, skills, claudemd, wording, manifest) | the agents builder |
-| `evidence`, `params`, `state` | the hooks builder |
+| `evidence`, `params`, `state`, `sync-template` | the hooks builder |
 | `ears`, `trace` | the systems builder |
 | `verify`, `passk` | the reviews/release builder |
+
+**`forge sync-template` (D4, review #2 addendum).** Both scaffolders (`/forge:new-project`, `/forge:init`) write `.forge/scaffold.json` (gitignored): every file they wrote, and the sha256 of its scaffolded (post-substitution) content, plus the `project_name`/`forge_root` substitution parameters. `forge sync-template [--project PATH] [--write] [--json]` diffs the project against the current `templates/project/` (or the path `.forge/scaffold.json` recorded) and reports:
+- **new** -- the template has a file the project doesn't;
+- **drifted** -- the project's file still hashes to what was scaffolded, but the template renders something different now (safe: `--write` refreshes it, and updates `.forge/scaffold.json`);
+- **conflict** -- the project's file no longer matches its scaffolded hash (edited since) *and* differs from what the template renders today -- `--write` never touches it, always left for a human.
+
+A project scaffolded before D4 (no `.forge/scaffold.json`) cannot prove any file unmodified, so every differing file reports as a conflict. `forge doctor`'s `template:drift` check warns (never fails) when the current directory is a scaffolded project with drift or conflicts.
 
 ## 12. Authoring conventions (verified in `docs/research/R1a` and `R1c`)
 
