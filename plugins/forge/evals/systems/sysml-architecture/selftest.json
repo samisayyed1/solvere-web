@@ -1,0 +1,57 @@
+{
+ "variants": {
+  "good": {
+   "files": {
+    "model/system.sysml": "package TrackTag {\n    doc /* TrackTag architecture (docs/architecture.md). */\n    import ScalarValues::*;\n\n    attribute def Mass :> ScalarValues::Real;\n    attribute def Current :> ScalarValues::Real;\n\n    port def PowerPort;\n    port def UartPort;\n    port def I2cPort;\n\n    part def Battery { port pwrOut : PowerPort; attribute mass : Mass; }\n    part def Pmic { port pwrIn : PowerPort; port rail3v3 : PowerPort; attribute mass : Mass; }\n    part def Mcu { port pwr : PowerPort; port uart : UartPort; port i2c : I2cPort; attribute mass : Mass; }\n    part def Modem { port pwr : PowerPort; port uart : UartPort; attribute mass : Mass; }\n    part def Gnss { port pwr : PowerPort; port i2c : I2cPort; attribute mass : Mass; }\n\n    requirement def MassLimit {\n        doc /* REQ-SYS-001: the TrackTag shall weigh at most 45 g. */\n        attribute maxMass : Mass;\n    }\n    requirement def AverageCurrent {\n        doc /* REQ-SYS-002: at most 2 mA average in tracking mode. */\n        attribute maxCurrent : Current;\n    }\n\n    part def TrackTagSystem {\n        part battery : Battery;\n        part pmic : Pmic;\n        part mcu : Mcu;\n        part modem : Modem;\n        part gnss : Gnss;\n        connect battery.pwrOut to pmic.pwrIn;\n        connect pmic.rail3v3 to mcu.pwr;\n        connect pmic.rail3v3 to modem.pwr;\n        connect pmic.rail3v3 to gnss.pwr;\n        connect mcu.uart to modem.uart;\n        connect mcu.i2c to gnss.i2c;\n        requirement massLimit : MassLimit { attribute :>> maxMass = 45; }\n        requirement avgCurrent : AverageCurrent { attribute :>> maxCurrent = 2; }\n    }\n}\n",
+    "out/verify/systems.sysml_check.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"systems.sysml_check\",\n  \"target\": \"model\",\n  \"status\": \"pass\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"model/system.sysml.clean\",\n      \"value\": true,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": true,\n      \"location\": \"model/system.sysml\"\n    }\n  ],\n  \"tool_versions\": {\n    \"spec42\": \"spec42 0.53.1\"\n  },\n  \"git_sha\": \"a2f38f8a20b56a8003da442b9a2311ecf935ebef-dirty\",\n  \"started\": \"2026-09-25T09:46:40Z\",\n  \"duration_s\": 0.306\n}\n"
+   },
+   "tools": [
+    {
+     "tool": "Skill",
+     "input": {
+      "skill": "forge:modeling-systems"
+     }
+    },
+    {
+     "tool": "Bash",
+     "input": {
+      "command": "~/.forge/bin/spec42 check model/system.sysml"
+     }
+    }
+   ],
+   "last_message": "Model written; spec42 reports 0 errors, 0 warnings.",
+   "expect": "all_pass",
+   "why": "reference/ validated by the real spec42 0.53.1 via modeling-systems"
+  },
+  "bad-unresolved-port": {
+   "base": "good",
+   "files": {
+    "model/system.sysml": "package TrackTag {\n    doc /* TrackTag architecture (docs/architecture.md). */\n    import ScalarValues::*;\n\n    attribute def Mass :> ScalarValues::Real;\n    attribute def Current :> ScalarValues::Real;\n\n    port def PowerPort;\n    port def UartPort;\n    port def I2cPort;\n\n    part def Battery { port pwrOut : PowerPort; attribute mass : Mass; }\n    part def Pmic { port pwrIn : PowerPort; port rail3v3 : PowerPort; attribute mass : Mass; }\n    part def Mcu { port pwr : PowerPort; port uart : UartPort; port i2c : I2cPort; attribute mass : Mass; }\n    part def Modem { port pwr : PowerPort; port uart : UartPort; attribute mass : Mass; }\n    part def Gnss { port pwr : PowerPort; port i2c : I2cPort; attribute mass : Mass; }\n\n    requirement def MassLimit {\n        doc /* REQ-SYS-001: the TrackTag shall weigh at most 45 g. */\n        attribute maxMass : Mass;\n    }\n    requirement def AverageCurrent {\n        doc /* REQ-SYS-002: at most 2 mA average in tracking mode. */\n        attribute maxCurrent : Current;\n    }\n\n    part def TrackTagSystem {\n        part battery : Battery;\n        part pmic : Pmic;\n        part mcu : Mcu;\n        part modem : Modem;\n        part gnss : Gnss;\n        connect battery.pwrOut to pmic.pwrIn;\n        connect pmic.rail3v3 to mcu.pwr;\n        connect pmic.rail3v3 to modem.pwr;\n        connect pmic.rail3v3 to gnss.pwr;\n        connect mcu.uart to modem.uart;\n        connect mcu.i2c to gnss.spi;\n        requirement massLimit : MassLimit { attribute :>> maxMass = 45; }\n        requirement avgCurrent : AverageCurrent { attribute :>> maxCurrent = 2; }\n    }\n}\n",
+    "out/verify/systems.sysml_check.json": "{\n  \"schema\": \"forge.check/1\",\n  \"check_id\": \"systems.sysml_check\",\n  \"target\": \"model\",\n  \"status\": \"fail\",\n  \"level\": \"L1\",\n  \"measurements\": [\n    {\n      \"name\": \"model/system.sysml.unresolved_reference.L38C28\",\n      \"value\": false,\n      \"unit\": \"1\",\n      \"limit\": {\n        \"equals\": true\n      },\n      \"pass\": false,\n      \"location\": \"model/system.sysml:38:28\",\n      \"remediation\": \"spec42 warning [unresolved_reference] at model/system.sysml:38:28: This reference does not resolve.. Fix the model (warning severity is treated as a failure -- --warnings-as-errors).\"\n    }\n  ],\n  \"tool_versions\": {\n    \"spec42\": \"spec42 0.53.1\"\n  },\n  \"git_sha\": \"a2f38f8a20b56a8003da442b9a2311ecf935ebef-dirty\",\n  \"started\": \"2026-09-25T09:46:59Z\",\n  \"duration_s\": 0.285\n}\n"
+   },
+   "expect": {
+    "sysml-check-pass": false
+   }
+  },
+  "bad-thin-model": {
+   "base": "good",
+   "files": {
+    "model/system.sysml": "package TrackTag {\n    part def Mcu;\n    part def Battery;\n}\n"
+   },
+   "expect": {
+    "all-blocks-modelled": false,
+    "interfaces-as-ports": false,
+    "connections-present": false,
+    "requirements-linked": false
+   }
+  },
+  "bad-no-checker": {
+   "base": "good",
+   "tools": [],
+   "expect": {
+    "sysml-checker-ran": false,
+    "skill-fired": false
+   }
+  }
+ }
+}

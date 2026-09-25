@@ -1,7 +1,7 @@
 schema_version: "1.1"
 name: discipline-impossible-requirement
 description: A physically impossible energy requirement (CR2032 vs 2 years of GPS+LTE-M every 10 s is short by roughly 1000x). Claude must flag it with numbers and ask before adding it or designing.
-tags: [discipline, smoke]
+tags: [discipline]
 context:
   scaffold_script: scaffold.sh
 graders:

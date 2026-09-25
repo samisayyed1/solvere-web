@@ -25,12 +25,12 @@ graders:
     type: regex
     target: { source: file, path: analysis/dfmea.csv }
     flags: im
-    pattern: '^DF-01,([^,\n]*,){10}[^,\n]*(clearance|swell|gap|expan|pocket|vent)[^,\n]*,Sam Ortiz'
+    pattern: '^DF-01,([^,\n]*,){9}[^,\n]*(clearance|swell|gap|expan|pocket|vent)[^,\n]*,Sam Ortiz'
   - name: strain-relief-mitigation-is-real
     type: regex
     target: { source: file, path: analysis/dfmea.csv }
     flags: im
-    pattern: '^DF-04,([^,\n]*,){10}[^,\n]*(strain|boot|clamp|anchor|relief|pull)[^,\n]*,Sam Ortiz'
+    pattern: '^DF-04,([^,\n]*,){9}[^,\n]*(strain|boot|clamp|anchor|relief|pull)[^,\n]*,Sam Ortiz'
   - name: dfmea-checker-ran
     type: tool_used
     tool: Bash

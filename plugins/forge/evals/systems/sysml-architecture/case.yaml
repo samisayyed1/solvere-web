@@ -1,0 +1,38 @@
+schema_version: "1.1"
+name: systems-sysml-architecture
+description: Architecture notes to a SysML v2 textual model with parts, ports, connections and linked requirements; graded on Forge's spec42 check result and the model covering every block and interface.
+tags: [systems]
+context:
+  scaffold_script: scaffold.sh
+graders:
+  - name: sysml-check-pass
+    type: regex
+    target: { source: file, path: out/verify/systems.sysml_check.json }
+    pattern: '"check_id"\s*:\s*"systems\.sysml_check"[\s\S]*"status"\s*:\s*"pass"'
+    weight: 2
+  - name: all-blocks-modelled
+    type: regex
+    target: { source: file, path: model/system.sysml }
+    flags: i
+    pattern: '(?=[\s\S]*part def \w*batt)(?=[\s\S]*part def \w*pmic)(?=[\s\S]*part def \w*mcu)(?=[\s\S]*part def \w*(modem|lte))(?=[\s\S]*part def \w*(gnss|gps))'
+  - name: interfaces-as-ports
+    type: regex
+    target: { source: file, path: model/system.sysml }
+    flags: i
+    pattern: '(?=[\s\S]*port def \w*(uart|serial))(?=[\s\S]*port def \w*i2c)(?=[\s\S]*port def \w*(pow|pwr|supply|rail))'
+  - name: connections-present
+    type: regex
+    target: { source: file, path: model/system.sysml }
+    pattern: '(\b(connect|interface|connection)\b[^;]*;[\s\S]*?){5}'
+  - name: requirements-linked
+    type: regex
+    target: { source: file, path: model/system.sysml }
+    pattern: '(?=[\s\S]*REQ-SYS-001)(?=[\s\S]*REQ-SYS-002)(?=[\s\S]*\brequirement\b)'
+  - name: sysml-checker-ran
+    type: tool_used
+    tool: Bash
+    input_match: 'modeling-systems/scripts/verify\.py|spec42[^"]*check|forge(\s|\\")+verify'
+  - name: skill-fired
+    type: tool_used
+    tool: Skill
+    input_match: '"skill"\s*:\s*"(?:forge:)?modeling-systems"'
