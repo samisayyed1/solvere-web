@@ -25,7 +25,7 @@ Band-edge phase error of the half-wave conditions (fractional offset 0.0333):
   N=2: gap round-trip error 24 deg, radome one-way error 12 deg
   N=3: gap round-trip error 36 deg, radome one-way error 18 deg
   PETG (Gregory 2022, 75-110 GHz): T N=1 1.527 mm, N=2 3.055 mm
-  Formlabs FR resin (TDS, 1 MHz only): T N=1 1.277 mm, N=2 2.553 mm
+  Formlabs FR resin (TDS Rev.01 2023-04-13, 1 MHz only): T N=1 1.278 mm, N=2 2.556 mm
   incidence 35 deg in air -> 20.5 deg inside er=2.675: path factor 1.068
   incidence 44 deg in air -> 25.1 deg inside er=2.675: path factor 1.105
   incidence 60 deg in air -> 32.0 deg inside er=2.675: path factor 1.179
@@ -34,3 +34,6 @@ Band-edge phase error of the half-wave conditions (fractional offset 0.0333):
   FR resin HB 1.5 mm, N=1: needs er <= 2.77
   FR resin V-1 2.5 mm, N=2: needs er <= 3.99
   FR resin V-0 3.0 mm, N=2: needs er <= 2.77
+  HP HR PA 12 FR V-0 2.5 mm, N=2: needs er <= 3.99
+  HP HR PA 12 FR V-0 2.5 mm, N=3: needs er <= 8.99
+  HP HR PA 12 HB 0.75 mm / PETG FDM 1.2 mm, N=1: needs er <= 4.33

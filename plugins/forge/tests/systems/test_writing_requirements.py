@@ -170,3 +170,95 @@ def test_changed_filter_skips_unrelated_change(tmp_path):
     other.write_text("# irrelevant")
     assert verify.run(project, [str(other)]) == 0
     assert not (project / "out/verify/requirements.ears_lint.json").exists()
+
+
+# --- S2: malformed heading is an error, not a silent drop / SKIP ----------
+
+def test_malformed_req_heading_fails_not_skip(tmp_path):
+    """A heading that looks like a requirement ID but fails the strict
+    pattern (lowercase area, too few digits) must be parsed and flagged,
+    never silently dropped into a false 'no requirements found' SKIP."""
+    bad = """\
+## REQ-mech-5
+
+The enclosure shall have a wall thickness of at least 2.0 mm.
+
+Rationale: FDM min wall.
+Verify: analysis
+"""
+    project = _write_requirements(tmp_path, bad)
+    rc = verify.run(project, None)
+    assert rc == 1, "a malformed REQ heading must FAIL, not SKIP (rc=0 with no file)"
+    out = json.loads((project / "out/verify/requirements.ears_lint.json").read_text())
+    m = _measurement(out, ".id_format")
+    assert m is not None and m["pass"] is False
+
+
+# --- S2: contradictory min/max bounds --------------------------------------
+
+def test_contradictory_bounds_fails(tmp_path):
+    bad = """\
+## REQ-MECH-005
+
+The enclosure shall weigh at least 300 g and at most 200 g.
+
+Rationale: shipping weight budget.
+Verify: analysis
+"""
+    project = _write_requirements(tmp_path, bad)
+    assert verify.run(project, None) == 1
+    out = json.loads((project / "out/verify/requirements.ears_lint.json").read_text())
+    m = _measurement(out, ".bounds_consistent")
+    assert m is not None and m["pass"] is False
+    assert "300" in m["remediation"] and "200" in m["remediation"]
+
+
+def test_consistent_bounds_pass(tmp_path):
+    good = """\
+## REQ-MECH-005
+
+The enclosure shall weigh at least 100 g and at most 200 g.
+
+Rationale: shipping weight budget.
+Verify: analysis
+"""
+    project = _write_requirements(tmp_path, good)
+    assert verify.run(project, None) == 0
+    out = json.loads((project / "out/verify/requirements.ears_lint.json").read_text())
+    m = _measurement(out, ".bounds_consistent")
+    assert m is not None and m["pass"] is True
+
+
+# --- Eval defect: EARS false positives on units -----------------------------
+
+def test_lm_and_standard_numbers_and_bare_celsius_pass(tmp_path):
+    good = """\
+## REQ-COMP-001
+
+The enclosure shall emit at least 400 lm and comply with IEC 60529 and \
+EN 301 489-1 while operating at up to 40 C.
+
+Rationale: photometric and regulatory targets.
+Verify: test
+"""
+    project = _write_requirements(tmp_path, good)
+    assert verify.run(project, None) == 0
+    out = json.loads((project / "out/verify/requirements.ears_lint.json").read_text())
+    m = _measurement(out, ".numbers_have_units")
+    assert m is not None and m["pass"] is True
+
+
+def test_real_unit_typo_still_fails(tmp_path):
+    bad = """\
+## REQ-COMP-002
+
+The enclosure shall weigh at most 200 gg and fit within 10 mmm.
+
+Rationale: shipping and clearance.
+Verify: test
+"""
+    project = _write_requirements(tmp_path, bad)
+    assert verify.run(project, None) == 1
+    out = json.loads((project / "out/verify/requirements.ears_lint.json").read_text())
+    m = _measurement(out, ".numbers_have_units")
+    assert m is not None and m["pass"] is False

@@ -61,7 +61,8 @@ def test_fully_wired_fixture_passes(tmp_path):
     _write_trace(project, {
         "REQ-MECH-004": {"design": ["cad/enclosure.py"], "tests": ["tests/test_wall.py"],
                           "evidence": ["EV-0001"], "status": "verified"},
-        "REQ-MECH-005": {"design": [], "tests": [], "evidence": [], "status": "waived"},
+        "REQ-MECH-005": {"design": [], "tests": [], "evidence": [], "status": "waived",
+                          "reason": "deferred to rev B, tracked in RISKS.md"},
     })
     assert verify.run(project, None) == 0
     out = json.loads((project / "out/verify/requirements.trace_graph.json").read_text())
@@ -77,7 +78,8 @@ def test_orphan_design_file_fails(tmp_path):
     _write_trace(project, {
         "REQ-MECH-004": {"design": ["cad/enclosure.py"], "tests": ["tests/test_wall.py"],
                           "evidence": ["EV-0001"], "status": "verified"},
-        "REQ-MECH-005": {"design": [], "tests": [], "evidence": [], "status": "waived"},
+        "REQ-MECH-005": {"design": [], "tests": [], "evidence": [], "status": "waived",
+                          "reason": "deferred to rev B, tracked in RISKS.md"},
     })
     assert verify.run(project, None) == 1
     out = json.loads((project / "out/verify/requirements.trace_graph.json").read_text())
@@ -104,7 +106,8 @@ def test_dangling_evidence_id_fails(tmp_path):
     _write_trace(project, {
         "REQ-MECH-004": {"design": ["cad/enclosure.py"], "tests": ["tests/test_wall.py"],
                           "evidence": ["EV-9999"], "status": "verified"},  # does not exist
-        "REQ-MECH-005": {"design": [], "tests": [], "evidence": [], "status": "waived"},
+        "REQ-MECH-005": {"design": [], "tests": [], "evidence": [], "status": "waived",
+                          "reason": "deferred to rev B, tracked in RISKS.md"},
     })
     assert verify.run(project, None) == 1
     out = json.loads((project / "out/verify/requirements.trace_graph.json").read_text())
@@ -140,7 +143,8 @@ def test_gitkeep_is_never_an_orphan(tmp_path):
     _write_trace(project, {
         "REQ-MECH-004": {"design": ["cad/enclosure.py"], "tests": ["tests/test_wall.py"],
                           "evidence": ["EV-0001"], "status": "verified"},
-        "REQ-MECH-005": {"design": [], "tests": [], "evidence": [], "status": "waived"},
+        "REQ-MECH-005": {"design": [], "tests": [], "evidence": [], "status": "waived",
+                          "reason": "deferred to rev B, tracked in RISKS.md"},
     })
     assert verify.run(project, None) == 0
     out = json.loads((project / "out/verify/requirements.trace_graph.json").read_text())
@@ -156,12 +160,97 @@ def test_a_genuinely_orphaned_non_gitkeep_file_still_fails(tmp_path):
     _write_trace(project, {
         "REQ-MECH-004": {"design": ["cad/enclosure.py"], "tests": ["tests/test_wall.py"],
                           "evidence": ["EV-0001"], "status": "verified"},
-        "REQ-MECH-005": {"design": [], "tests": [], "evidence": [], "status": "waived"},
+        "REQ-MECH-005": {"design": [], "tests": [], "evidence": [], "status": "waived",
+                          "reason": "deferred to rev B, tracked in RISKS.md"},
     })
     assert verify.run(project, None) == 1
     out = json.loads((project / "out/verify/requirements.trace_graph.json").read_text())
     failing = _measurement_names_failing(out)
     assert any(name == "orphan.test.tests/test_untraced.py" for name in failing)
+
+
+def test_design_path_must_exist(tmp_path):
+    project = _base_project(tmp_path)
+    _write_trace(project, {
+        "REQ-MECH-004": {"design": ["cad/nope.py"], "tests": ["tests/test_wall.py"],
+                          "evidence": ["EV-0001"], "status": "verified"},
+        "REQ-MECH-005": {"design": [], "tests": [], "evidence": [], "status": "waived",
+                          "reason": "deferred to rev B, tracked in RISKS.md"},
+    })
+    assert verify.run(project, None) == 1
+    out = json.loads((project / "out/verify/requirements.trace_graph.json").read_text())
+    failing = _measurement_names_failing(out)
+    assert any(name == "REQ-MECH-004.design_path_exists.cad/nope.py" for name in failing)
+
+
+def test_tests_path_must_exist(tmp_path):
+    project = _base_project(tmp_path)
+    _write_trace(project, {
+        "REQ-MECH-004": {"design": ["cad/enclosure.py"], "tests": ["tests/nope.py"],
+                          "evidence": ["EV-0001"], "status": "verified"},
+        "REQ-MECH-005": {"design": [], "tests": [], "evidence": [], "status": "waived",
+                          "reason": "deferred to rev B, tracked in RISKS.md"},
+    })
+    assert verify.run(project, None) == 1
+    out = json.loads((project / "out/verify/requirements.trace_graph.json").read_text())
+    failing = _measurement_names_failing(out)
+    assert any(name == "REQ-MECH-004.tests_path_exists.tests/nope.py" for name in failing)
+
+
+def test_verified_status_needs_evidence(tmp_path):
+    project = _base_project(tmp_path)
+    _write_trace(project, {
+        "REQ-MECH-004": {"design": ["cad/enclosure.py"], "tests": ["tests/test_wall.py"],
+                          "evidence": [], "status": "verified"},
+        "REQ-MECH-005": {"design": [], "tests": [], "evidence": [], "status": "waived",
+                          "reason": "deferred to rev B, tracked in RISKS.md"},
+    })
+    assert verify.run(project, None) == 1
+    out = json.loads((project / "out/verify/requirements.trace_graph.json").read_text())
+    failing = _measurement_names_failing(out)
+    assert any(name == "REQ-MECH-004.verified_has_evidence" for name in failing)
+
+
+def test_failed_status_fails(tmp_path):
+    project = _base_project(tmp_path)
+    _write_trace(project, {
+        "REQ-MECH-004": {"design": ["cad/enclosure.py"], "tests": ["tests/test_wall.py"],
+                          "evidence": ["EV-0001"], "status": "failed"},
+        "REQ-MECH-005": {"design": [], "tests": [], "evidence": [], "status": "waived",
+                          "reason": "deferred to rev B, tracked in RISKS.md"},
+    })
+    assert verify.run(project, None) == 1
+    out = json.loads((project / "out/verify/requirements.trace_graph.json").read_text())
+    failing = _measurement_names_failing(out)
+    assert any(name == "REQ-MECH-004.status_not_failed" for name in failing)
+
+
+def test_waived_status_needs_reason(tmp_path):
+    project = _base_project(tmp_path)
+    _write_trace(project, {
+        "REQ-MECH-004": {"design": ["cad/enclosure.py"], "tests": ["tests/test_wall.py"],
+                          "evidence": ["EV-0001"], "status": "verified"},
+        "REQ-MECH-005": {"design": [], "tests": [], "evidence": [], "status": "waived"},
+    })
+    assert verify.run(project, None) == 1
+    out = json.loads((project / "out/verify/requirements.trace_graph.json").read_text())
+    failing = _measurement_names_failing(out)
+    assert any(name == "REQ-MECH-005.waived_has_reason" for name in failing)
+
+
+def test_ghost_requirement_id_is_rejected(tmp_path):
+    project = _base_project(tmp_path)
+    _write_trace(project, {
+        "REQ-MECH-004": {"design": ["cad/enclosure.py"], "tests": ["tests/test_wall.py"],
+                          "evidence": ["EV-0001"], "status": "verified"},
+        "REQ-MECH-005": {"design": [], "tests": [], "evidence": [], "status": "waived",
+                          "reason": "deferred to rev B, tracked in RISKS.md"},
+        "REQ-MECH-999": {"design": [], "tests": [], "evidence": [], "status": "open"},
+    })
+    assert verify.run(project, None) == 1
+    out = json.loads((project / "out/verify/requirements.trace_graph.json").read_text())
+    failing = _measurement_names_failing(out)
+    assert any(name == "ghost.REQ-MECH-999" for name in failing)
 
 
 def test_graph_files_written_outside_out_verify(tmp_path):
@@ -172,7 +261,8 @@ def test_graph_files_written_outside_out_verify(tmp_path):
     _write_trace(project, {
         "REQ-MECH-004": {"design": ["cad/enclosure.py"], "tests": ["tests/test_wall.py"],
                           "evidence": ["EV-0001"], "status": "verified"},
-        "REQ-MECH-005": {"design": [], "tests": [], "evidence": [], "status": "waived"},
+        "REQ-MECH-005": {"design": [], "tests": [], "evidence": [], "status": "waived",
+                          "reason": "deferred to rev B, tracked in RISKS.md"},
     })
     assert verify.run(project, None) == 0
     assert (project / "out" / "trace" / "trace.graph.json").exists()

@@ -19,6 +19,7 @@ Standard library only (subprocess + json).
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -39,6 +40,21 @@ def _find_spec42() -> str | None:
 
 def _severity_name(sev: int) -> str:
     return {1: "error", 2: "warning", 3: "information", 4: "hint"}.get(sev, f"severity{sev}")
+
+
+_COMMENT_BLOCK_RE = re.compile(r"/\*.*?\*/", re.DOTALL)
+_COMMENT_LINE_RE = re.compile(r"//[^\n]*")
+
+
+def _has_definitions(text: str) -> bool:
+    """False for an empty file or one containing only comments/whitespace.
+
+    spec42 reports zero diagnostics for such a file -- there is nothing to
+    be wrong with -- which used to read as a clean PASS (S4). A model file
+    with no actual definition is not verified; it is empty."""
+    stripped = _COMMENT_BLOCK_RE.sub("", text)
+    stripped = _COMMENT_LINE_RE.sub("", stripped)
+    return bool(stripped.strip())
 
 
 def run(project: Path, changed: list[str] | None) -> int:
@@ -88,6 +104,20 @@ def run(project: Path, changed: list[str] | None) -> int:
         rel = _uri_to_rel(uri, project)
         diags = doc.get("diagnostics", [])
         errors_or_warnings = [d for d in diags if d.get("severity", 3) in (1, 2)]
+
+        file_path = project / rel
+        text = file_path.read_text() if file_path.exists() else ""
+        if not _has_definitions(text):
+            chk.measure(
+                f"{rel}.has_definitions", False, "1", equals=True, location=rel,
+                remediation=(
+                    f"{rel} has no definitions -- it is empty or contains only comments. "
+                    "A model file must define at least one package/part/requirement/etc.; "
+                    "add real model content or remove the empty file."
+                ),
+            )
+            continue
+
         clean = not errors_or_warnings
         if clean:
             chk.measure(f"{rel}.clean", True, "1", equals=True, location=rel)

@@ -49,3 +49,29 @@ def test_sysml_syntax_error_fails(tmp_path):
 def test_no_model_dir_is_skip(tmp_path):
     assert verify.run(tmp_path, None) == 0
     assert not (tmp_path / "out").exists()
+
+
+def test_empty_model_file_is_not_a_pass(tmp_path):
+    """S4: a zero-byte model file has no diagnostics from spec42, but that is
+    not the same as a verified, clean model -- it must not PASS."""
+    model_dir = tmp_path / "model"
+    model_dir.mkdir()
+    (model_dir / "system.sysml").write_text("")
+    rc = verify.run(tmp_path, None)
+    assert rc != 0, "an empty model file must not PASS"
+    out = json.loads((tmp_path / "out/verify/systems.sysml_check.json").read_text())
+    assert out["status"] != "pass"
+
+
+def test_comment_only_model_file_is_not_a_pass(tmp_path):
+    """S4: a model file with only comments defines nothing and must not PASS."""
+    model_dir = tmp_path / "model"
+    model_dir.mkdir()
+    (model_dir / "system.sysml").write_text(
+        "// TODO: write the actual model\n/* nothing here either */\n"
+    )
+    rc = verify.run(tmp_path, None)
+    assert rc != 0, "a comment-only model file must not PASS"
+    out = json.loads((tmp_path / "out/verify/systems.sysml_check.json").read_text())
+    assert out["status"] != "pass"
+    assert any(m["name"].endswith(".has_definitions") and not m["pass"] for m in out["measurements"])

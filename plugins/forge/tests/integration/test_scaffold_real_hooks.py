@@ -56,11 +56,25 @@ def project(tmp_path: Path) -> Path:
     return target
 
 
+def _matcher_matches(matcher: str, match: str) -> bool:
+    """Claude Code matcher semantics: either a comma-separated list of exact
+    values (SessionStart's ``source``, PreCompact's ``trigger``) or a regex
+    searched against the value (PreToolUse's ``tool_name``, SubagentStop's
+    ``agent_type``). Try the exact-membership form first, then fall back to
+    regex search."""
+    if match in [p.strip() for p in matcher.split(",")]:
+        return True
+    try:
+        return re.search(matcher, match) is not None
+    except re.error:
+        return False
+
+
 def _hook_command(event: str, match: str | None = None) -> list[str]:
     config = json.loads(HOOKS_JSON.read_text())
     for group in config["hooks"][event]:
         matcher = group.get("matcher")
-        if match is not None and matcher and not re.search(matcher, match):
+        if match is not None and matcher and not _matcher_matches(matcher, match):
             continue
         hook = group["hooks"][0]
         args = [a.replace("${CLAUDE_PLUGIN_ROOT}", str(PLUGIN_ROOT)) for a in hook.get("args", [])]

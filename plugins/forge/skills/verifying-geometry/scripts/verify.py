@@ -21,6 +21,7 @@ CLI.
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 import tomllib
 from pathlib import Path
@@ -43,6 +44,30 @@ FAMILIES = (
 
 class SpecError(ValueError):
     """The requirements/geometry/*.toml spec itself is malformed."""
+
+
+_REQUIREMENT_ID = re.compile(r"REQ-[A-Z]+-\d{3,}")
+
+
+def _load_requirement_ids(project: Path) -> set[str]:
+    """Every REQ-<AREA>-<NNN> id that appears in requirements/requirements.md
+    (S6: a spec's ``requirement = "..."`` must trace to a real requirement,
+    not a typo'd or deleted one). Deliberately loose about formatting (bold
+    ``**REQ-...**`` or a ``## REQ-...`` heading both match) -- this is an
+    existence check, not the EARS/heading lint writing-requirements owns."""
+    path = project / "requirements" / "requirements.md"
+    if not path.is_file():
+        return set()
+    return set(_REQUIREMENT_ID.findall(path.read_text()))
+
+
+def _dedupe_check_id(base: str, seen: dict[str, int]) -> str:
+    """Returns ``base`` the first time it's seen, else ``base_2``, ``base_3``,
+    ... so repeated (family, part_name) pairs never overwrite each other's
+    out/verify/*.json (§ per-spec uniqueness; see run_check_family)."""
+    seen[base] = seen.get(base, 0) + 1
+    n = seen[base]
+    return base if n == 1 else f"{base}_{n}"
 
 
 def _load_params(project: Path) -> dict[str, Any]:
@@ -95,12 +120,19 @@ def _select_faces(shape: bd.Shape, spec: Any, pull_direction: tuple[float, float
 
 def run_check_family(entry: dict[str, Any], *, part_name: str, shape: bd.Shape, project: Path,
                       target: str, params: dict[str, Any], pull_direction: tuple[float, float, float],
-                      fast: bool) -> int:
+                      fast: bool, seen_check_ids: dict[str, int]) -> int:
     family = entry.get("family")
     if family not in FAMILIES:
         raise SpecError(f"unknown check family {family!r} (expected one of {FAMILIES})")
     requirement = entry.get("requirement")
-    check_id = f"{family}.{part_name}"
+    # spec-schema.md documents out/verify/<family>.<part-name>.json, but a
+    # spec can legally list the same family more than once for one part
+    # (e.g. geometry.bbox for axis="x" and axis="y") -- without
+    # disambiguation the second [[check]] entry's result file silently
+    # overwrote the first's (see tests/fixtures/ladder-project's plate.toml).
+    # The first occurrence keeps the documented name; a repeat gets a
+    # "_<n>" suffix so every check in the run gets its own file.
+    check_id = _dedupe_check_id(f"{family}.{part_name}", seen_check_ids)
 
     with checkresult.run_check(check_id, target, project=project) as chk:
         chk.tool("build123d", bd.__version__)
@@ -263,6 +295,17 @@ def _iter_specs(project: Path, changed: list[str]) -> list[Path]:
     if not changed:
         return specs
     changed_abs = {str((project / c).resolve()) for c in changed}
+    params_path = str((project / "params" / "params.toml").resolve())
+    if params_path in changed_abs:
+        # CONTRACTS §2: params/params.toml is the single source of truth for
+        # every dimension. A spec can read any of it through a "<field>_param"
+        # binding (spec-schema.md) without that key ever appearing in
+        # `changed`, and a part's CAD module can read it directly too (it is
+        # rebuilt from params on every run, not just when its .py file
+        # changes). There is no cheap way to know which specs read which
+        # keys, so a params change re-runs every spec rather than risking a
+        # false [SKIP] that lets a bad param value through unchecked.
+        return specs
     kept = []
     for spec_path in specs:
         if str(spec_path.resolve()) in changed_abs:
@@ -297,7 +340,9 @@ def main(argv: list[str]) -> int:
         return 0
 
     params = _load_params(project)
+    requirement_ids = _load_requirement_ids(project)
     worst = 0
+    seen_check_ids: dict[str, int] = {}
     for spec_path in specs:
         try:
             doc = tomllib.loads(spec_path.read_text())
@@ -324,10 +369,16 @@ def main(argv: list[str]) -> int:
             continue
 
         for entry in checks:
+            requirement = entry.get("requirement")
+            if requirement is not None and requirement not in requirement_ids:
+                print(f"[ERROR] {spec_path}: requirement {requirement!r} is not in "
+                      "requirements/requirements.md (S6: every spec requirement id must trace "
+                      "to a real requirement)", file=sys.stderr)
+                return 2
             try:
                 code = _run_one(entry, part_name=part_name, shape=shape, project=project,
                                  target=part_doc["module"], params=params, pull_direction=pull_direction,
-                                 fast=ns.fast)
+                                 fast=ns.fast, seen_check_ids=seen_check_ids)
             except SpecError as exc:
                 print(f"[ERROR] {spec_path}: {exc}", file=sys.stderr)
                 return 2

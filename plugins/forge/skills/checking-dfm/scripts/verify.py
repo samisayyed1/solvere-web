@@ -44,6 +44,16 @@ class SpecError(ValueError):
     or cannot be checked with the measurements available."""
 
 
+def _dedupe_check_id(base: str, seen: dict[str, int]) -> str:
+    """Returns ``base`` the first time it's seen, else ``base_2``, ``base_3``,
+    ... A spec can legally list the same rule (or snap_fit name) more than
+    once for one part -- without this, the second [[check]]/[[snap_fit]]
+    entry's result silently overwrote the first's out/verify/*.json."""
+    seen[base] = seen.get(base, 0) + 1
+    n = seen[base]
+    return base if n == 1 else f"{base}_{n}"
+
+
 def _load_params(project: Path) -> dict[str, Any]:
     path = project / "params" / "params.toml"
     if not path.is_file():
@@ -118,7 +128,7 @@ def _resolve_limit(rule: dict[str, Any], nominal_wall_mm: float | None, *,
 
 def _apply_dfm_check(entry: dict[str, Any], *, rule: dict[str, Any], part_name: str, shape: bd.Shape,
                       project: Path, target: str, nominal_wall_mm: float | None, pull_direction: tuple,
-                      params: dict[str, Any], fast: bool) -> int:
+                      params: dict[str, Any], fast: bool, seen_check_ids: dict[str, int]) -> int:
     family = rule["check_family"]
     if family == "unsupported":
         raise SpecError(
@@ -131,7 +141,7 @@ def _apply_dfm_check(entry: dict[str, Any], *, rule: dict[str, Any], part_name: 
     # multiplied into millimetres (see _resolve_limit's as_ratio docstring,
     # M8 review #1).
     comparison, limit = _resolve_limit(rule, nominal_wall_mm, as_ratio=(family == "geometry.boss_rib"))
-    check_id = f"dfm.{rule['id']}.{part_name}"
+    check_id = _dedupe_check_id(f"dfm.{rule['id']}.{part_name}", seen_check_ids)
 
     with checkresult.run_check(check_id, target, project=project) as chk:
         chk.tool("build123d", bd.__version__)
@@ -260,7 +270,8 @@ def _apply_dfm_check(entry: dict[str, Any], *, rule: dict[str, Any], part_name: 
 
 
 def _apply_snap_fit(entry: dict[str, Any], *, part_name: str, project: Path, target: str,
-                     materials: dict[str, dict[str, Any]], meta: dict[str, Any]) -> int:
+                     materials: dict[str, dict[str, Any]], meta: dict[str, Any],
+                     seen_check_ids: dict[str, int]) -> int:
     name = entry.get("name")
     if not name:
         raise SpecError("a [[snap_fit]] entry needs 'name'")
@@ -286,7 +297,7 @@ def _apply_snap_fit(entry: dict[str, Any], *, part_name: str, project: Path, tar
         source_note = material["source"]
 
     warn = strain_mod.short_arm_warning(length_mm=float(entry["length_mm"]), thickness_mm=float(entry["thickness_mm"]))
-    check_id = f"dfm.snap_fit.{name}.{part_name}"
+    check_id = _dedupe_check_id(f"dfm.snap_fit.{name}.{part_name}", seen_check_ids)
     # Not `checkresult.run_check(...)` here (unlike _apply_dfm_check above):
     # that context manager's `finish()` call takes no `notes`, which is how
     # the short-arm warning used to be computed into `notes` and then
@@ -315,6 +326,17 @@ def _iter_specs(project: Path, changed: list[str]) -> list[Path]:
     if not changed:
         return specs
     changed_abs = {str((project / c).resolve()) for c in changed}
+    params_path = str((project / "params" / "params.toml").resolve())
+    if params_path in changed_abs:
+        # CONTRACTS §2: params/params.toml is the single source of truth. A
+        # part's CAD module is rebuilt from it on every run (not just when
+        # its own .py file changes), and a spec's *_param bindings and
+        # nominal_wall_param never show up in `changed` either -- there is
+        # no cheap way to know which specs read which keys, so a params
+        # change re-runs every spec instead of risking a false [SKIP] that
+        # lets a bad param value (e.g. a wall thickness now below the DFM
+        # minimum) through unchecked.
+        return specs
     kept = []
     for spec_path in specs:
         if str(spec_path.resolve()) in changed_abs:
@@ -358,6 +380,7 @@ def main(argv: list[str]) -> int:
     params = _load_params(project)
     snap_meta, materials = _load_material_table()
     worst = 0
+    seen_check_ids: dict[str, int] = {}
 
     for spec_path in specs:
         try:
@@ -408,7 +431,8 @@ def main(argv: list[str]) -> int:
             try:
                 code = _run_one(_apply_dfm_check, entry, rule=rule, part_name=part_name, shape=shape,
                                  project=project, target=part_doc["module"], nominal_wall_mm=nominal_wall_mm,
-                                 pull_direction=pull_direction, params=params, fast=ns.fast)
+                                 pull_direction=pull_direction, params=params, fast=ns.fast,
+                                 seen_check_ids=seen_check_ids)
             except SpecError as exc:
                 print(f"[ERROR] {spec_path}: {exc}", file=sys.stderr)
                 return 2
@@ -418,7 +442,8 @@ def main(argv: list[str]) -> int:
             target = part_doc.get("module", str(spec_path))
             try:
                 code = _run_one(_apply_snap_fit, entry, part_name=part_name or spec_path.stem, project=project,
-                                 target=target, materials=materials, meta=snap_meta)
+                                 target=target, materials=materials, meta=snap_meta,
+                                 seen_check_ids=seen_check_ids)
             except (SpecError, KeyError, ValueError) as exc:
                 print(f"[ERROR] {spec_path}: {exc}", file=sys.stderr)
                 return 2

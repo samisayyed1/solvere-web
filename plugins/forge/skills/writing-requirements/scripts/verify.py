@@ -31,7 +31,13 @@ REQUIREMENTS_REL = Path("requirements/requirements.md")
 CHECK_ID = "requirements.ears_lint"
 
 ID_RE = re.compile(r"^REQ-([A-Z]+)-(\d{3,})$")
-HEADING_RE = re.compile(r"^#{1,6}\s+(REQ-[A-Z]+-\d+)\s*$")
+# Loose on purpose: any heading that *looks* like a requirement ID (starts
+# with "REQ-") is captured as a requirement block, even if the ID itself is
+# malformed (lowercase area, too few digits, ...). The strict ID_RE check
+# below then fails it explicitly instead of the heading being silently
+# dropped from parsing, which used to end in a false "no requirements found"
+# SKIP (S2, phase3-review-2-addendum-sweep.md).
+HEADING_RE = re.compile(r"^#{1,6}\s+(REQ-\S*)\s*$")
 RATIONALE_RE = re.compile(r"^Rationale:\s*(.*)$", re.IGNORECASE)
 VERIFY_RE = re.compile(r"^Verify:\s*(.*)$", re.IGNORECASE)
 VALID_VERIFY = {"inspection", "analysis", "demo", "test"}
@@ -59,6 +65,9 @@ VAGUE_WORDS = [
 ]
 
 # Units recognised immediately after a number (SI + common engineering units).
+# "c" is accepted bare, alongside "°c"/"degc": Celsius is routinely typed
+# without the degree sign, and a real typo (e.g. "gg", "mmm") still won't
+# match any alternative here (S2 eval defect).
 UNIT_RE = re.compile(
     r"^(mm|cm|m|km|mm2|mm3|cm2|cm3|m2|m3|in|ft|mil|"
     r"g|kg|mg|lb|lbs|oz|"
@@ -66,15 +75,24 @@ UNIT_RE = re.compile(
     r"v|mv|kv|a|ma|ua|µa|w|mw|kw|"
     r"hz|khz|mhz|ghz|"
     r"n|nm|kn|pa|kpa|mpa|bar|psi|"
-    r"°c|°f|k|degc|degf|"
+    r"°c|°f|c|k|degc|degf|"
     r"%|ppm|db|dbm|"
     r"bit|bits|byte|bytes|kb|mb|gb|"
+    r"lm|"
     r"cycles|times|x)\.?,?$",
     re.IGNORECASE,
 )
 # A bare number is one NOT immediately followed by a recognised unit word,
 # and not part of a REQ-ID, a section number, or a list marker.
 NUMBER_RE = re.compile(r"(?<![\w.-])(\d+(?:\.\d+)?)(?!\d)")
+
+# Standards-body prefixes: the number right after one of these (e.g. "IEC
+# 60529", "EN 301 489-1") is a standard designation, not a bare quantity, so
+# it is exempt from the units check (S2 eval defect: EARS false positives).
+STANDARD_PREFIXES = {
+    "iec", "iso", "en", "ieee", "ansi", "ul", "astm", "din", "nema",
+    "jedec", "etsi", "fcc", "cispr", "mil-std", "mil", "bs", "csa", "rohs",
+}
 
 
 class Requirement:
@@ -137,12 +155,43 @@ def _flag_bare_numbers(sentence: str) -> list[str]:
         if not m:
             # number glued to a unit already, e.g. "2.0mm" -- fine
             continue
+        prev = tokens[idx - 1].strip(".,;:()") if idx > 0 else ""
+        if prev.lower() in STANDARD_PREFIXES:
+            # a standard designation ("IEC 60529", "EN 301 489-1"), not a
+            # quantity that needs a unit
+            continue
         nxt = tokens[idx + 1] if idx + 1 < len(tokens) else ""
         nxt_clean = nxt.strip(".,;:()")
         if UNIT_RE.match(nxt_clean):
             continue
         bad.append(tok)
     return bad
+
+
+# Phrases that establish a lower or upper numeric bound in a requirement
+# sentence, so a min above its max can be flagged (S2: "at least 300 g and
+# at most 200 g" used to pass silently).
+LOWER_BOUND_RE = re.compile(
+    r"(?:at least|no less than|a minimum of|minimum of)\s+([\d.]+)", re.IGNORECASE
+)
+UPPER_BOUND_RE = re.compile(
+    r"(?:at most|no more than|a maximum of|maximum of)\s+([\d.]+)", re.IGNORECASE
+)
+
+
+def _flag_bound_contradiction(sentence: str) -> tuple[float, float] | None:
+    """Return (min, max) if the sentence's stated lower bound exceeds its
+    stated upper bound, else None. Deliberately simple: it does not try to
+    match units across the two bounds, since a contradictory pair is wrong
+    regardless of whether the units match."""
+    lowers = [float(x) for x in LOWER_BOUND_RE.findall(sentence)]
+    uppers = [float(x) for x in UPPER_BOUND_RE.findall(sentence)]
+    if not lowers or not uppers:
+        return None
+    worst_min, worst_max = max(lowers), min(uppers)
+    if worst_min > worst_max:
+        return worst_min, worst_max
+    return None
 
 
 def _matches_ears(sentence: str) -> str | None:
@@ -260,6 +309,16 @@ def run(project: Path, changed: list[str] | None) -> int:
                 f"{req.req_id} has number(s) without a unit: {bare} in {req.sentence!r}. "
                 "Every number needs an explicit unit (use '1' for a unitless count)."
             ) if bare else None,
+        )
+
+        bound_issue = _flag_bound_contradiction(req.sentence)
+        chk.measure(
+            f"{mkey}.bounds_consistent", bound_issue is None, "1", equals=True, location=loc,
+            remediation=(
+                f"{req.req_id} requires at least {bound_issue[0]} and at most "
+                f"{bound_issue[1] if bound_issue else ''}, which is contradictory "
+                "(the minimum exceeds the maximum). Fix the bounds so min <= max."
+            ) if bound_issue else None,
         )
 
     return chk.finish()

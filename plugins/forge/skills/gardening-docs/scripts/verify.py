@@ -47,6 +47,14 @@ PLUGIN_ROOT = Path(__file__).resolve().parents[3]  # plugins/forge
 EXCLUDE_DIRS = {"out", "release", "node_modules", ".git", "__pycache__", ".pytest_cache"}
 
 _MD_LINK = re.compile(r"(?<!!)\[([^\]]*)\]\(([^)\s]+)\)")
+# Inline links/images: "!" (image) is optional, captured so callers can tell
+# a missing image from a missing link.
+_MD_LINK_INLINE = re.compile(r"(!?)\[([^\]]*)\]\(([^)\s]+)\)")
+# Reference-style links/images: "[text][ref]", "![alt][ref]", and the
+# shortcut form "[text][]" / "![alt][]" (ref label == text/alt). S5: these
+# were never resolved at all.
+_MD_LINK_REF = re.compile(r"(!?)\[([^\]]*)\]\[([^\]]*)\]")
+_MD_REF_DEF = re.compile(r"^\[([^\]]+)\]:\s*(\S+)", re.MULTILINE)
 _HEADING = re.compile(r"^(#{1,6})\s+(.+?)\s*$", re.MULTILINE)
 _TOOL_VERSION_MARKER = re.compile(r"<!--\s*forge-tool-version:\s*([\w.-]+)\s+([\w.+-]+)\s*-->")
 _RULE_BULLET = re.compile(r"^- (.+)$", re.MULTILINE)
@@ -87,29 +95,56 @@ def anchors_in(path: Path) -> set[str]:
     return {slugify(m.group(2)) for m in _HEADING.finditer(path.read_text(errors="ignore"))}
 
 
+def _ref_defs(text: str) -> dict[str, str]:
+    """Reference-style link/image definitions ("[ref]: target"), keyed by
+    the normalised (lowercased, trimmed) label -- CommonMark label matching
+    is case-insensitive."""
+    return {m.group(1).strip().lower(): m.group(2) for m in _MD_REF_DEF.finditer(text)}
+
+
+def _check_target(md: Path, project: Path, target: str, link_repr: str,
+                   broken: list[dict[str, Any]], *, is_image: bool) -> None:
+    kind = "image" if is_image else "link"
+    if target.startswith(("http://", "https://", "mailto:", "//")):
+        return
+    path_part, _, anchor = target.partition("#")
+    if path_part == "":
+        # same-document anchor
+        if anchor and slugify(anchor) not in anchors_in(md):
+            broken.append({"file": str(md.relative_to(project)), "link": link_repr,
+                           "reason": f"no heading matching #{anchor} in this document"})
+        return
+    resolved = (md.parent / path_part).resolve()
+    if not resolved.exists():
+        broken.append({"file": str(md.relative_to(project)), "link": link_repr,
+                       "reason": f"{path_part} does not exist relative to {md.parent} ({kind})"})
+        return
+    if anchor and resolved.suffix == ".md" and slugify(anchor) not in anchors_in(resolved):
+        broken.append({"file": str(md.relative_to(project)), "link": link_repr,
+                       "reason": f"no heading matching #{anchor} in {path_part}"})
+
+
 def check_links(md_files: list[Path], project: Path) -> list[dict[str, Any]]:
     broken = []
     for md in md_files:
         text = md.read_text(errors="ignore")
-        for m in _MD_LINK.finditer(text):
-            target = m.group(2)
-            if target.startswith(("http://", "https://", "mailto:", "//")):
+        refs = _ref_defs(text)
+
+        # Inline links "[text](url)" and images "![alt](url)".
+        for bang, _label, target in _MD_LINK_INLINE.findall(text):
+            _check_target(md, project, target, f"{bang}[...]({target})", broken, is_image=bool(bang))
+
+        # Reference-style links "[text][ref]"/"[text][]" and images
+        # "![alt][ref]"/"![alt][]" (S5).
+        for bang, label, ref_label in _MD_LINK_REF.findall(text):
+            key = (ref_label or label).strip().lower()
+            link_repr = f"{bang}[{label}][{ref_label}]"
+            if key not in refs:
+                broken.append({"file": str(md.relative_to(project)), "link": link_repr,
+                               "reason": f"reference [{ref_label or label}] has no "
+                                         "[ref]: target definition in this document"})
                 continue
-            path_part, _, anchor = target.partition("#")
-            if path_part == "":
-                # same-document anchor
-                if anchor and slugify(anchor) not in anchors_in(md):
-                    broken.append({"file": str(md.relative_to(project)), "link": target,
-                                   "reason": f"no heading matching #{anchor} in this document"})
-                continue
-            resolved = (md.parent / path_part).resolve()
-            if not resolved.exists():
-                broken.append({"file": str(md.relative_to(project)), "link": target,
-                               "reason": f"{path_part} does not exist relative to {md.parent}"})
-                continue
-            if anchor and resolved.suffix == ".md" and slugify(anchor) not in anchors_in(resolved):
-                broken.append({"file": str(md.relative_to(project)), "link": target,
-                               "reason": f"no heading matching #{anchor} in {path_part}"})
+            _check_target(md, project, refs[key], link_repr, broken, is_image=bool(bang))
     return broken
 
 

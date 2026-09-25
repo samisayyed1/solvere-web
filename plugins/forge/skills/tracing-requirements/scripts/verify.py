@@ -210,6 +210,68 @@ def run(project: Path, changed: list[str] | None) -> int:
             ) if not tested else None,
         )
 
+        # S3: design[]/tests[] paths must point at files that actually exist,
+        # not just be non-empty strings.
+        for d in design:
+            file_part = str(d).replace("\\", "/").split("#", 1)[0]
+            exists = (project / file_part).exists()
+            chk.measure(
+                f"{req_id}.design_path_exists.{file_part}", exists, "1", equals=True,
+                requirement=req_id, location=loc,
+                remediation=(
+                    f"{req_id} design[] references {file_part!r}, which does not exist in "
+                    "the project. Point it at a real design file, or remove the stale reference."
+                ) if not exists else None,
+            )
+        for t in tests:
+            file_part = str(t).replace("\\", "/").split("#", 1)[0]
+            exists = (project / file_part).exists()
+            chk.measure(
+                f"{req_id}.tests_path_exists.{file_part}", exists, "1", equals=True,
+                requirement=req_id, location=loc,
+                remediation=(
+                    f"{req_id} tests[] references {file_part!r}, which does not exist in "
+                    "the project. Point it at a real test file, or remove the stale reference."
+                ) if not exists else None,
+            )
+
+        # S3: 'verified' needs at least one evidence entry backing it.
+        if status == "verified":
+            has_verified_evidence = bool(entry.get("evidence"))
+            chk.measure(
+                f"{req_id}.verified_has_evidence", has_verified_evidence, "1", equals=True,
+                requirement=req_id, location=loc,
+                remediation=(
+                    f"{req_id} is status='verified' but evidence[] is empty. A verified "
+                    "requirement needs at least one evidence entry backing it."
+                ) if not has_verified_evidence else None,
+            )
+
+        # S3: a 'failed' requirement must FAIL the trace check, not pass
+        # silently -- it records an unresolved failure, not a clean state.
+        status_failed = status == "failed"
+        chk.measure(
+            f"{req_id}.status_not_failed", not status_failed, "1", equals=True,
+            requirement=req_id, location=loc,
+            remediation=(
+                f"{req_id} is status='failed' in {TRACE_REL}. Fix the underlying issue and "
+                "update tests/evidence, or change status to 'waived' with a reason."
+            ) if status_failed else None,
+        )
+
+        # S3: 'waived' needs a stated reason.
+        if status == "waived":
+            reason = entry.get("reason")
+            has_reason = bool(reason and str(reason).strip())
+            chk.measure(
+                f"{req_id}.waived_has_reason", has_reason, "1", equals=True,
+                requirement=req_id, location=loc,
+                remediation=(
+                    f"{req_id} is status='waived' but has no non-empty 'reason' field. "
+                    "State why it is waived."
+                ) if not has_reason else None,
+            )
+
         for ev_id in entry.get("evidence", []):
             exists = ev_id in evidence_ids
             chk.measure(
@@ -220,6 +282,20 @@ def run(project: Path, changed: list[str] | None) -> int:
                     "add the missing entry with `forge evidence add`."
                 ) if not exists else None,
             )
+
+    # S3: ghost IDs -- a trace.json entry for a requirement ID that does not
+    # exist in requirements.md is a stale/typo'd reference and must FAIL.
+    req_id_set = set(req_ids)
+    for ghost_id in entries:
+        if ghost_id in req_id_set:
+            continue
+        chk.measure(
+            f"ghost.{ghost_id}", False, "1", equals=True, location=str(TRACE_REL),
+            remediation=(
+                f"{TRACE_REL} has a trace entry for {ghost_id!r}, which is not a requirement "
+                f"in {REQUIREMENTS_REL}. Remove the stale entry or add the matching requirement."
+            ),
+        )
 
     # Orphan design/test files: source files not referenced by any requirement.
     for f in _iter_source_files(project, DESIGN_DIRS, DESIGN_EXTS):
