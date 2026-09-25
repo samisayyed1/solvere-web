@@ -16,7 +16,14 @@
       "Bash(git push --force*)",
       "Bash(git push -f*)",
       "Bash(rm -rf /*)",
-      "Bash(rm -rf ~*)"
+      "Bash(rm -rf ~*)",
+      "Edit(/evidence/**)",
+      "Edit(/out/verify/**)",
+      "Edit(/.forge/**)",
+      "Edit(/release/**)",
+      "Edit(/security/**)",
+      "Edit(/.claude/settings.json)",
+      "Edit(/.claude/settings.local.json)"
     ],
     "ask": [
       "Bash(git push *)",
@@ -38,28 +45,42 @@
       "mcp__agentic-hil__project_config_create",
       "mcp__agentic-hil__project_config_set",
       "mcp__agentic-hil__project_config_adopt_hardware",
-      "mcp__agentic-hil__server_upgrade"
+      "mcp__agentic-hil__server_upgrade",
+      "Bash(${FORGE_ROOT}/plugins/forge/bin/forge params set *)",
+      "Bash(${FORGE_ROOT}/plugins/forge/bin/forge evidence add *)",
+      "Bash(${FORGE_ROOT}/plugins/forge/bin/forge evidence from-checks *)"
     ],
     "allow": [
       "Bash(uv run forge-check *)",
       "Bash(${FORGE_ROOT}/plugins/forge/bin/forge doctor *)",
       "Bash(${FORGE_ROOT}/plugins/forge/bin/forge lint *)",
       "Bash(${FORGE_ROOT}/plugins/forge/bin/forge verify *)",
-      "Bash(${FORGE_ROOT}/plugins/forge/bin/forge evidence *)",
-      "Bash(${FORGE_ROOT}/plugins/forge/bin/forge params *)",
+      "Bash(${FORGE_ROOT}/plugins/forge/bin/forge evidence list*)",
+      "Bash(${FORGE_ROOT}/plugins/forge/bin/forge evidence status*)",
+      "Bash(${FORGE_ROOT}/plugins/forge/bin/forge params get *)",
+      "Bash(${FORGE_ROOT}/plugins/forge/bin/forge params lint*)",
       "Bash(${FORGE_ROOT}/plugins/forge/bin/forge trace *)",
       "Bash(${FORGE_ROOT}/plugins/forge/bin/forge ears *)",
-      "Bash(~/.forge/bin/forge-python *)"
+      "Bash(~/.forge/bin/forge-python ${FORGE_ROOT}/plugins/forge/skills/*/scripts/*)"
     ]
   },
   "sandbox": {
     "enabled": true,
     "failIfUnavailable": true,
     "allowUnsandboxedCommands": false,
-    "excludedCommands": ["docker *"],
+    "excludedCommands": [
+      "docker *"
+    ],
     "filesystem": {
-      "allowWrite": ["~/.forge", "~/.cache/uv"],
-      "denyRead": ["~/.ssh", "~/.aws", "~/.config/gh"]
+      "allowWrite": [
+        "~/.forge",
+        "~/.cache/uv"
+      ],
+      "denyRead": [
+        "~/.ssh",
+        "~/.aws",
+        "~/.config/gh"
+      ]
     },
     "network": {
       "allowedDomains": [

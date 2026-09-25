@@ -16,7 +16,7 @@ Numbers here come from the requirements and `params/params.toml`; see those for 
 - Requirement: REQ-SYS-002
 - Method: test
 - Planned by: G2/G3
-- Procedure and pass criterion: A/B test: bare MR60FDA2 kit vs the kit inside the assembled pod (FDM PETG, then demo material). Same room, same test points on a grid out to 6 m. Pass: the pod reports presence at every point where the bare kit does. Also run on radome coupons of candidate thickness before G2.
+- Procedure and pass criterion: A/B test: bare MR60FDA2 kit vs the kit inside the assembled pod (FDM PETG, then demo material). Same room, same test points on a grid out to 6 m. Pass: the pod reports presence at every point where the bare kit does. Before G2, run the same A/B on flat radome coupons of each candidate material at thicknesses N x c/(2 f sqrt(er)) (MDS §8), to find er and the best N; this sets `radome.thickness` (REQ-MECH-013).
 
 ## TP-MECH-001
 
@@ -37,14 +37,14 @@ Numbers here come from the requirements and `params/params.toml`; see those for 
 - Requirement: REQ-MECH-003
 - Method: demo
 - Planned by: G3
-- Procedure and pass criterion: Clip the T-bar adapter to a drop-ceiling grid sample of each width the owner names (Q-11). Pass: pod held, tile not drilled or cut.
+- Procedure and pass criterion: Clip the T-bar adapter to a drop-ceiling grid sample of each width the owner names (Q-07). Pass: pod held, tile not drilled or cut.
 
 ## TP-MECH-004
 
 - Requirement: REQ-MECH-004
 - Method: test
 - Planned by: G3
-- Procedure and pass criterion: Weigh the installed pod (g). Apply a static downward pull of 4 x that weight to the installed pod for 60 s on drywall, concrete and T-bar samples. Pass: no detachment. Load factor per A-003.
+- Procedure and pass criterion: Weigh the installed pod (g). Apply a static downward pull of 4 x that weight to the installed pod for 60 s on drywall, concrete and T-bar samples. Pass: no detachment. Load factor and hold time per A-001 until the qualified human (Q-17) sets them.
 
 ## TP-MECH-005
 
@@ -86,14 +86,14 @@ Numbers here come from the requirements and `params/params.toml`; see those for 
 - Requirement: REQ-MECH-010
 - Method: inspection
 - Planned by: G2
-- Procedure and pass criterion: Check the CAD for metal parts inside the 120 x 100 deg FoV cone from the antenna face; check material and pigment declarations. Pass: none found.
+- Procedure and pass criterion: Check the CAD for metal parts inside the 60 deg half-angle cone about the antenna boresight; check material and pigment declarations. Pass: none found.
 
 ## TP-MECH-011
 
 - Requirement: REQ-MECH-011
 - Method: test
 - Planned by: G3
-- Procedure and pass criterion: Pull the USB cable at the raceway exit with the load set per A-003 while monitoring power at the kit. Pass: no disconnection, no movement at the connector.
+- Procedure and pass criterion: Pull the USB cable at the raceway exit with the load set by the qualified human (Q-17) while monitoring power at the kit. Pass: no disconnection, no movement at the connector.
 
 ## TP-MECH-012
 
@@ -101,6 +101,20 @@ Numbers here come from the requirements and `params/params.toml`; see those for 
 - Method: demo
 - Planned by: G3
 - Procedure and pass criterion: Install a pod with cable and raceway on a ceiling-and-wall mock-up. Pass: cable leaves at the ceiling plane into the raceway end.
+
+## TP-MECH-013
+
+- Requirement: REQ-MECH-013
+- Method: analysis
+- Planned by: G2
+- Procedure and pass criterion: From the coupon result (TP-SYS-002) take er of the chosen radome material; compute T = N x c/(2 f sqrt(er)) with f = 60 GHz (MDS p.12); measure the CAD radome thickness over the 60 deg half-angle cone. Pass: thickness equals the computed T within the tolerance set from the coupon test.
+
+## TP-MECH-014
+
+- Requirement: REQ-MECH-014
+- Method: inspection
+- Planned by: G2/G3
+- Procedure and pass criterion: Measure antenna face to radome inner surface in CAD and on a printed assembly. Pass: an integer multiple of 2.5 mm (MDS p.12) within the tolerance set at G2.
 
 ## TP-PWR-001
 
@@ -135,7 +149,7 @@ Numbers here come from the requirements and `params/params.toml`; see those for 
 - Requirement: REQ-PWR-005
 - Method: test
 - Planned by: G3
-- Procedure and pass criterion: Measure steady-state input power with a USB power meter in standby and active detection, no Grove accessory. Pass: 1.4 W or less. Also retires A-010.
+- Procedure and pass criterion: Measure steady-state input power with a USB power meter in standby and active detection, no Grove accessory. Pass: 1.4 W or less. Also retires A-007 and A-008.
 
 ## TP-ELEC-001
 
@@ -156,7 +170,7 @@ Numbers here come from the requirements and `params/params.toml`; see those for 
 - Requirement: REQ-ENV-002
 - Method: test
 - Planned by: G1/G3
-- Procedure and pass criterion: Draft analysis in docs/budgets.md (G0). Test: pod at 35 C ambient, active mode, thermocouple at the kit, until stable. Pass: at or below the kit rated maximum (A-006).
+- Procedure and pass criterion: Draft analysis in docs/budgets.md (G0). Test: pod at 35 C ambient, active mode, thermocouple at the kit, until stable. Pass: at or below the kit rated maximum, 85 C per A-004 until Seeed confirms (Q-18).
 
 ## TP-SAFE-001
 
@@ -191,7 +205,7 @@ Numbers here come from the requirements and `params/params.toml`; see those for 
 - Requirement: REQ-EMC-002
 - Method: inspection
 - Planned by: G4
-- Procedure and pass criterion: Check that FCC grants cover every intentional radiator in the pod as built (radar, Wi-Fi/Bluetooth).
+- Procedure and pass criterion: Check that FCC grants cover every intentional radiator in the pod as built (60 GHz radar; XIAO ESP32C6 Wi-Fi, Bluetooth LE and 802.15.4).
 
 ## TP-EMC-003
 
@@ -268,7 +282,7 @@ Numbers here come from the requirements and `params/params.toml`; see those for 
 - Requirement: REQ-MNT-002
 - Method: inspection
 - Planned by: G4
-- Procedure and pass criterion: Review the instructions text.
+- Procedure and pass criterion: Review the instructions text against the seven Wiki keep-outs. Pass: all seven are listed.
 
 ## TP-MNT-003
 
@@ -283,6 +297,13 @@ Numbers here come from the requirements and `params/params.toml`; see those for 
 - Method: inspection
 - Planned by: G4
 - Procedure and pass criterion: Review the instructions text and illustrations.
+
+## TP-MNT-005
+
+- Requirement: REQ-MNT-005
+- Method: inspection
+- Planned by: G4
+- Procedure and pass criterion: Review the instructions text. Pass: the number of people for which fall detection is specified is stated and matches the tested configuration of TP-SYS-001.
 
 ## TP-MFG-001
 
@@ -345,7 +366,7 @@ Numbers here come from the requirements and `params/params.toml`; see those for 
 - Requirement: REQ-COST-002
 - Method: analysis
 - Planned by: G5
-- Procedure and pass criterion: costing-bom roll-up at the production volume tier (Q-15).
+- Procedure and pass criterion: costing-bom roll-up at the production volume tier (Q-10).
 
 ## TP-COST-003
 

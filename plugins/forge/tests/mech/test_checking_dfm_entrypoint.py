@@ -69,6 +69,46 @@ def test_box_snap_fit_passes(project):
     assert _result(project, "dfm.snap_fit.lid_latch.box")["status"] == "pass"
 
 
+def test_snap_fit_strain_unit_is_percent(project):
+    """M3 (review #1): root_strain_pct's value is already a percentage
+    (0-100), so its unit must be '%', not the dimensionless '1' that used to
+    mislabel it."""
+    _run(project)
+    result = _result(project, "dfm.snap_fit.lid_latch.box")
+    m = next(x for x in result["measurements"] if x["name"] == "root_strain_pct")
+    assert m["unit"] == "%"
+
+
+def test_short_arm_warning_surfaces_in_the_check_result(project):
+    """M3 (review #1): the short-arm warning used to be computed and then
+    discarded -- it must actually reach out/verify/*.json's `notes`."""
+    spec = project / "requirements" / "dfm" / "box.toml"
+    spec.write_text(spec.read_text() + """
+[[snap_fit]]
+name = "short_latch"
+requirement = "REQ-MECH-010"
+material = "pc_makrolon"
+deflection_mm = 0.3
+length_mm = 5.0
+thickness_mm = 1.2
+taper = "constant"
+frequent = false
+""")
+    _run(project)
+    result = _result(project, "dfm.snap_fit.short_latch.box")
+    assert result.get("notes"), "the short-arm warning must be recorded as the check's notes"
+    assert "short-arm" in result["notes"] or "short arm" in result["notes"].lower()
+    assert "BASF" in result["notes"]
+
+
+def test_normal_length_arm_has_no_short_arm_warning(project):
+    """The positive case for the above: an arm well above the L/h=10
+    threshold must not carry a spurious warning."""
+    _run(project)
+    result = _result(project, "dfm.snap_fit.lid_latch.box")
+    assert not result.get("notes")
+
+
 def test_box_thin_wall_fails(project):
     _run(project)
     result = _result(project, "dfm.wall_min_unsupported_mm.box_thin")

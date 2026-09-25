@@ -39,8 +39,16 @@ id = "hole_to_edge_min_ratio_of_t"
 check_family = "geometry.hole_edge"
 comparison = "min_ratio_of_wall"
 value_ratio = 2.0
-source = "Xometry stamping guide: holes >= 0.100 in need 2.5t + R from the edge; Hubs: >= 2t from the start of the bend radius"
-conflict = "Hubs' plain hole-to-edge (not hole-to-bend) rule is 1t. 2.0t kept as the conservative figure for the general/stamped case; Xometry's stamping formula (2.5t + R) is stricter still for larger holes and should be used directly when R (bend radius) is known."
+# m3 (review #1): the previous source/conflict text here cited R5c:99-100
+# ("Hole-to-bend": Hubs ">= 2t from the start of the bend radius"; Xometry
+# "holes >= 0.100 in need 2.5t + R from the edge [of the bend]") -- that is
+# distance from a hole to the START OF A BEND, a different rule from
+# hole-to-EDGE (distance to the sheet's outer boundary, R5c:102-103). The
+# numeric value (2.0) was coincidentally still defensible (it matches
+# Xometry's actual hole-to-edge stamping figure below), but the citation was
+# for the wrong rule.
+source = "Xometry stamping guide (R5c:103): stamped holes need at least 2t from the sheet edge."
+conflict = "Hubs' plain hole-to-edge rule (R5c:102) is a looser 1t from the edge; Xometry's laser/waterjet rule (also R5c:103) is 2t or 0.125 in, whichever is smaller. 2.0t (Xometry stamping) kept as the conservative general/stamped-process figure; hole_to_edge_min_mm (above) is the absolute-mm alternative for thicker stock."
 
 [[rule]]
 id = "min_flange_min_ratio_of_t"

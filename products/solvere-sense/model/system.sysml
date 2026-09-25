@@ -5,7 +5,8 @@ package SolvereSense {
          Requirement IDs are the REQ-<AREA>-<NNN> IDs in
          requirements/requirements.md; linkage is in requirements.sysml
          and requirements/trace.json. Evidence level: L0/L1 (structure
-         parses; nothing here is measured). */
+         parses; nothing here is measured). Sources: docs/sources/README.md.
+         Masses are not modelled: no mass is sourced yet (docs/budgets.md). */
 
     private import ScalarValues::*;
 
@@ -24,6 +25,7 @@ package SolvereSense {
     item def DCPower;
     item def RadarSignal;
     item def MechanicalLoad;
+    item def SensorData;
 
     // ---- ports ----
     port def UsbCPowerPort {
@@ -54,6 +56,12 @@ package SolvereSense {
     port def CableExitPort {
         doc /* USB cable exit at the ceiling plane into the adhesive raceway (REQ-MECH-012). */
     }
+    port def WirelessDataPort {
+        doc /* XIAO ESP32C6 radio: 2.4 GHz Wi-Fi 6, Bluetooth LE, IEEE 802.15.4 (XIAO wiki).
+             Which radios are enabled and where data goes is open (Q-01, Q-02).
+             Credentials: REQ-FW-002, REQ-FW-003. */
+        out item data : SensorData;
+    }
 
     // ---- interfaces ----
     interface def ShellBaseInterface {
@@ -81,17 +89,21 @@ package SolvereSense {
         port cableExit : CableExitPort;
     }
     part def Shell {
-        doc /* Matte warm-white room-facing cover (REQ-UX-001, REQ-UX-002). */
-        attribute wallThickness_mm : Length_mm;
+        doc /* Matte warm-white room-facing cover (REQ-UX-001, REQ-UX-002). Wall
+             thickness is a G1 choice bounded by params mfg.fdm.min_wall. */
         port toBase : ~ShellBasePort;
         port rim : ~GasketGroovePort;
     }
     part def Radome {
-        doc /* RF window over the antenna (the lid). Thickness set by coupon test, not yet in params. */
+        doc /* RF window over the antenna. Thickness = N x half-wavelength in the
+             material (MDS s8, REQ-MECH-013), set by coupon test; antenna gap =
+             N x 2.5 mm (REQ-MECH-014). */
+        attribute antennaGapStep_mm : Length_mm;
+        attribute keepOutHalfAngle : Angle_deg;
         port window : ~RadomeWindowPort;
     }
     part def GasketGroove {
-        doc /* Groove feature of the base plate; dimensions pending gasket choice (Q-12). */
+        doc /* Groove feature of the base plate; dimensions pending gasket choice and ingress target (Q-08). */
     }
     part def Gasket {
         doc /* Bathroom variant only (REQ-MECH-008). Not fitted in v1. */
@@ -101,9 +113,13 @@ package SolvereSense {
         port power : UsbCPowerPort;
     }
     part def SensorKit {
-        doc /* Seeed MR60FDA2 kit, SKU 114993388: 60 GHz radar module + XIAO ESP32C6
-             (Wi-Fi/Bluetooth), BH1750 light sensor, WS2812 LED (DS p.2, p.6). */
+        doc /* Seeed MR60FDA2 kit, SKU 114993388 (DS p.1, p.7): 60 GHz radar module
+             with BH1750 light sensor, WS2812 LED, reset button and Grove port
+             (DS p.2, p.6) + XIAO ESP32C6 (Wi-Fi 6, Bluetooth LE, 802.15.4; XIAO wiki). */
         attribute supplyVoltage : Voltage_V;
+        attribute freqMin_GHz : ScalarValues::Real;
+        attribute freqMax_GHz : ScalarValues::Real;
+        attribute beamHalfAngle : Angle_deg;
         attribute powerStandby : Power_W;
         attribute powerActive : Power_W;
         attribute powerMax : Power_W;
@@ -114,6 +130,7 @@ package SolvereSense {
         attribute unitPrice : Cost_USD;
         part usbC : UsbCReceptacle;
         port antenna : RadomeWindowPort;
+        port radio : WirelessDataPort;
     }
     part def CableStrainRelief {
         doc /* Clamps the USB cable jacket (REQ-MECH-011). */
@@ -123,7 +140,7 @@ package SolvereSense {
         port grid : TBarPort;
     }
     part def ExternalUsbAdapter {
-        doc /* Standard USB wall adapter, outside the system boundary (supply in box: Q-09). */
+        doc /* Standard USB wall adapter, outside the system boundary (supply in box: Q-13). */
         port usbOut : ~UsbCPowerPort;
     }
 
@@ -136,6 +153,8 @@ package SolvereSense {
         // power budget (docs/budgets.md)
         attribute supplyPowerAvailable : Power_W;
         attribute podPowerMax : Power_W;
+        // thermal budget (docs/budgets.md)
+        attribute maxThermalResistance_KperW : ScalarValues::Real;
         // cost budget
         attribute prototypeCostMax : Cost_USD;
         attribute productionBomMax : Cost_USD;
@@ -158,25 +177,30 @@ package SolvereSense {
     part pod : SolvereSensePod {
         attribute :>> mountHeightMin = 2.2;        // m, params mount.height_min
         attribute :>> mountHeightMax = 3.0;        // m, params mount.height_max
-        attribute :>> coverageSide = 3.0;          // m, params mount.coverage_side (assumed)
-        attribute :>> retentionLoadFactor = 4.0;   // 1, params mount.retention_load_factor (A-003)
+        attribute :>> coverageSide = 3.0;          // m, params mount.coverage_side (A-011)
+        attribute :>> retentionLoadFactor = 4.0;   // 1, params mount.retention_load_factor (A-001)
         attribute :>> supplyPowerAvailable = 5.0;  // W = 5 V x 1 A, params power.usb_*
-        attribute :>> podPowerMax = 1.4;           // W, params power.pod_power_max
+        attribute :>> podPowerMax = 1.4;           // W, params power.pod_power_max (A-008)
+        attribute :>> maxThermalResistance_KperW = 35.7; // K/W, params thermal.max_thermal_resistance
         attribute :>> prototypeCostMax = 50.0;     // USD, params cost.prototype_max
         attribute :>> productionBomMax = 30.0;     // USD, params cost.production_bom_max
-        part :>> shell {
-            attribute :>> wallThickness_mm = 2.0;  // mm, params enclosure.wall_thickness (A-002)
+        part :>> radome {
+            attribute :>> antennaGapStep_mm = 2.5; // mm, params radome.antenna_gap_step (MDS p.12)
+            attribute :>> keepOutHalfAngle = 60.0; // deg, params radome.keepout_half_angle (MDS p.4)
         }
         part :>> sensor {
             attribute :>> supplyVoltage = 5.0;     // V, params sensor.supply_voltage (DS p.6)
+            attribute :>> freqMin_GHz = 58.0;      // GHz, params sensor.freq_min (MDS p.4)
+            attribute :>> freqMax_GHz = 62.0;      // GHz, params sensor.freq_max (MDS p.4)
+            attribute :>> beamHalfAngle = 60.0;    // deg, params sensor.beam_half_angle (MDS p.4)
             attribute :>> powerStandby = 0.5;      // W, DS p.6
             attribute :>> powerActive = 0.8;       // W, DS p.6
             attribute :>> powerMax = 1.4;          // W, DS p.6 (with Grove relay)
             attribute :>> fovHorizontal = 120.0;   // deg, DS p.6
-            attribute :>> fovVertical = 100.0;     // deg, DS p.6
-            attribute :>> levelTolerance = 5.0;    // deg, params sensor.level_tolerance (A-004)
-            attribute :>> operatingTempMax = 60.0; // degC, params sensor.operating_temp_max (A-006)
-            attribute :>> unitPrice = 26.50;       // USD at 10+, params sensor.unit_price_qty10
+            attribute :>> fovVertical = 100.0;     // deg, DS p.6 (MDS p.4 gives 120, R-013)
+            attribute :>> levelTolerance = 5.0;    // deg, params sensor.level_tolerance (A-002)
+            attribute :>> operatingTempMax = 85.0; // degC, params sensor.kit_temp_max (A-004)
+            attribute :>> unitPrice = 28.99;       // USD at 10+, params sensor.unit_price_web_qty10
         }
     }
 

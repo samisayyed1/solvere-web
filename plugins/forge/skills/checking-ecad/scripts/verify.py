@@ -16,6 +16,15 @@ For every `<stem>` under `ecad/` that has a `.kicad_sch` and/or `.kicad_pcb`:
    minima (track width, track clearance, drill diameter) against the fab-house floor in
    `references/fab_rules.toml` (numbers sourced to R5d), for whichever fab
    `params/params.toml`'s `[manufacturing] pcb_fab` names (default: "jlcpcb").
+4. Checks the board's real minimum annular ring and copper-to-board-edge distance against
+   the same fab floor. Neither is in `pcb export stats`'s output, so both are extracted by
+   running a second `kicad-cli pcb drc` pass against a scratch copy of the board (never the
+   real board, never written under `ecad/`) with a custom `.kicad_dru` rule whose minimum
+   (100 mm) no real feature can meet -- this forces every relevant item to report a
+   violation, and each violation's own text carries the board's true measured value
+   ("... actual 0.1175 mm"), which is parsed out and compared to the fab floor exactly like
+   the stats-derived measurements above (M1, review #1: these two rules were "never
+   checked", and every missing rule-table key is now a hard ERROR, never a silent skip).
 
 Human sign-off before fabrication is a separate, human gate (SKILL.md; enforced by the
 release hook) -- this script only checks what a machine can check.
@@ -203,6 +212,64 @@ def check_erc_drc(chk: Check, board_paths: dict[str, Path], project: Path, out_d
                    remediation=remediation)
 
 
+_ACTUAL_NUM = re.compile(r"actual\s+([-+]?\d*\.?\d+)")
+
+# (constraint keyword for a scratch .kicad_dru rule, the DRC violation `type`
+# it reports, the fab_rules.toml key, the stats measurement name) -- these
+# two rules are never in `kicad-cli pcb export stats`'s output at all (M1,
+# review #1: "annular-ring and copper-to-edge rules are never checked"), so
+# they are extracted via a scratch DRC pass instead (see
+# `_measure_via_scratch_drc`).
+_DRU_EXTRACTED_RULES = (
+    ("annular_width", "annular_width", "min_annular_ring_mm", "dfm_min_annular_ring"),
+    ("edge_clearance", "copper_edge_clearance", "copper_to_edge_mm", "dfm_copper_to_edge"),
+)
+
+
+def _measure_via_scratch_drc(pcb: Path, out_dir: Path, constraint: str, violation_type: str,
+                              kicad_cli: str) -> float | None:
+    """The board's true worst-case measured value for a DRC ``constraint``
+    kind (e.g. ``annular_width``, ``edge_clearance``) that ``kicad-cli pcb
+    export stats`` does not report.
+
+    Writes a scratch ``.kicad_dru`` custom rule with an unreachable ``min``
+    (100 mm -- no real board feature is ever that large) next to a COPY of
+    the board under ``out/verify/`` (never the real board, and never
+    ``ecad/``), so KiCad's DRC engine is forced to report every relevant
+    item as a violation. Each violation's own description carries the exact
+    measured value ("... actual 0.1175 mm)"), which this parses out and
+    takes the minimum of -- that minimum is the board's real worst case,
+    compared against our fab floor by the caller exactly like the
+    stats-derived measurements above. Returns ``None`` if the board has no
+    matching feature at all (e.g. no plated holes for annular_width) --
+    genuinely nothing to check, not a silent skip of a rule that applies.
+    """
+    scratch = out_dir / f".dfm_dru_{_slug(pcb.stem)}_{constraint}"
+    scratch.mkdir(parents=True, exist_ok=True)
+    scratch_pcb = scratch / pcb.name
+    scratch_pcb.write_bytes(pcb.read_bytes())
+    dru = scratch_pcb.with_suffix(".kicad_dru")
+    dru.write_text(
+        "(version 1)\n\n"
+        '(rule "forge_dfm_extract"\n'
+        f"    (constraint {constraint} (min 100mm))\n"
+        "    (severity error))\n"
+    )
+    report = scratch / "drc.json"
+    run_kicad_cli([kicad_cli, "pcb", "drc", "--format", "json", "-o", str(report), str(scratch_pcb)])
+    if not report.exists():
+        raise EcadCheckError(f"kicad-cli pcb drc (DFM extraction pass for {constraint}) produced no output for {pcb}")
+    data = json.loads(report.read_text())
+    values: list[float] = []
+    for v in data.get("violations", []):
+        if v.get("type") != violation_type:
+            continue
+        m = _ACTUAL_NUM.search(v.get("description", ""))
+        if m:
+            values.append(float(m.group(1)))
+    return min(values) if values else None
+
+
 def check_fab_dfm(chk: Check, pcb: Path, out_dir: Path, fab: str, fab_rules: dict[str, Any], kicad_cli: str) -> None:
     stats_json = out_dir / f"stats.{pcb.stem}.json"
     run_kicad_cli([kicad_cli, "pcb", "export", "stats", "--format", "json", "--units", "mm",
@@ -217,8 +284,17 @@ def check_fab_dfm(chk: Check, pcb: Path, out_dir: Path, fab: str, fab_rules: dic
         ("min_drill_diameter", "min_drill_diameter_mm", "mm"),
     ]
     for stats_key, rule_key, unit in pairs:
-        if stats_key not in stats or rule_key not in fab_rules:
-            continue
+        # A missing rule key (fab_rules.toml lacks a floor this fab needs) or
+        # a missing stats key (kicad-cli didn't report what we asked for) is
+        # an ERROR, never a silent `continue` -- a DFM rule that silently
+        # never runs is worse than an obviously broken one (M1, review #1).
+        if rule_key not in fab_rules:
+            raise EcadCheckError(f"references/fab_rules.toml [{fab}] is missing required key {rule_key!r}")
+        if stats_key not in stats:
+            raise EcadCheckError(
+                f"kicad-cli pcb export stats did not report {stats_key!r} for {pcb} "
+                "(unexpected kicad-cli version/output shape)"
+            )
         measured = _num(stats[stats_key])
         floor = float(fab_rules[rule_key])
         chk.measure(
@@ -227,6 +303,25 @@ def check_fab_dfm(chk: Check, pcb: Path, out_dir: Path, fab: str, fab_rules: dic
                 f"{stats_key.replace('_', ' ')} is {measured} {unit}, below the {fab} floor of "
                 f"{floor} {unit} ({fab_rules.get('source', 'references/fab_rules.toml')}). "
                 "Widen the feature, or choose a different fab tier with a sourced update to fab_rules.toml."
+            ),
+        )
+
+    for constraint, violation_type, rule_key, name in _DRU_EXTRACTED_RULES:
+        if rule_key not in fab_rules:
+            raise EcadCheckError(f"references/fab_rules.toml [{fab}] is missing required key {rule_key!r}")
+        floor = float(fab_rules[rule_key])
+        measured = _measure_via_scratch_drc(pcb, out_dir, constraint, violation_type, kicad_cli)
+        if measured is None:
+            print(f"[SKIP] {name}: no {violation_type} features found on {pcb} (e.g. no plated holes)")
+            continue
+        chk.measure(
+            name, measured, "mm", min=floor, location=str(pcb),
+            remediation=(
+                f"{name.replace('dfm_', '').replace('_', ' ')} is {measured} mm, "
+                f"below the {fab} floor of {floor} mm "
+                f"({fab_rules.get('source', 'references/fab_rules.toml')}). Widen the annular ring / "
+                "move copper away from the board edge, or choose a different fab tier with a sourced "
+                "update to fab_rules.toml."
             ),
         )
 

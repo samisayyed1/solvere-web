@@ -84,8 +84,10 @@ def plate_hole_kt_net(d_over_w: float, method: str = "peterson") -> float:
         return 2.0 + 0.284 * s - 0.600 * s ** 2 + 1.32 * s ** 3
     if method == "heywood":    # Heywood (1952)
         return 2.0 + s ** 3
-    if method == "roark":      # Young & Budynas, Roark's Formulas, Kt table, hole in finite plate
-        return 3.00 - 3.13 * d_over_w + 3.66 * d_over_w ** 2 - 1.53 * d_over_w ** 3
+    if method == "roark":      # Young & Budynas, Roark's Formulas for Stress and Strain, 7th ed.,
+                                # Table 17.1 case 4a curve fit (m4, review #1: the coefficients were
+                                # 3.13/3.66/1.53, rounded from the 7th edition's own 3.140/3.667/1.527)
+        return 3.00 - 3.140 * d_over_w + 3.667 * d_over_w ** 2 - 1.527 * d_over_w ** 3
     raise HandCalcError(f"unknown plate-hole Kt method {method!r} (peterson | heywood | roark)")
 
 

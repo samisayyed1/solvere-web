@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """PostToolUse: path-dispatched verification (CONTRACTS.md §8-9, brief §3.4).
 
-Matched on ``Write|Edit|MultiEdit`` in ``hooks/hooks.json``. Maps the
+Matched on ``Write|Edit|MultiEdit|NotebookEdit`` in ``hooks/hooks.json``
+(NotebookEdit carries ``notebook_path`` instead of ``file_path``). Maps the
 changed path through the product repo's ``forge.toml`` ``[[verify]]``
 entries to verify entrypoints (CONTRACTS §9), and runs each with
 ``--fast --changed <path>`` via ``~/.forge/bin/forge-python`` (the skill
@@ -20,6 +21,7 @@ budget across all matched entrypoints.
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 import time
@@ -51,26 +53,60 @@ def _matched_entrypoints(project: Path, rel: str) -> list[str]:
         if not isinstance(entry, dict):
             continue
         paths = entry.get("paths") or []
-        if any_glob_match(paths, rel):
+        # case-insensitive filesystems (macOS APFS): CAD/x.py is cad/x.py (review #1, M1)
+        if any_glob_match(paths, rel) or any_glob_match([p.casefold() for p in paths], rel.casefold()):
             for ep in entry.get("entrypoints") or []:
                 if ep not in entrypoints:
                     entrypoints.append(ep)
     return entrypoints
 
 
-def _collect_remediations(project: Path, since: float) -> list[str]:
-    out: list[str] = []
+_PREFIX_RE = re.compile(r"^\[FORGE_CHECK_ID_PREFIX\]\s+(\S+)\s*$", re.MULTILINE)
+
+
+def _snapshot(project: Path) -> dict[Path, int]:
     verify_dir = project / "out" / "verify"
     if not verify_dir.is_dir():
-        return out
-    for f in sorted(verify_dir.glob("*.json")):
+        return {}
+    out: dict[Path, int] = {}
+    for f in verify_dir.glob("*.json"):
         try:
-            if f.stat().st_mtime < since - 1.0:
-                continue
+            out[f] = f.stat().st_mtime_ns
+        except OSError:
+            continue
+    return out
+
+
+def declared_prefix(stdout: str) -> str | None:
+    """The ``[FORGE_CHECK_ID_PREFIX] <prefix>`` line an entrypoint prints first
+    (CONTRACTS.md §9 "check_id namespace")."""
+    m = _PREFIX_RE.search(stdout or "")
+    return m.group(1) if m else None
+
+
+def _collect_remediations(project: Path, prefix: str, before: dict[Path, int]) -> list[str]:
+    """Fix messages for one entrypoint run.
+
+    Attribution is by ``check_id`` prefix only (review #1, M7): a result file
+    counts for this entrypoint only if its ``check_id`` starts with the prefix
+    the entrypoint declared. The before/after ``st_mtime_ns`` snapshot is not
+    used for attribution; it only drops *stale* results of the same prefix
+    that this run did not rewrite (e.g. an old failing part outside
+    ``--changed``), so an unrelated old failure never blocks this edit.
+    """
+    out: list[str] = []
+    for f, mtime in sorted(_snapshot(project).items()):
+        if before.get(f) == mtime:
+            continue  # not written by this run
+        try:
             data = json.loads(f.read_text())
         except (OSError, json.JSONDecodeError):
             continue
-        check_id = data.get("check_id", f.stem)
+        if not isinstance(data, dict):
+            continue
+        check_id = str(data.get("check_id") or "")
+        if not check_id.startswith(prefix):
+            continue  # another entrypoint's result, however recent
         if data.get("status") == "error" and data.get("error"):
             out.append(f"{check_id}: ERROR: {data['error']}")
         for m in data.get("measurements", []):
@@ -89,7 +125,7 @@ def _run_entrypoint(project: Path, entrypoint: str, rel: str, deadline: float, i
     remaining = deadline - time.time()
     if remaining <= 0.2:
         return {"entrypoint": entrypoint, "status": "skip", "note": "PostToolUse 30s budget exhausted"}
-    start = time.time()
+    before = _snapshot(project)
     try:
         proc = subprocess.run(
             [str(interpreter), str(script), "--project", str(project), "--changed", rel, "--fast"],
@@ -100,11 +136,23 @@ def _run_entrypoint(project: Path, entrypoint: str, rel: str, deadline: float, i
     except OSError as exc:
         return {"entrypoint": entrypoint, "status": "error", "remediations": [], "note": str(exc)}
     status = "pass" if proc.returncode == 0 else ("fail" if proc.returncode == 1 else "error")
-    remediations = _collect_remediations(project, since=start)
+    prefix = declared_prefix(proc.stdout)
     note = None
-    if status == "error" and not remediations:
-        note = truncate((proc.stderr or proc.stdout or "no output").strip(), 300)
-    return {"entrypoint": entrypoint, "status": status, "remediations": remediations, "note": note}
+    if prefix is None:
+        remediations: list[str] = []
+        if status != "pass":
+            status = "error"
+            note = truncate(f"{entrypoint} did not print [FORGE_CHECK_ID_PREFIX] (CONTRACTS.md §9), so its "
+                            "fix messages cannot be attributed; output: "
+                            + (proc.stdout or proc.stderr or "none").strip(), 300)
+    else:
+        remediations = _collect_remediations(project, prefix, before)
+        if status == "error" and not remediations:
+            note = truncate((proc.stderr or proc.stdout or "no output").strip(), 300)
+        elif status == "fail" and not remediations:
+            note = truncate((proc.stdout or proc.stderr or "no output").strip(), 300)
+    return {"entrypoint": entrypoint, "status": status, "prefix": prefix,
+            "remediations": remediations, "note": note}
 
 
 def handle(data: dict) -> tuple[int, dict | None]:
@@ -113,7 +161,7 @@ def handle(data: dict) -> tuple[int, dict | None]:
         return 0, None
 
     tool_input = data.get("tool_input") or {}
-    file_path = tool_input.get("file_path")
+    file_path = tool_input.get("file_path") or tool_input.get("notebook_path")
     if not file_path:
         return 0, None
     rel = _rel_path(project, file_path)

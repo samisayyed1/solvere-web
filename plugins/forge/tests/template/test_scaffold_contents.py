@@ -12,6 +12,7 @@ import pytest
 from template._checks import (
     claude_md_line_count,
     forge_toml_missing_entrypoints,
+    hardcoded_home_paths,
     rules_missing_paths,
     settings_missing_required,
 )
@@ -141,6 +142,51 @@ def test_forge_root_placeholder_substituted(scaffolded_project, forge_root):
     text = (scaffolded_project / ".mcp.json").read_text()
     assert "${FORGE_ROOT}" not in text
     assert str(forge_root) in text
+
+
+# --- .mcp.json is portable: no machine-specific home path (m2, review #1) --
+#
+# This is checked on the unscaffolded *source* template only
+# (test_template_source_mcp_json_has_no_hardcoded_home_path below), not on
+# scaffolded_project's output: ${FORGE_ROOT} is legitimately substituted at
+# scaffold time to this machine's real Forge checkout path (see
+# test_forge_root_placeholder_substituted above), which on a repo checked
+# out under a directory literally named /home/<user>/... would itself match
+# a naive "/home/<name>/" pattern -- a false positive, not the bug this
+# guards against. ${HOME} in the srt/binary paths, by contrast, is never
+# substituted by the scaffolder at all (see _substitute in scaffold.py): it
+# stays literal and is expanded by Claude Code itself at MCP-launch time.
+
+def test_scaffolded_mcp_json_keeps_home_token_for_claude_code_to_expand(scaffolded_project):
+    """The scaffolder must not try to substitute ${HOME} itself (it doesn't
+    know the *running* user's home at scaffold time, only the machine that
+    ran /forge:new-project) -- it stays literal for Claude Code's own
+    .mcp.json env-var expansion to resolve per-user at MCP-launch time."""
+    text = (scaffolded_project / ".mcp.json").read_text()
+    assert "${HOME}/.forge" in text
+
+
+def test_hardcoded_home_path_check_can_fail():
+    bad = '{"args": ["/Users/samisayyed/.forge/bin/srt"]}'
+    assert hardcoded_home_paths(bad) == ["/Users/samisayyed/"]
+    good = '{"args": ["${HOME}/.forge/bin/srt"]}'
+    assert hardcoded_home_paths(good) == []
+
+
+def test_template_source_mcp_json_has_no_hardcoded_home_path(templates_dir):
+    """Guards the source template directly, not just its scaffolded output."""
+    text = (templates_dir / ".mcp.json").read_text()
+    assert hardcoded_home_paths(text) == []
+
+
+def test_kicad_mcp_pro_srt_profile_exists(forge_root):
+    """m2 (review #1): security/srt/kicad-mcp-pro.json must exist (modelled
+    on build123d-mcp.json) or srt refuses to launch that server."""
+    profile = forge_root / "security" / "srt" / "kicad-mcp-pro.json"
+    assert profile.exists()
+    import json
+    data = json.loads(profile.read_text())
+    assert "filesystem" in data and "network" in data
 
 
 # --- the scaffolded template passes its own checks (M7, review #1) ---------

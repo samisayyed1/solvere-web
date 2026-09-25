@@ -75,7 +75,9 @@ something to silently wave through.
 ## Snap-fit strain
 
 `scripts/strain.py`'s `root_strain()` implements Covestro's cantilever
-formula (R5d): `eps = h*y/(k*L^2)`. It does **not** include BASF's short-arm
+formula (R5d): `eps = h*y/(k*L^2)`, reported as `root_strain_pct` in **%**
+(the material allowables in `references/rules/snap_fit.toml` are also
+percent). It does **not** include BASF's short-arm
 correction; `verify.py` adds a note (not a failure) whenever `length/thickness
 < 10`, per R5d's caution that the plain formula under-predicts root strain
 for short arms. Treat a passing result flagged this way with suspicion and

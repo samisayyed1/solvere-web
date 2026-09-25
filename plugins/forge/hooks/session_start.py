@@ -24,12 +24,18 @@ Inside a Forge project, builds a single ``additionalContext`` block
 - a Claude Code version-floor warning (``forge.version_check``, always run
   directly since it's cheap and independent of the doctor-cache path);
 - on ``source == "compact"``, the ``.forge/state.json`` summary written by
-  the PreCompact hook, so state survives compaction (R1a §14/§18).
+  the PreCompact hook, so state survives compaction (R1a §14/§18);
+- a **hook self-check** (ADR-001 §5): every script ``hooks/hooks.json``
+  runs exists and is executable, and every hook module it names exists. A
+  missing script would fail OPEN (the platform treats "cannot run" as not
+  blocking), so a failure is printed first, in capitals, in every session,
+  inside or outside a Forge project.
 """
 
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -42,6 +48,9 @@ from _common import (  # noqa: E402
     read_json, truncate,
 )
 from forge import state, version_check  # noqa: E402
+
+PLUGIN_ROOT = Path(__file__).resolve().parent.parent
+HOOKS_JSON = PLUGIN_ROOT / "hooks" / "hooks.json"
 
 ADDITIONAL_CONTEXT_MAX_CHARS = 2000
 DOCTOR_CACHE_MAX_AGE_S = 24 * 3600
@@ -161,11 +170,53 @@ def _version_warning() -> str | None:
     return "; ".join(f"{r.id} {r.status} (have {r.measured}, need {r.expected})" for r in bad)
 
 
+def hook_selfcheck(hooks_json: Path | None = None, plugin_root: Path | None = None) -> list[str]:
+    """Problems with the hook wiring (empty list = healthy)."""
+    hooks_json = hooks_json or HOOKS_JSON
+    plugin_root = plugin_root or PLUGIN_ROOT
+    try:
+        config = json.loads(hooks_json.read_text())
+    except (OSError, json.JSONDecodeError) as exc:
+        return [f"{hooks_json} unreadable: {exc}"]
+    problems: list[str] = []
+    for event, groups in (config.get("hooks") or {}).items():
+        for group in groups or []:
+            for hook in group.get("hooks") or []:
+                if hook.get("type") != "command":
+                    continue
+                if not hook.get("timeout"):
+                    problems.append(f"{event}: hook has no timeout")
+                args = [str(a).replace("${CLAUDE_PLUGIN_ROOT}", str(plugin_root)) for a in hook.get("args") or []]
+                if not args:
+                    problems.append(f"{event}: hook has no script argument")
+                    continue
+                script = Path(args[0])
+                if not script.is_file():
+                    problems.append(f"{event}: {script.name} is missing")
+                elif not os.access(script, os.X_OK):
+                    problems.append(f"{event}: {script.name} is not executable")
+                if script.name == "_failclosed.py" and len(args) > 1:
+                    module = script.parent / f"{args[1]}.py"
+                    if not module.is_file():
+                        problems.append(f"{event}: hook module {module.name} is missing")
+                    elif not os.access(module, os.R_OK):
+                        problems.append(f"{event}: hook module {module.name} is not readable")
+    return problems
+
+
+def _selfcheck_line() -> str | None:
+    problems = hook_selfcheck()
+    if not problems:
+        return None
+    return ("FORGE HOOK SELF-CHECK FAILED (guardrails may be OFF): " + "; ".join(problems[:6])
+            + ". Reinstall the plugin or restore plugins/forge/hooks/ before continuing.")
+
+
 def _no_project_hint() -> dict:
-    return {"additionalContext": (
-        "Forge: no forge.toml found above this directory; this isn't a Forge product repo. "
-        "Run /forge:new-project or /forge:init to scaffold one."
-    )}
+    text = ("Forge: no forge.toml found above this directory; this isn't a Forge product repo. "
+            "Run /forge:new-project or /forge:init to scaffold one.")
+    bad = _selfcheck_line()
+    return {"additionalContext": (bad + "\n" + text) if bad else text}
 
 
 def handle(data: dict) -> tuple[int, dict | None]:
@@ -185,6 +236,9 @@ def handle(data: dict) -> tuple[int, dict | None]:
     version_warning = _version_warning()
 
     lines = [f"Forge: gate {gate}."]
+    selfcheck = _selfcheck_line()
+    if selfcheck:
+        lines.insert(0, selfcheck)
     if failing:
         shown = ", ".join(failing[:8]) + (f" (+{len(failing) - 8} more)" if len(failing) > 8 else "")
         lines.append(f"Failing checks ({len(failing)}): {shown}")

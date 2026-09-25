@@ -287,14 +287,24 @@ def _apply_snap_fit(entry: dict[str, Any], *, part_name: str, project: Path, tar
 
     warn = strain_mod.short_arm_warning(length_mm=float(entry["length_mm"]), thickness_mm=float(entry["thickness_mm"]))
     check_id = f"dfm.snap_fit.{name}.{part_name}"
-    with checkresult.run_check(check_id, target, project=project) as chk:
+    # Not `checkresult.run_check(...)` here (unlike _apply_dfm_check above):
+    # that context manager's `finish()` call takes no `notes`, which is how
+    # the short-arm warning used to be computed into `notes` and then
+    # silently discarded -- never reaching out/verify/*.json at all (M3,
+    # review #1). Building the Check by hand lets `finish(notes=...)` carry
+    # it through, while still fail-closing exactly like run_check does.
+    chk = checkresult.Check(check_id, target, project=project)
+    try:
         chk.tool("forge_cad.strain", "1")
-        notes = warn or None
-        chk.measure("root_strain_pct", eps_pct, "1", max=allowable, requirement=requirement,
+        # eps_pct is already a percentage (0-100), not a bare ratio -- unit
+        # "1" mislabeled it as dimensionless (M3, review #1).
+        chk.measure("root_strain_pct", eps_pct, "%", max=allowable, requirement=requirement,
                     remediation=f"Root strain {eps_pct:.3f}% exceeds the {material['name']} allowable "
                                 f"{allowable:.3f}% ({source_note}). Increase length, reduce deflection, "
                                 "thicken the root, or switch to a tapered arm (higher k).")
-    return 0
+    except Exception as exc:  # noqa: BLE001 -- fail closed, same as run_check
+        sys.exit(chk.error(f"{type(exc).__name__}: {exc}"))
+    sys.exit(chk.finish(notes=warn))
 
 
 def _iter_specs(project: Path, changed: list[str]) -> list[Path]:

@@ -117,9 +117,9 @@ def git(root: Path, *args: str, timeout: float = 5.0) -> str:
 
 def changed_paths(root: Path) -> list[str]:
     """Paths with uncommitted changes (staged, unstaged, untracked) per
-    ``git status --porcelain``. This is deliberately used instead of a diff
-    against a ref so that edits made through Bash (which PostToolUse on
-    Write|Edit never sees, R1a §19) are still caught by the Stop gate."""
+    ``git status --porcelain`` -- the PreCompact snapshot's "modified files".
+    The Stop gate does NOT use this: it diffs against the last-green SHA
+    (``forge.state.changed_since``) so committed changes are gated too."""
     out = git(root, "status", "--porcelain=v1", "--untracked-files=all")
     paths: list[str] = []
     for line in out.splitlines():

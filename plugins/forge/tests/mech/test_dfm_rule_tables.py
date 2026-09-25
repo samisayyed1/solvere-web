@@ -14,9 +14,11 @@ RULES_DIR = Path(__file__).resolve().parents[2] / "skills" / "checking-dfm" / "r
 PROCESS_FILES = [p for p in RULES_DIR.glob("*.toml") if p.stem != "snap_fit"]
 KNOWN_FAMILIES = {
     "geometry.min_wall", "geometry.hole_diameter", "geometry.clearance", "geometry.draft",
-    "geometry.min_radius", "geometry.hole_edge", "geometry.boss_rib", "unsupported",
+    "geometry.overhang", "geometry.min_radius", "geometry.hole_edge", "geometry.boss_rib", "unsupported",
 }
-KNOWN_COMPARISONS = {"min", "max", "min_from_vertical", "min_ratio_of_wall", "max_ratio_of_wall"}
+KNOWN_COMPARISONS = {
+    "min", "max", "min_from_vertical", "min_from_horizontal", "min_ratio_of_wall", "max_ratio_of_wall",
+}
 
 
 @pytest.mark.parametrize("path", PROCESS_FILES, ids=lambda p: p.stem)

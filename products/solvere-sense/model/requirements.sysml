@@ -1,7 +1,7 @@
 package SolvereSenseRequirements {
     doc /* Requirement usages for the budget- and interface-bearing requirements,
          short-named with the exact IDs from requirements/requirements.md.
-         The full set of 50 requirements, with tests, is traced in
+         The full set of 53 requirements, with tests, is traced in
          requirements/trace.json. Values mirror params/params.toml. */
 
     private import ScalarValues::*;
@@ -28,8 +28,10 @@ package SolvereSenseRequirements {
         attribute maxCost : Cost_USD;
     }
     requirement def SensorKeepOut :> PodRequirement {
-        attribute fovHorizontal : Angle_deg;
-        attribute fovVertical : Angle_deg;
+        attribute halfAngle : Angle_deg;
+    }
+    requirement def RadomeGap :> PodRequirement {
+        attribute gapStep : Length_mm;
     }
     requirement def SensorLevel :> PodRequirement {
         attribute tolerance : Angle_deg;
@@ -58,8 +60,11 @@ package SolvereSenseRequirements {
         attribute :>> tolerance = 5.0;
     }
     requirement <'REQ-MECH-010'> metalFreeFov : SensorKeepOut {
-        attribute :>> fovHorizontal = 120.0;
-        attribute :>> fovVertical = 100.0;
+        attribute :>> halfAngle = 60.0;
+    }
+    requirement <'REQ-MECH-013'> radomeThickness : QualitativeRequirement;
+    requirement <'REQ-MECH-014'> antennaGap : RadomeGap {
+        attribute :>> gapStep = 2.5;
     }
     requirement <'REQ-MECH-011'> strainRelief : QualitativeRequirement;
     requirement <'REQ-MECH-012'> cableExit : QualitativeRequirement;
@@ -77,7 +82,7 @@ package SolvereSenseRequirements {
     requirement <'REQ-ELEC-001'> noMains : QualitativeRequirement;
     requirement <'REQ-ENV-002'> sensorTemperature : ThermalLimit {
         attribute :>> ambientMax = 35.0;
-        attribute :>> sensorTempMax = 60.0;
+        attribute :>> sensorTempMax = 85.0;
     }
     requirement <'REQ-EMC-005'> noExtraRadio : QualitativeRequirement;
     requirement <'REQ-COST-001'> prototypeCost : CostCeiling {
@@ -96,6 +101,8 @@ package SolvereSenseRequirements {
     satisfy gasketGroovePresent by pod.groove;
     satisfy antennaLevel by pod.sensor;
     satisfy metalFreeFov by pod.radome;
+    satisfy radomeThickness by pod.radome;
+    satisfy antennaGap by pod.radome;
     satisfy strainRelief by pod.strainRelief;
     satisfy cableExit by pod.basePlate;
     satisfy usbSupply by pod.sensor.usbC;

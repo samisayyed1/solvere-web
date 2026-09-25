@@ -1,11 +1,11 @@
 export const meta = {
   name: 'regression-sweep',
-  description: 'Rebuild and re-verify every domain in a Forge product repo (forge verify --all), then diff the results against the last green run and flag any domain that changed with no fresh evidence.',
+  description: 'Rebuild and re-verify every domain in a Forge product repo (forge verify --all), then diff the results against the last green run and flag any domain that changed with no fresh evidence -- the diff itself is a deterministic script (workflows/scripts/regression_diff.py), not an LLM judgement call.',
   whenToUse: 'The weekly routine, or before a gate review / release, to catch silent regressions across mech/elec/fw/sys/sim that a narrow --changed run would miss.',
   phases: [
     { title: 'Snapshot', detail: 'preserve the previous out/verify/ results for comparison, if any' },
     { title: 'Verify', detail: 'run forge verify --all for every domain in forge.toml' },
-    { title: 'Diff', detail: 'compare against the preserved previous run and the evidence manifest' },
+    { title: 'Diff', detail: 'run regression_diff.py: check_id status diff + last_green-state staleness, both exact/mechanical' },
   ],
 }
 
@@ -49,25 +49,45 @@ const verifyRun = await agent(
   { phase: 'Verify', label: 'verify-all' }
 )
 
-// ---- phase 3: diff against the previous run and the evidence manifest --
+// ---- phase 3: diff against the last-green state -- a deterministic script,
+// never an LLM's judgement call (M9, review #1: "that diff is done by an
+// LLM with no schema"). The agent here is a pure executor: it runs exactly
+// one command and returns its stdout verbatim. Every classification
+// (NEW/REMOVED/UNCHANGED/REGRESSED/FIXED, and which domains are stale
+// against their recorded last_green state) is decided by
+// workflows/scripts/regression_diff.py, not by the agent reading files and
+// reasoning about them.
 phase('Diff')
 
-const diffRun = await agent(
-  `In the project at "${project}": compare out/verify/ (the run that just finished) against ` +
-  `out/verify.previous/ (from before this sweep), if out/verify.previous/ exists -- if it doesn't, say this is ` +
-  `the first recorded run and skip the diff, but still do the evidence check below.\n\n` +
-  `For every check_id present in either directory, classify it as one of: NEW (no previous result), ` +
-  `REMOVED (had a previous result, none now), UNCHANGED (same status both times), REGRESSED (previously ` +
-  `pass, now fail or error), FIXED (previously fail or error, now pass). ` +
-  `List every REGRESSED check_id with its remediation string(s) from the check-result JSON's measurements. ` +
-  `\n\nSeparately: read evidence/manifest.json and \`git status\` in "${project}". For each domain (mech, ` +
-  `elec, fw, sw, sys, sim, mfg, compliance) that has files changed per git status, confirm there is an ` +
-  `evidence/manifest.json entry for that domain at or after those changes; flag any changed domain with no ` +
-  `fresh evidence entry as an UNVERIFIED risk (CONTRACTS.md §4-5).` +
-  `\n\nEnd with one summary line: "X regressed, Y fixed, Z unchanged, W new, V unverified-domain risk(s)".`,
+const diffRunRaw = await agent(
+  `Locate the Forge repo root: the directory at or above "${project}" that contains ` +
+  `plugins/forge/bin/forge (same resolution rule as the Verify phase). Then run exactly:\n\n` +
+  `    <forge-python-if-it-exists-else-python3> <forge-repo-root>/plugins/forge/workflows/scripts/regression_diff.py --project "${project}"\n\n` +
+  `(\`forge-python\` is ~/.forge/bin/forge-python if that file exists, else use \`python3\` -- this script is ` +
+  `standard-library only, so either interpreter works.) Your entire final message must be that command's raw ` +
+  `stdout, character for character -- no markdown code fence, no summary, no commentary before or after it, ` +
+  `and no reformatting of the JSON. If the command exits non-zero, your final message must instead be exactly ` +
+  `"REGRESSION_DIFF_ERROR: " followed by its stderr.`,
   { phase: 'Diff', label: 'diff' }
 )
 
+let diff
+if (typeof diffRunRaw === 'string' && diffRunRaw.trim().startsWith('REGRESSION_DIFF_ERROR:')) {
+  diff = { schema: 'forge.regression_diff/1', error: diffRunRaw.trim() }
+} else {
+  // Strip an accidental markdown fence, if the agent added one despite the
+  // instruction not to -- parsing itself is still plain JSON.parse, not an
+  // LLM interpreting the content.
+  const text = (typeof diffRunRaw === 'string' ? diffRunRaw : '').trim()
+    .replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '')
+  try {
+    diff = JSON.parse(text)
+  } catch (e) {
+    diff = { schema: 'forge.regression_diff/1', error: `could not parse regression_diff.py output as JSON: ${e.message}`, raw: text }
+  }
+}
+
+log(diff.summary ? `Diff: ${diff.summary}` : `Diff: ${diff.error || 'no summary available'}`)
 log('Regression sweep complete: rebuilt, re-verified and diffed against the last preserved run.')
 
 return {
@@ -75,5 +95,5 @@ return {
   project,
   snapshot,
   verify_run: verifyRun,
-  diff: diffRun,
+  diff,
 }

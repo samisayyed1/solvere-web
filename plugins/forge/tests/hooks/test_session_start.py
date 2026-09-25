@@ -94,3 +94,50 @@ def test_missing_forge_toml_gate_shows_unset(tmp_path):
     (project / "forge.toml").write_text("[project]\nname = \"x\"\n")
     result = run_hook("session_start.py", {"cwd": str(project), "source": "startup"})
     assert "(unset)" in result.output["additionalContext"]
+
+
+# ---------------------------------------------------------------------------
+# review #1, m5: SessionStart self-checks the hook wiring (ADR-001 §5)
+# ---------------------------------------------------------------------------
+
+def test_hook_selfcheck_passes_on_the_real_plugin():
+    import session_start
+    assert session_start.hook_selfcheck() == []
+
+
+def _copy_hooks(tmp_path):
+    import shutil
+    from .hookutil import HOOKS_DIR
+    root = tmp_path / "plugin"
+    shutil.copytree(HOOKS_DIR, root / "hooks", ignore=shutil.ignore_patterns("__pycache__"))
+    return root
+
+
+def test_hook_selfcheck_flags_a_missing_script(tmp_path):
+    import session_start
+    root = _copy_hooks(tmp_path)
+    (root / "hooks" / "stop.py").unlink()
+    problems = session_start.hook_selfcheck(root / "hooks" / "hooks.json", root)
+    assert any("stop.py is missing" in p for p in problems)
+
+
+def test_hook_selfcheck_flags_a_non_executable_wrapper(tmp_path):
+    import session_start
+    root = _copy_hooks(tmp_path)
+    (root / "hooks" / "_failclosed.py").chmod(0o644)
+    problems = session_start.hook_selfcheck(root / "hooks" / "hooks.json", root)
+    assert any("_failclosed.py is not executable" in p for p in problems)
+
+
+def test_selfcheck_failure_is_surfaced_in_session_context(forge_project, tmp_path, monkeypatch):
+    import session_start
+    root = _copy_hooks(tmp_path)
+    (root / "hooks" / "pre_tool_use.py").unlink()
+    monkeypatch.setattr(session_start, "HOOKS_JSON", root / "hooks" / "hooks.json")
+    monkeypatch.setattr(session_start, "PLUGIN_ROOT", root)
+    monkeypatch.setattr(session_start, "_doctor_drift", lambda: None)
+    monkeypatch.setattr(session_start, "_version_warning", lambda: None)
+    code, out = session_start.handle({"cwd": str(forge_project), "source": "startup"})
+    assert code == 0
+    assert out["additionalContext"].startswith("FORGE HOOK SELF-CHECK FAILED")
+    assert "pre_tool_use.py is missing" in out["additionalContext"]

@@ -133,7 +133,11 @@ name = "hole_peak_stress"
 formula = "plate_hole_tension_peak_stress"
 inputs = {{ gross_stress_mpa = 50.0, width_mm = 50.0, hole_diameter_mm = 10.0 }}
 fea = {{ quantity = "peak_principal" }}
-tolerance_pct = 10.0
+# m4 (review #1): 10% was loose enough to pass a radius/diameter mix-up
+# (~4.7% error) silently; the tet10 FEA's own known-answer error here is
+# ~0.9% (see the test below), so 3% still passes the real case with margin
+# while catching that class of seeded error.
+tolerance_pct = 3.0
 [requirement]
 min_safety_factor = 1.5
 """
@@ -304,12 +308,15 @@ def test_a_cantilever_tet10_within_3pct_of_euler_bernoulli(known):
 
 
 @pytest.mark.slow
-def test_b_plate_hole_peak_within_10pct_of_peterson_at_hole_edge(known):
+def test_b_plate_hole_peak_within_3pct_of_peterson_at_hole_edge(known):
+    """m4 (review #1): tightened from a 10% config tolerance (loose enough to
+    pass a ~4.7% radius/diameter mix-up silently) to 3% -- the real tet10
+    answer is still comfortably inside it, at about +0.9%."""
     root, _ = known
     out = _result(root, "plate_hole")
     m = _m(out)
-    assert abs(m["hand_calc_hole_peak_stress_diff_pct"]["value"]) < 10.0
     assert abs(m["hand_calc_hole_peak_stress_diff_pct"]["value"]) < 3.0, "reference case lands at about +0.9 %"
+    assert m["hand_calc_hole_peak_stress_diff_pct"]["pass"] is True
     assert "d/W = 0.200" in out["notes"]
     # the peak must be where theory puts it: hole edge, on the net section (x ~ 0, y ~ r = 5 mm)
     loc = m["hand_calc_hole_peak_stress_diff_pct"]["location"]

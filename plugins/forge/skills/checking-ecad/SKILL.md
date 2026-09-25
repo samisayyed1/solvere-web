@@ -9,9 +9,10 @@ allowed-tools: Read, Grep, Glob, Bash(kicad-cli *), Bash(~/.forge/bin/forge-pyth
 **Non-negotiable rules:**
 
 1. **Never fabricate anything, and never mark a fab-readiness gate PASS from this skill.** Checking-ecad only runs machine checks and reports; a human sign-off is required before any fab order, enforced by the release hook (CONTRACTS.md §13 approval file) — this skill only states that requirement, it does not (and cannot) satisfy it.
-2. **`kicad-cli` only, never `--save-board`.** Review-mode DRC must never mutate the board file.
+2. **`kicad-cli` only, never `--save-board`.** Review-mode DRC must never mutate the board file. The annular-ring/copper-to-edge check (below) also never mutates the real board or writes into `ecad/`: it runs against a scratch copy under `out/verify/`.
 3. **Every ERC/DRC violation is fixed or explicitly waived.** A waiver needs a `reason` and an `approver` in `ecad/waivers.toml` (`references/waivers-format.md`); a waiver missing either is rejected outright — the whole check errors, it does not silently skip the waiver.
 4. **Fab DFM numbers come only from `references/fab_rules.toml`**, sourced line-by-line to `docs/research/R5d-dfm-additive-snapfit-pcb.md`. Never invent a fab minimum.
+5. **Every fab-rule key `references/fab_rules.toml` promises is actually checked, and a missing key is an ERROR, not a silent skip.** `min_track_width_mm`/`min_track_clearance_mm`/`min_drill_diameter_mm` (from `kicad-cli pcb export stats`) and `min_annular_ring_mm`/`copper_to_edge_mm` (extracted via a scratch DRC pass, since `pcb export stats` doesn't report either) all run every time; a rule table entry with no matching check, or a check with no matching rule-table key, fails closed (m1, review #1).
 
 ## Workflow
 
@@ -20,6 +21,7 @@ allowed-tools: Read, Grep, Glob, Bash(kicad-cli *), Bash(~/.forge/bin/forge-pyth
    - runs `kicad-cli sch erc --format json --exit-code-violations` and `kicad-cli pcb drc --format json --exit-code-violations`, writing `out/verify/erc.<name>.json` / `drc.<name>.json`;
    - counts violations by KiCad's `type` field, subtracts anything covered by a valid `ecad/waivers.toml` entry, and fails on the remainder;
    - runs `kicad-cli pcb export stats --format json` and compares the board's *measured* `min_track_width`, `min_track_clearance` and `min_drill_diameter` against the chosen fab's floor (`params/params.toml`'s `[manufacturing] pcb_fab`, default `jlcpcb`) from `references/fab_rules.toml`;
+   - measures the board's real minimum annular ring and copper-to-board-edge distance (`dfm_min_annular_ring`, `dfm_copper_to_edge`) against the same fab's floor — `pcb export stats` doesn't report either number, so this runs a second, scratch-only `kicad-cli pcb drc` pass with a custom `.kicad_dru` rule (an unreachable 100 mm minimum) that forces KiCad to report every via/pad's and every copper feature's real measured value, which this parses out of the violation text;
    - writes one `out/verify/ecad.<name>.json` check result per board.
 3. **Read every failing `remediation` string** — it names the rule, the measured value against the fab floor, and the fix. Fix the design; only add a waiver when the violation is genuinely non-functional and someone with authority to say so has reviewed it.
 4. **Cite the check result** as evidence at level **L1** (measured, in KiCad) — ERC/DRC passing is not "validated" (L4) and never "production-ready" (L5) on its own.

@@ -4,7 +4,9 @@
     "REQ-SYS-001": {
       "design": [
         "model/system.sysml#SensorKit",
-        "params/params.toml#sensor"
+        "model/requirements.sysml#coverage",
+        "params/params.toml#mount.coverage_side",
+        "params/params.toml#sensor.sensing_radius_max"
       ],
       "tests": [
         "tests/verification-plan.md#tp-sys-001"
@@ -15,7 +17,8 @@
     "REQ-SYS-002": {
       "design": [
         "model/system.sysml#Radome",
-        "params/params.toml#radome"
+        "model/system.sysml#RadomeWindowPort",
+        "model/requirements.sysml#radomeNoDegradation"
       ],
       "tests": [
         "tests/verification-plan.md#tp-sys-002"
@@ -36,7 +39,8 @@
     },
     "REQ-MECH-002": {
       "design": [
-        "model/system.sysml#BasePlate"
+        "model/system.sysml#BasePlate",
+        "model/system.sysml#CeilingFixPort"
       ],
       "tests": [
         "tests/verification-plan.md#tp-mech-002"
@@ -46,7 +50,8 @@
     },
     "REQ-MECH-003": {
       "design": [
-        "model/system.sysml#TBarClipAdapter"
+        "model/system.sysml#TBarClipAdapter",
+        "model/system.sysml#TBarPort"
       ],
       "tests": [
         "tests/verification-plan.md#tp-mech-003"
@@ -57,7 +62,9 @@
     "REQ-MECH-004": {
       "design": [
         "model/system.sysml#BasePlate",
-        "params/params.toml#mount.retention_load_factor"
+        "model/requirements.sysml#basePlateRetention",
+        "params/params.toml#mount.retention_load_factor",
+        "params/params.toml#mount.retention_hold_time"
       ],
       "tests": [
         "tests/verification-plan.md#tp-mech-004"
@@ -68,7 +75,9 @@
     "REQ-MECH-005": {
       "design": [
         "model/system.sysml#ShellBaseInterface",
-        "params/params.toml#mount.retention_load_factor"
+        "model/requirements.sysml#shellRetention",
+        "params/params.toml#mount.retention_load_factor",
+        "params/params.toml#mount.retention_hold_time"
       ],
       "tests": [
         "tests/verification-plan.md#tp-mech-005"
@@ -78,7 +87,8 @@
     },
     "REQ-MECH-006": {
       "design": [
-        "model/system.sysml#ShellBaseInterface"
+        "model/system.sysml#ShellBaseInterface",
+        "model/requirements.sysml#hiddenFastening"
       ],
       "tests": [
         "tests/verification-plan.md#tp-mech-006"
@@ -88,7 +98,9 @@
     },
     "REQ-MECH-007": {
       "design": [
-        "model/system.sysml#GasketGroove"
+        "model/system.sysml#GasketGroove",
+        "model/system.sysml#GasketGrooveInterface",
+        "model/requirements.sysml#gasketGroovePresent"
       ],
       "tests": [
         "tests/verification-plan.md#tp-mech-007"
@@ -110,6 +122,7 @@
     "REQ-MECH-009": {
       "design": [
         "model/system.sysml#SensorKit",
+        "model/requirements.sysml#antennaLevel",
         "params/params.toml#sensor.level_tolerance"
       ],
       "tests": [
@@ -121,7 +134,8 @@
     "REQ-MECH-010": {
       "design": [
         "model/system.sysml#Radome",
-        "params/params.toml#sensor.fov_horizontal"
+        "model/requirements.sysml#metalFreeFov",
+        "params/params.toml#radome.keepout_half_angle"
       ],
       "tests": [
         "tests/verification-plan.md#tp-mech-010"
@@ -131,7 +145,8 @@
     },
     "REQ-MECH-011": {
       "design": [
-        "model/system.sysml#CableStrainRelief"
+        "model/system.sysml#CableStrainRelief",
+        "model/requirements.sysml#strainRelief"
       ],
       "tests": [
         "tests/verification-plan.md#tp-mech-011"
@@ -141,7 +156,8 @@
     },
     "REQ-MECH-012": {
       "design": [
-        "model/system.sysml#CableExitPort"
+        "model/system.sysml#CableExitPort",
+        "model/requirements.sysml#cableExit"
       ],
       "tests": [
         "tests/verification-plan.md#tp-mech-012"
@@ -149,10 +165,36 @@
       "evidence": [],
       "status": "open"
     },
+    "REQ-MECH-013": {
+      "design": [
+        "model/system.sysml#Radome",
+        "model/requirements.sysml#radomeThickness",
+        "params/params.toml#sensor.freq_centre"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-mech-013"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
+    "REQ-MECH-014": {
+      "design": [
+        "model/system.sysml#Radome",
+        "model/requirements.sysml#antennaGap",
+        "params/params.toml#radome.antenna_gap_step"
+      ],
+      "tests": [
+        "tests/verification-plan.md#tp-mech-014"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
     "REQ-PWR-001": {
       "design": [
         "model/system.sysml#UsbCPowerPort",
-        "params/params.toml#power"
+        "model/requirements.sysml#usbSupply",
+        "params/params.toml#power.usb_voltage",
+        "params/params.toml#power.usb_current_max"
       ],
       "tests": [
         "tests/verification-plan.md#tp-pwr-001"
@@ -162,7 +204,8 @@
     },
     "REQ-PWR-002": {
       "design": [
-        "model/system.sysml#UsbCPowerPort"
+        "model/system.sysml#UsbCPowerPort",
+        "params/params.toml#power.usb_current_max"
       ],
       "tests": [
         "tests/verification-plan.md#tp-pwr-002"
@@ -172,7 +215,8 @@
     },
     "REQ-PWR-003": {
       "design": [
-        "params/params.toml#power"
+        "model/system.sysml#SolvereSensePod",
+        "model/requirements.sysml#noBattery"
       ],
       "tests": [
         "tests/verification-plan.md#tp-pwr-003"
@@ -182,7 +226,8 @@
     },
     "REQ-PWR-004": {
       "design": [
-        "model/system.sysml#UsbCPowerPort"
+        "model/system.sysml#UsbCPowerPort",
+        "model/system.sysml#UsbPowerInterface"
       ],
       "tests": [
         "tests/verification-plan.md#tp-pwr-004"
@@ -192,7 +237,9 @@
     },
     "REQ-PWR-005": {
       "design": [
-        "params/params.toml#sensor.power_active"
+        "model/requirements.sysml#powerCeiling",
+        "params/params.toml#power.pod_power_max",
+        "params/params.toml#sensor.power_with_relay"
       ],
       "tests": [
         "tests/verification-plan.md#tp-pwr-005"
@@ -202,7 +249,8 @@
     },
     "REQ-ELEC-001": {
       "design": [
-        "model/system.sysml#SolvereSensePod"
+        "model/system.sysml#SolvereSensePod",
+        "model/requirements.sysml#noMains"
       ],
       "tests": [
         "tests/verification-plan.md#tp-elec-001"
@@ -212,7 +260,8 @@
     },
     "REQ-ENV-001": {
       "design": [
-        "params/params.toml#env"
+        "params/params.toml#env.ambient_min",
+        "params/params.toml#env.ambient_max"
       ],
       "tests": [
         "tests/verification-plan.md#tp-env-001"
@@ -222,7 +271,9 @@
     },
     "REQ-ENV-002": {
       "design": [
-        "params/params.toml#thermal"
+        "model/requirements.sysml#sensorTemperature",
+        "params/params.toml#sensor.kit_temp_max",
+        "params/params.toml#thermal.max_thermal_resistance"
       ],
       "tests": [
         "tests/verification-plan.md#tp-env-002"
@@ -232,7 +283,10 @@
     },
     "REQ-SAFE-001": {
       "design": [
-        "params/params.toml#enclosure"
+        "model/system.sysml#Shell",
+        "model/system.sysml#BasePlate",
+        "model/system.sysml#Radome",
+        "model/system.sysml#TBarClipAdapter"
       ],
       "tests": [
         "tests/verification-plan.md#tp-safe-001"
@@ -242,7 +296,8 @@
     },
     "REQ-SAFE-002": {
       "design": [
-        "params/params.toml#thermal"
+        "model/system.sysml#Shell",
+        "params/params.toml#env.ambient_max"
       ],
       "tests": [
         "tests/verification-plan.md#tp-safe-002"
@@ -259,7 +314,9 @@
       "status": "open"
     },
     "REQ-EMC-001": {
-      "design": [],
+      "design": [
+        "model/system.sysml#SensorKit"
+      ],
       "tests": [
         "tests/verification-plan.md#tp-emc-001"
       ],
@@ -267,7 +324,10 @@
       "status": "open"
     },
     "REQ-EMC-002": {
-      "design": [],
+      "design": [
+        "model/system.sysml#SensorKit",
+        "model/system.sysml#WirelessDataPort"
+      ],
       "tests": [
         "tests/verification-plan.md#tp-emc-002"
       ],
@@ -275,7 +335,9 @@
       "status": "open"
     },
     "REQ-EMC-003": {
-      "design": [],
+      "design": [
+        "model/system.sysml#SensorKit"
+      ],
       "tests": [
         "tests/verification-plan.md#tp-emc-003"
       ],
@@ -283,7 +345,10 @@
       "status": "open"
     },
     "REQ-EMC-004": {
-      "design": [],
+      "design": [
+        "model/system.sysml#SensorKit",
+        "model/system.sysml#WirelessDataPort"
+      ],
       "tests": [
         "tests/verification-plan.md#tp-emc-004"
       ],
@@ -292,7 +357,8 @@
     },
     "REQ-EMC-005": {
       "design": [
-        "model/system.sysml#SensorKit"
+        "model/system.sysml#SensorKit",
+        "model/requirements.sysml#noExtraRadio"
       ],
       "tests": [
         "tests/verification-plan.md#tp-emc-005"
@@ -302,7 +368,8 @@
     },
     "REQ-FW-001": {
       "design": [
-        "model/system.sysml#SensorKit"
+        "model/system.sysml#SensorKit",
+        "params/params.toml#sensor.install_height_param_default"
       ],
       "tests": [
         "tests/verification-plan.md#tp-fw-001"
@@ -311,7 +378,9 @@
       "status": "open"
     },
     "REQ-FW-002": {
-      "design": [],
+      "design": [
+        "model/system.sysml#WirelessDataPort"
+      ],
       "tests": [
         "tests/verification-plan.md#tp-fw-002"
       ],
@@ -319,7 +388,9 @@
       "status": "open"
     },
     "REQ-FW-003": {
-      "design": [],
+      "design": [
+        "model/system.sysml#WirelessDataPort"
+      ],
       "tests": [
         "tests/verification-plan.md#tp-fw-003"
       ],
@@ -328,7 +399,8 @@
     },
     "REQ-UX-001": {
       "design": [
-        "model/system.sysml#Shell"
+        "model/system.sysml#Shell",
+        "params/params.toml#enclosure.colour"
       ],
       "tests": [
         "tests/verification-plan.md#tp-ux-001"
@@ -338,7 +410,8 @@
     },
     "REQ-UX-002": {
       "design": [
-        "model/system.sysml#Shell"
+        "model/system.sysml#Shell",
+        "model/requirements.sysml#hiddenFastening"
       ],
       "tests": [
         "tests/verification-plan.md#tp-ux-002"
@@ -356,7 +429,9 @@
     },
     "REQ-MNT-001": {
       "design": [
-        "params/params.toml#mount"
+        "params/params.toml#mount.height_min",
+        "params/params.toml#mount.height_max",
+        "params/params.toml#mount.coverage_side"
       ],
       "tests": [
         "tests/verification-plan.md#tp-mnt-001"
@@ -373,7 +448,9 @@
       "status": "open"
     },
     "REQ-MNT-003": {
-      "design": [],
+      "design": [
+        "model/system.sysml#CeilingFixPort"
+      ],
       "tests": [
         "tests/verification-plan.md#tp-mnt-003"
       ],
@@ -381,16 +458,26 @@
       "status": "open"
     },
     "REQ-MNT-004": {
-      "design": [],
+      "design": [
+        "model/system.sysml#CableExitPort"
+      ],
       "tests": [
         "tests/verification-plan.md#tp-mnt-004"
       ],
       "evidence": [],
       "status": "open"
     },
+    "REQ-MNT-005": {
+      "design": [],
+      "tests": [
+        "tests/verification-plan.md#tp-mnt-005"
+      ],
+      "evidence": [],
+      "status": "open"
+    },
     "REQ-MFG-001": {
       "design": [
-        "params/params.toml#mfg.fdm"
+        "params/params.toml#mfg.fdm.nozzle_diameter"
       ],
       "tests": [
         "tests/verification-plan.md#tp-mfg-001"
@@ -430,7 +517,9 @@
     },
     "REQ-MFG-005": {
       "design": [
-        "params/params.toml#mfg"
+        "params/params.toml#mfg.fdm.clearance_connecting",
+        "params/params.toml#mfg.sla.clearance_connecting",
+        "params/params.toml#mfg.mjf.clearance_connecting"
       ],
       "tests": [
         "tests/verification-plan.md#tp-mfg-005"
@@ -440,7 +529,7 @@
     },
     "REQ-MFG-006": {
       "design": [
-        "params/params.toml#mfg.fdm"
+        "params/params.toml#mfg.fdm.nozzle_diameter"
       ],
       "tests": [
         "tests/verification-plan.md#tp-mfg-006"
@@ -450,7 +539,8 @@
     },
     "REQ-MFG-007": {
       "design": [
-        "params/params.toml#mfg"
+        "params/params.toml#mfg.sla.clearance_connecting",
+        "params/params.toml#mfg.mjf.clearance_connecting"
       ],
       "tests": [
         "tests/verification-plan.md#tp-mfg-007"
@@ -460,7 +550,9 @@
     },
     "REQ-COST-001": {
       "design": [
-        "params/params.toml#cost"
+        "model/requirements.sysml#prototypeCost",
+        "params/params.toml#cost.prototype_max",
+        "params/params.toml#sensor.unit_price_web_qty1"
       ],
       "tests": [
         "tests/verification-plan.md#tp-cost-001"
@@ -470,7 +562,9 @@
     },
     "REQ-COST-002": {
       "design": [
-        "params/params.toml#cost"
+        "model/requirements.sysml#productionCost",
+        "params/params.toml#cost.production_bom_max",
+        "params/params.toml#sensor.unit_price_web_qty10"
       ],
       "tests": [
         "tests/verification-plan.md#tp-cost-002"

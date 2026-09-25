@@ -7,8 +7,23 @@ a violation, not only shown to pass on the golden scaffolded output.
 
 from __future__ import annotations
 
+import re
 import tomllib
 from pathlib import Path
+
+# A hard-coded absolute home directory (macOS or Linux) baked into a portable
+# template file -- m2 (review #1): templates/project/.mcp.json had
+# /Users/samisayyed/.forge/... hard-coded, so it only worked on the machine
+# that authored it. `${FORGE_ROOT}` (scaffold-time substituted) and
+# `${HOME}`/`${CLAUDE_PROJECT_DIR}` (Claude Code's own .mcp.json env-var
+# expansion, per code.claude.com/docs/en/mcp) are both fine; a literal
+# /Users/<name> or /home/<name> path is not.
+_HARDCODED_HOME_PATH = re.compile(r"/(?:Users|home)/[^/\"'\s]+/")
+
+
+def hardcoded_home_paths(text: str) -> list[str]:
+    """Every hard-coded /Users/<name>/... or /home/<name>/... path found."""
+    return _HARDCODED_HOME_PATH.findall(text)
 
 REQUIRED_VERIFY_ENTRYPOINTS = {
     "writing-requirements",

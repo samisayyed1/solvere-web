@@ -70,7 +70,10 @@ def _all_files(project: Path) -> list[str]:
 
 
 def _changed_for(project: Path, domain: str, manifest: dict, cache: dict) -> tuple[str | None, list[str]]:
-    base = state.resolve_base(project, domain, manifest)
+    bases = cache.setdefault("__bases__", {})
+    if domain not in bases:
+        bases[domain] = state.resolve_base(project, domain, manifest)
+    base = bases[domain]
     if base not in cache:
         changed = state.changed_since(project, base)
         cache[base] = changed if changed is not None else _all_files(project)

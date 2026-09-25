@@ -5,23 +5,31 @@
 # Changing a `status = "verified"` value needs `forge params set --justification "..."`;
 # the PreToolUse hook blocks direct edits to verified params.
 #
-# Source short names (full citations in requirements/requirements.md):
-#   Owner = docs/intake/G0-owner-answers.md (2026-09-25, L0)
-#   DS    = Seeed MR60FDA2 industrial product datasheet, SKU 114993388, 8 pp.,
-#           https://files.seeedstudio.com/Bazaar/product_pdf/114993388.pdf (read 2026-09-25) [V]
-#   Wiki  = https://wiki.seeedstudio.com/getting_started_with_mr60fda2_mmwave_kit/
-#           (source commit 880cf8b, 2026-05-15; read 2026-09-25) [V]
-#   A-xxx = ASSUMPTIONS.md row
+# Source short names (full citations in requirements/requirements.md; local
+# copies with sha256 in docs/sources/README.md, all fetched 2026-09-25):
+#   Owner = docs/intake/G0-owner-answers.md (2026-09-25, L0). Owner values are
+#           requirements, not datasheet values, so they carry status "assumed".
+#   DS    = Seeed MR60FDA2 kit industrial product datasheet, SKU 114993388, 8 pp., updated 2026-07-30
+#   MDS   = Seeed MR60FDA2 fall detection module technical specification, Beta V1.0, 2024-03-05, 12 pp.
+#   Wiki  = wiki.seeedstudio.com/getting_started_with_mr60fda2_mmwave_kit/ (last updated 2024-08-19)
+#   XIAO  = wiki.seeedstudio.com/xiao_esp32c6_getting_started/ (last updated 2024-08-05)
+#   FDA1  = wiki.seeedstudio.com/Radar_MR60FDA1/ (sibling module; assumptions only)
+#   Web   = Seeed product page p-5946, read 2026-09-25
+#   A-xxx = ASSUMPTIONS.md row; Q-xx = open question in reviews/G0.md
 #
 # G0 draft: no value here is measured or verified yet.
+# Deliberately absent until G1/G2: enclosure wall thickness (bounded by
+# mfg.fdm.min_wall; chosen at G1), radome thickness (needs er at 60 GHz from the
+# TP-SYS-002 coupon test), gasket groove geometry (Q-08), fixing sizes (Q-05),
+# T-bar grid widths (Q-07), every mass (nothing sourced; weigh the kit at G1).
 
-# --- mounting and coverage (Owner) -----------------------------------------
+# --- mounting and coverage ----------------------------------------------------
 
 [mount.height_min]
 value = 2.2
 unit = "m"
 status = "datasheet"
-source = "Owner (2.2-3.0 m per the MR60FDA2 spec); Wiki 'Installation method and sensing range': top-mounted hanging height 2.2-3.0m"
+source = "Owner (2.2-3.0 m per the MR60FDA2 spec); Wiki 'Installation method and sensing range' and MDS p.10 s6.4: top-mounted hanging height 2.2-3.0m"
 verified_by = ""
 evidence = []
 
@@ -29,7 +37,7 @@ evidence = []
 value = 3.0
 unit = "m"
 status = "datasheet"
-source = "Owner; Wiki 'Installation method and sensing range': top-mounted hanging height 2.2-3.0m"
+source = "Owner; Wiki 'Installation method and sensing range' and MDS p.10 s6.4: top-mounted hanging height 2.2-3.0m"
 verified_by = ""
 evidence = []
 
@@ -37,7 +45,7 @@ evidence = []
 value = 3.0
 unit = "m"
 status = "assumed"
-source = "Owner: about 3 x 3 m per pod (square side). DS p.6: fall detection in a 3x3x3 m range. Conflicts with Wiki max sensing radius 2 m at the corners -- Q-03, R-003"
+source = "Owner: about 3 x 3 m per pod (square side). DS p.2/p.3/p.6: fall detection 3x3x3 meter range. Conflicts with sensor.sensing_radius_max at the corners (half-diagonal 2.12 m) -- A-011, Q-11, R-003"
 verified_by = ""
 evidence = []
 
@@ -45,7 +53,7 @@ evidence = []
 value = 4.0
 unit = "1"
 status = "assumed"
-source = "A-003: static pull-test load as a multiple of installed weight (REQ-MECH-004/-005). No sourced value in Forge R5 files; a qualified human replaces it"
+source = "A-001: static pull-test load as a multiple of installed weight (REQ-MECH-004/-005). No sourced value in Forge R5 files; the qualified human named under Q-17 replaces it"
 verified_by = ""
 evidence = []
 
@@ -53,33 +61,65 @@ evidence = []
 value = 60
 unit = "s"
 status = "assumed"
-source = "A-003: hold time for the static pull tests REQ-MECH-004/-005"
+source = "A-001: hold time for the static pull tests REQ-MECH-004/-005 (Q-17)"
 verified_by = ""
 evidence = []
 
-# --- sensor: Seeed MR60FDA2 kit with XIAO ESP32C6 ----------------------------
+# --- sensor: Seeed MR60FDA2 kit (radar module + XIAO ESP32C6) -------------------
 
 [sensor.sku]
 value = "114993388"
 unit = "1"
 status = "datasheet"
-source = "DS p.1 SKU; kit = 60GHz mmWave sensor module + Seeed Studio XIAO ESP32C6 pre-flashed with ESPHome (DS p.7 part list)"
+source = "DS p.1 SKU. Kit part list DS p.7: 60GHz mmWave Sensor Module with 3D Printed Case x1; Seeed Studio XIAO ESP32C6 with pre-flashed ESPHome firmware x1"
 verified_by = ""
 evidence = []
 
-[sensor.frequency_nominal]
+[sensor.freq_min]
+value = 58
+unit = "GHz"
+status = "datasheet"
+source = "MDS p.4 s4.3 RF characteristics: working frequency minimum 58 GHz (MDS p.3 introduction: 57~64GHz transceiver)"
+verified_by = ""
+evidence = []
+
+[sensor.freq_max]
+value = 62
+unit = "GHz"
+status = "datasheet"
+source = "MDS p.4 s4.3 RF characteristics: working frequency maximum 62 GHz"
+verified_by = ""
+evidence = []
+
+[sensor.freq_centre]
 value = 60.0
 unit = "GHz"
-status = "assumed"
-source = "A-015: product name '60GHz'; DS gives no band. Sibling MR60FDA1 wiki gives 58-63.5 GHz [R]"
+status = "datasheet"
+source = "MDS p.12 s8 item 4: 'f=60GHz' used as the centre frequency for radome design"
 verified_by = ""
 evidence = []
 
 [sensor.wavelength_free_space]
 value = 4.997
 unit = "mm"
-status = "assumed"
-source = "Computed c/f = 299792458 m/s / 60.0 GHz; inherits A-015 (nominal frequency). For radome sizing only"
+status = "datasheet"
+source = "Computed c/f = 299792458 m/s / 60.0 GHz from sensor.freq_centre (MDS p.12); for radome sizing only"
+verified_by = ""
+evidence = []
+
+[sensor.tx_power]
+value = 12
+unit = "dBm"
+status = "datasheet"
+source = "MDS p.4 s4.3: transmit power (Pout) 12 dBm"
+verified_by = ""
+evidence = []
+
+[sensor.antenna_gain]
+value = 4
+unit = "dBi"
+status = "datasheet"
+source = "MDS p.4 s4.3: antenna gain 4 dBi (2T2R PCB microstrip antenna, MDS p.3)"
 verified_by = ""
 evidence = []
 
@@ -87,7 +127,7 @@ evidence = []
 value = 3.0
 unit = "m"
 status = "datasheet"
-source = "DS p.6 Detection Range: fall detection 3x3x3 meter range"
+source = "DS p.2, p.3 and p.6: fall detection 3x3x3 meter range (DS p.3: tested in empty deployment environments)"
 verified_by = ""
 evidence = []
 
@@ -95,7 +135,7 @@ evidence = []
 value = 2.0
 unit = "m"
 status = "datasheet"
-source = "Wiki 'Installation method and sensing range': maximum sensing radius 2m"
+source = "Wiki 'Installation method and sensing range': maximum sensing radius 2m; MDS p.3/p.4 s4.1: fall detection radius 2 m; MDS p.10 s6.4"
 verified_by = ""
 evidence = []
 
@@ -103,7 +143,7 @@ evidence = []
 value = 6.0
 unit = "m"
 status = "datasheet"
-source = "DS p.6: human static presence detection up to 6 meters (DS p.3: tested in empty deployment environments)"
+source = "DS p.2, p.3 and p.6: human static presence detection up to 6 meters"
 verified_by = ""
 evidence = []
 
@@ -111,7 +151,7 @@ evidence = []
 value = 120
 unit = "deg"
 status = "datasheet"
-source = "DS p.6: horizontal FoV 120 deg. Wiki intro says '100 x 40 deg detection angle' -- conflict, R-013; larger value used for keep-out"
+source = "DS p.3 and p.6: horizontal FoV 120 deg. Conflicts: Wiki 'Features' 100 x 40 deg detection angle; MDS p.4 -3 dB beam -60..60 deg (R-013)"
 verified_by = ""
 evidence = []
 
@@ -119,7 +159,15 @@ evidence = []
 value = 100
 unit = "deg"
 status = "datasheet"
-source = "DS p.6: vertical FoV 100 deg (see sensor.fov_horizontal conflict note)"
+source = "DS p.3 and p.6: vertical FoV 100 deg. MDS p.4 gives -60..60 deg (120 deg) vertical -3 dB beam (R-013)"
+verified_by = ""
+evidence = []
+
+[sensor.beam_half_angle]
+value = 60
+unit = "deg"
+status = "datasheet"
+source = "MDS p.4 s4.3: horizontal and vertical beam (-3dB) -60 to 60 deg"
 verified_by = ""
 evidence = []
 
@@ -127,7 +175,7 @@ evidence = []
 value = 5
 unit = "deg"
 status = "assumed"
-source = "A-004: sibling MR60FDA1 wiki 'horizontal deviation angle <= 5 deg' [R]; not stated for MR60FDA2"
+source = "A-002: FDA1 wiki (sibling MR60FDA1) 'horizontal deviation angle of <=5 deg'; no MR60FDA2 source gives a limit (Q-18)"
 verified_by = ""
 evidence = []
 
@@ -135,7 +183,7 @@ evidence = []
 value = 2.2
 unit = "m"
 status = "datasheet"
-source = "Wiki API notes, setInstallationHeight: initial setting 2.2 m, valid range typically 1-5 m"
+source = "Wiki 'Fall Module API', setInstallationHeight: initialization setting 2.2 m, valid range typically 1-5 m"
 verified_by = ""
 evidence = []
 
@@ -143,7 +191,7 @@ evidence = []
 value = 0.6
 unit = "m"
 status = "datasheet"
-source = "Wiki API notes, setFallThreshold: default fall threshold 0.6 m"
+source = "Wiki 'Fall Module API', setThreshold: default fall threshold of the radar is 0.6 m"
 verified_by = ""
 evidence = []
 
@@ -151,7 +199,7 @@ evidence = []
 value = 5.0
 unit = "V"
 status = "datasheet"
-source = "DS p.6 Power Supply 5V/1A"
+source = "DS p.6 Power Supply 5V/1A; XIAO input voltage (Type-C) 5V"
 verified_by = ""
 evidence = []
 
@@ -159,7 +207,7 @@ evidence = []
 value = 0.5
 unit = "W"
 status = "datasheet"
-source = "DS p.6 Power consumption: 0.5w standby mode (A-010: taken as whole-kit figure)"
+source = "DS p.6 Power consumption: 0.5w Standby Mode (A-007: taken as whole-kit input power)"
 verified_by = ""
 evidence = []
 
@@ -167,7 +215,7 @@ evidence = []
 value = 0.8
 unit = "W"
 status = "datasheet"
-source = "DS p.6 Power consumption: 0.8w activation mode (A-010)"
+source = "DS p.6 Power consumption: 0.8w Activation Mode (A-007)"
 verified_by = ""
 evidence = []
 
@@ -175,53 +223,125 @@ evidence = []
 value = 1.4
 unit = "W"
 status = "datasheet"
-source = "DS p.6 Power consumption: 1.4w with Grove relay; used as the pod power ceiling (REQ-PWR-005)"
+source = "DS p.6 Power consumption: 1.4w work with Grove Relay status; used as the pod power ceiling (REQ-PWR-005, A-008)"
 verified_by = ""
 evidence = []
 
-[sensor.operating_temp_max]
-value = 60
+[sensor.radar_module_current]
+value = 600
+unit = "mA"
+status = "datasheet"
+source = "MDS p.4 s4.2: operating current (ICC) 600 mA at VCC 3.1-3.5 V (min/typ/max column not resolvable from the extracted text); MDS p.11 precaution 2: supply >= 1 A, ripple <= 50 mV. Possible conflict with DS p.6 kit power, R-014"
+verified_by = ""
+evidence = []
+
+[sensor.radar_module_temp_min]
+value = -20
+unit = "degC"
+status = "datasheet"
+source = "MDS p.4 s4.2: operating temperature (TOP) -20 to 85 degC"
+verified_by = ""
+evidence = []
+
+[sensor.radar_module_temp_max]
+value = 85
+unit = "degC"
+status = "datasheet"
+source = "MDS p.4 s4.2: operating temperature (TOP) -20 to 85 degC"
+verified_by = ""
+evidence = []
+
+[sensor.xiao_temp_max]
+value = 85
+unit = "degC"
+status = "datasheet"
+source = "XIAO specification table: working temperature -40 to 85 degC (XIAO ESP32-C6 column)"
+verified_by = ""
+evidence = []
+
+[sensor.kit_temp_max]
+value = 85
 unit = "degC"
 status = "assumed"
-source = "A-006: not published for MR60FDA2; sibling MR60FDA1 wiki gives -20 to 60 degC [R]"
+source = "A-004: lowest published component rating (sensor.radar_module_temp_max, sensor.xiao_temp_max). BH1750, WS2812 and carrier-board parts are unrated in the sources; ask Seeed (Q-18)"
 verified_by = ""
 evidence = []
 
-[sensor.board_length]
-value = 47
+[sensor.radar_module_length]
+value = 31.5
 unit = "mm"
-tol = { minus = 1.0, plus = 1.0 }
-status = "assumed"
-source = "A-008: estimated from the ruler in Seeed image wiki/mmwave-for-xiao/mr60/6-mmWave-size.jpg (image commented out of the Wiki); board incl. radar module overhang, excl. USB-C plug. Caliper-measure before CAD"
+status = "datasheet"
+source = "MDS p.3 s2: 'Small size, only 25*31.5mm' (radar module alone, not the kit carrier board; A-005)"
 verified_by = ""
 evidence = []
 
-[sensor.board_width]
-value = 29
+[sensor.radar_module_width]
+value = 25
 unit = "mm"
-tol = { minus = 1.0, plus = 1.0 }
-status = "assumed"
-source = "A-008: estimated from the same ruler image. Stack height with the XIAO fitted is unknown"
+status = "datasheet"
+source = "MDS p.3 s2: 'Small size, only 25*31.5mm'"
 verified_by = ""
 evidence = []
 
-[sensor.unit_price_qty1]
+[sensor.xiao_length]
+value = 21
+unit = "mm"
+status = "datasheet"
+source = "XIAO specification table: dimensions 21 x 17.8mm"
+verified_by = ""
+evidence = []
+
+[sensor.xiao_width]
+value = 17.8
+unit = "mm"
+status = "datasheet"
+source = "XIAO specification table: dimensions 21 x 17.8mm"
+verified_by = ""
+evidence = []
+
+[sensor.unit_price_ds]
 value = 26.90
 unit = "USD"
 status = "datasheet"
-source = "DS p.1 price $26.90 excl. VAT, updated 2026-07-30; Seeed product page p-5946 shows the same on 2026-09-25"
+source = "DS p.1 price $26.90 (Excl. VAT), updated 2026-07-30 08:17:32; quantity not stated"
 verified_by = ""
 evidence = []
 
-[sensor.unit_price_qty10]
-value = 26.50
+[sensor.unit_price_web_qty1]
+value = 28.99
 unit = "USD"
 status = "datasheet"
-source = "Seeed product page https://www.seeedstudio.com/MR60FDA2-60GHz-mmWave-Sensor-Fall-Detection-Module-p-5946.html, 10+ units, read 2026-09-25"
+source = "Web: Seeed product page p-5946 final price $28.99, read 2026-09-25 (docs/sources/seeed-product-page-p5946-excerpt.txt)"
 verified_by = ""
 evidence = []
 
-# --- power (Owner) ------------------------------------------------------------
+[sensor.unit_price_web_qty10]
+value = 28.99
+unit = "USD"
+status = "datasheet"
+source = "Web: Seeed product page p-5946 tier price '10+: $28.99', read 2026-09-25"
+verified_by = ""
+evidence = []
+
+# --- radome (MDS s8) -------------------------------------------------------------
+
+[radome.antenna_gap_step]
+value = 2.5
+unit = "mm"
+status = "datasheet"
+source = "MDS p.12 s8 item 4: antenna-to-housing distance d = N*c/(2f), 'f=60GHz c/2f=2.5mm' (REQ-MECH-014)"
+verified_by = ""
+evidence = []
+
+[radome.keepout_half_angle]
+value = 60
+unit = "deg"
+status = "datasheet"
+source = "Widest published field: MDS p.4 -3 dB beam -60..60 deg in both planes; DS p.6 120 deg horizontal (REQ-MECH-010, R-013)"
+verified_by = ""
+evidence = []
+
+# --- power ----------------------------------------------------------------------
 
 [power.usb_voltage]
 value = 5.0
@@ -243,17 +363,17 @@ evidence = []
 value = 1.4
 unit = "W"
 status = "assumed"
-source = "Budget cap = sensor.power_with_relay (REQ-PWR-005); no load other than the kit (A-009)"
+source = "A-008: budget cap = sensor.power_with_relay (DS p.6); no load other than the kit (A-006, Q-01)"
 verified_by = ""
 evidence = []
 
-# --- environment and thermal ---------------------------------------------------
+# --- environment and thermal ------------------------------------------------------
 
 [env.ambient_min]
 value = 0
 unit = "degC"
 status = "assumed"
-source = "A-005: v1 bedroom/living room; owner gave no range (Q-13)"
+source = "A-003: v1 bedroom/living room; owner gave no range (Q-09)"
 verified_by = ""
 evidence = []
 
@@ -261,42 +381,37 @@ evidence = []
 value = 35
 unit = "degC"
 status = "assumed"
-source = "A-005: v1 bedroom/living room; owner gave no range (Q-13)"
+source = "A-003: v1 bedroom/living room; owner gave no range (Q-09)"
 verified_by = ""
 evidence = []
 
-[thermal.h_natural_convection]
-value = 5.0
-unit = "W/(m2*K)"
+[thermal.kit_rise_allowed]
+value = 50
+unit = "K"
 status = "assumed"
-source = "A-007: conservative low natural-convection coefficient for the G0 draft; radiation ignored. Replace with G3 thermal test"
+source = "Computed: sensor.kit_temp_max (85 degC, A-004) - env.ambient_max (35 degC, A-003). Inherits both assumptions"
 verified_by = ""
 evidence = []
 
-# --- enclosure --------------------------------------------------------------
-
-[enclosure.wall_thickness]
-value = 2.0
-unit = "mm"
-tol = { minus = 0.1, plus = 0.1 }
+[thermal.max_thermal_resistance]
+value = 35.7
+unit = "K/W"
 status = "assumed"
-source = "A-002: R5d FDM min wall 0.8-1.2 mm (2-3x a 0.4 mm nozzle); 2.0 mm chosen for stiffness margin. Below the 2.5-3.8 mm 'ideal' MJF wall (R5d, Protolabs UK) but above the 0.5 mm MJF minimum"
+source = "Computed: thermal.kit_rise_allowed 50 K / power.pod_power_max 1.4 W = 35.7 K/W, kit-air to room ambient (docs/budgets.md). Inherits A-003, A-004, A-008"
 verified_by = ""
 evidence = []
+
+# --- enclosure --------------------------------------------------------------------
 
 [enclosure.colour]
 value = "matte warm white"
 unit = "1"
 status = "assumed"
-source = "Owner: matte warm white; exact reference open (Q-06). No metallic pigment (REQ-MECH-010)"
+source = "Owner: matte warm white; exact reference open (A-015, Q-04). No metallic pigment (REQ-MECH-010)"
 verified_by = ""
 evidence = []
 
-# radome thickness: deliberately not set. It depends on the radome material's
-# permittivity at 60 GHz, which is unsourced (A-015). Set it from the coupon
-# transmission test in tests/verification-plan.md TP-SYS-002.
-
-# --- manufacturing (R5d; process per Owner) ------------------------------------
+# --- manufacturing (R5d; process per Owner) ----------------------------------------
 
 [mfg.fdm.nozzle_diameter]
 value = 0.4
@@ -334,7 +449,7 @@ evidence = []
 value = 1.2
 unit = "mm"
 status = "datasheet"
-source = "R5d FDM: min wall 2-3x nozzle = 0.8-1.2 mm (PN) [V]; unsupported walls >= 1.2 mm (Xometry) [R]"
+source = "R5d FDM: min wall 2-3x nozzle = 0.8-1.2 mm (PN 'What is FDM') [V]; unsupported walls >= 1.2 mm (Xometry) [R]"
 verified_by = ""
 evidence = []
 
@@ -370,7 +485,15 @@ source = "R5d MJF 'Clearance 0.6 mm if assembled after printing' (PN MJF guide) 
 verified_by = ""
 evidence = []
 
-# --- cost (Owner) ----------------------------------------------------------
+[mfg.mjf.wall_min_pn]
+value = 2.5
+unit = "mm"
+status = "datasheet"
+source = "R5d MJF 'Wall range 2.5-12.7 mm (PN calls it minimum/maximum)' (PN MJF guide) [V]; Protolabs gives 0.5 mm minimum [V]. Conflict with FDM-driven walls, R-015"
+verified_by = ""
+evidence = []
+
+# --- cost (Owner) -------------------------------------------------------------------
 
 [cost.prototype_max]
 value = 50.0
@@ -384,6 +507,6 @@ evidence = []
 value = 30.0
 unit = "USD"
 status = "assumed"
-source = "Owner requirement (L0, not a datasheet value): production BOM <= US$30. Volume tier and scope (cable, adapter, packaging) open, Q-15"
+source = "Owner requirement (L0, not a datasheet value): production BOM <= US$30. Volume tier and scope (cable, adapter, raceway, packaging) open, A-016, Q-10"
 verified_by = ""
 evidence = []

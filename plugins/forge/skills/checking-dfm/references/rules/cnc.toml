@@ -39,11 +39,20 @@ conflict = "Protolabs states a 0.040 in (1.02 mm) nominal-hole floor with a 1 mm
 
 [[rule]]
 id = "hole_to_edge_min_mm"
-check_family = "geometry.hole_edge"
-comparison = "min"
+# m3 (review #1): this used to be check_family = "geometry.hole_edge" citing
+# "Protolabs design-guidelines" as if that were a CNC number. It is not --
+# R5c section 2 (CNC machining) has no hole-to-edge rule at all; that 0.125 in
+# (3.175 mm) / 0.036 in threshold is R5c:101, which is in section 3 (SHEET
+# METAL), and is already correctly used there (sheet_metal.toml's own
+# hole_to_edge_min_mm). Keeping it here under a CNC process citation was a
+# wrong-source bug, not a real CNC-specific number. There is no forge_cad
+# CNC-sourced hole-to-edge figure to check automatically, so this is now
+# "unsupported" (manual review) rather than silently enforcing a borrowed
+# sheet-metal limit as though it were CNC-verified.
+check_family = "unsupported"
 value_mm = 3.175
-source = "Protolabs design-guidelines: 0.125 in (3.175 mm) hole-to-edge when stock is thicker than 0.036 in"
-conflict = "Protolabs itself gives 0.062 in (1.574 mm) for thin (<=0.036 in) stock; this rule targets the general/thicker-stock case as the conservative default -- thin-stock parts should use a project-specific override."
+source = "No CNC-specific hole-to-edge number found in R5c section 2. The value here is the SHEET METAL figure (R5c:101, Protolabs design-guidelines: 0.125 in / 3.175 mm for stock > 0.036 in) kept only as a conservative manual-review reference for CNC parts -- it is not a verified CNC minimum."
+conflict = "R5c's CNC section has internal corner radius, pocket depth and hole depth rules, but nothing named 'hole-to-edge'. Do not wire this to an automated CNC check without a real CNC-specific source; sheet_metal.toml's hole_to_edge_min_mm is the correctly-sourced rule for the sheet-metal process this number actually comes from."
 
 [[rule]]
 id = "pocket_depth_max_ratio_of_width"

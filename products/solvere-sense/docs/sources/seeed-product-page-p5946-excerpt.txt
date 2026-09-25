@@ -1,0 +1,17 @@
+Excerpt of https://www.seeedstudio.com/MR60FDA2-60GHz-mmWave-Sensor-Fall-Detection-Module-p-5946.html
+Fetched 2026-09-25 via the session proxy (price may be region-dependent). Full-page sha256: 5ae6fff64a74096875f65fcbd750f219ae226276378a0508c49c044e6b5f8356 (946647 bytes; full HTML not kept).
+
+--- context of id="product-price-5946"
+-box price-final_price" data-role="priceBox" data-product-id="5946" data-price-box="product-id-5946"> <span class="price-container price-final_price&#x20;tax&#x20;weee" > <span id="product-price-5946" data-price-amount="28.99" data-price-type="finalPrice" class="price-wrapper " ><span class="price">$28.99</span></span> </span> </div><div class="product-info-sku-stock clearfix"> <div class="stock available" title="Ava
+
+--- context of 10+:
+="tierprices-ul clearfix"> <ul class="prices-tier items"> <li class="item"> 10+: <span class="price-container price-tier_price&#x20;tax&#x20;weee" > <span data-price-amount="28.99" data-price-type="" class="price-wrapper " ><span class="price">$28.99</span></span> </span> </li>
+
+--- context of "tierPrices"
+iceBoxes.priceBox({'priceConfig': {"productId":"5946","priceFormat":{"pattern":"$%s","precision":2,"requiredPrecision":2,"decimalSymbol":".","groupSymbol":",","groupLength":3,"integerRequired":false},"tierPrices":[{"qty":10,"price":28.99,"basePrice":28.99}]}}); }); </script><script> window.authenticationPopup = {"autocomplete":"off","customerRegisterUrl":"https:\/\/www.seeedstudio.com\/customer\/account\/create\/","customerForgotPasswordUrl":"https:\/\/www.seeedstudio.com\/customer\/
+
+--- context of "offers"
+egateRating": { "@type": "AggregateRating", "bestRating": 5, "worstRating": 1, "ratingValue": "4.6", "reviewCount": "12" }, "offers": { "@type": "Offer", "priceCurrency": "USD", "url": "https://www.seeedstudio.com/MR60FDA2-60GHz-mmWave-Sensor-Fall-Detection-Module-p-5946.html", "availability": "https://schema.org/InStock", "price": "28.99" } } </scr
+
+--- context of "price":26.9
+entity": {} } } </script><script type="application/json" id="mailchimp-pixel-product-data">{"id":"5946","productId":"5946","title":"XIAO 60GHz mmWave Human Fall Detection Sensor-MR60FDA2","price":26.9,"currency":"USD","sku":"114993388","imageUrl":"https:\/\/media-cdn.seeedstudio.com\/media\/catalog\/product\/1\/1\/11-114993388-mr60fda2-60ghz-mmwave-1.jpg","productUrl":"https:\/\/www.seeedstudio.com\/MR60FDA2-60GHz-mmWave-Sensor-Fall-Detection-Module-p-5946.html","vendor":"","categori

@@ -392,6 +392,35 @@ Only a human passes a gate. Forge recommends, and the gate-review workflow ends 
 | 8 | **Headless drawing gap** (TechDraw PDF) [R4a]. | Headless DXF page export → scripted PDF, or a human GUI step. | Low |
 | 9 | **Standards summaries could be mistaken for compliance** [R5]. | Every compliance output carries "not a compliance determination" wording and a human sign-off line; the L5 wording lint applies. | Low |
 | 10 | **Name collision:** a CAD app named "Forge" appears on the CADGenBench leaderboard [R3]. | Plugin namespace `forge` is local; rename before any public release. | Low |
+| 11 | **A determined shell can still get past PreToolUse** (review #1, M3). The hook parses Bash; it cannot execute it. | Layered: sandbox, PreToolUse parser, Stop-time evidence and verified-param diff, CI, human review. See *Residual Bash-bypass risk* below. | Medium. Tampering is caught at Stop or in CI rather than prevented, except for what only a human reviewer would see. |
+
+### Residual Bash-bypass risk (review #1, M3)
+
+PreToolUse sees a Bash command as text and has under 1 s. Since review #1 it tokenises the command like a shell: quotes, escapes, newlines, `;` `&&` `||` `|` `&`, `$(…)`, backticks, process substitution, heredocs and redirections. It follows `cd` and `git -C`, and it unwraps `bash -c`/`sh -c`, `eval`, `xargs`, `env`, `sudo`, `timeout` and similar wrappers and `find -exec`. It then normalises every path (`..`, symlinks, NFC and case folding). Each simple command is checked for:
+
+- writes into protected paths (`release/`, `security/`, `evidence/`, `out/verify/`, `.forge/`, `.git/`, `.claude/` except `rules/`, and `params/params.toml` or `reviews/G*.md` by any shell writer);
+- destructive commands outside `out/`;
+- force pushes, `+refspec` pushes and remote deletes;
+- history rewrites;
+- raw sockets;
+- non-allowlisted URLs, including URLs inside interpreter one-liners.
+
+Judges get a read-only allowlist instead. What a determined agent can still do, and the layer that catches it:
+
+| Bypass that still gets past PreToolUse | Caught by |
+|---|---|
+| **Interpreter one-liners.** Examples: `python -c`, `perl -e` or `node -e` that build a protected path at runtime (`'evi'+'dence'`), call `os.system` on a computed string, or `rmtree` a design directory. PreToolUse flags inline code that names a protected path next to a write call; that check is a heuristic. | **Evidence and state files:** the Stop gate. Inputs are hashed per domain against the last green SHA, and a check file whose hash no longer matches its entry is rejected. **Verified params:** the Stop-time diff, however they were changed. **Deleted design files:** show up as changes and need fresh evidence. |
+| **Interpreted script files** (`python tool.py`, `bash x.sh`, `source x.sh`, `make` targets). Their contents are not read. | Same Stop-time checks. `.claude/` and `forge.toml` changes are hook-denied or `ask`. CI runs `make verify` from a clean checkout. |
+| **Encoded or computed payloads** (`base64 -d`, `$VAR`/`${…}` expansion, `printf` into a file that is then executed). Piping into a shell and `eval` of expanded text are denied. A payload written to a file and run later is not. | Stop gate and CI, as above. |
+| **Network from interpreters** (sockets, `urllib` with a computed host, DNS tricks). Only literal URLs are checked. | The sandbox network allowlist in the product repo's `.claude/settings.json` is the primary control. The PreToolUse URL check is a second layer. |
+| **Auto-allowed forge-python.** `~/.forge/bin/forge-python` is auto-allowed only for `…/plugins/forge/skills/*/scripts/*`. A skill script called with crafted arguments still runs as the maker. | The script writes only its own `out/verify` results. Evidence comes only from `forge verify`, which records the file hashes. |
+| **Library-level forgery.** A Python one-liner that imports `forge.evidence` and calls `add_verify_entry` with forged inputs, then writes matching check files. | Nothing automatic stops this on the machine. The CI rerun of `make verify` produces the real results, and the evidence diff in the PR is visible to the human reviewer. This is the residual the owner accepts. |
+| **Rewriting git history.** The gate's base is the last green SHA or the scaffold commit. `filter-branch`, `replace`, `update-ref`, `--orphan` and `rebase --root` are denied. Plumbing through an interpreter, or a new root commit made some other way, is not. | Pushes are `ask`; force pushes are denied (settings `deny` and hook). CI and the human reviewer see the rewritten history. |
+| **`git stash` to hide a change for one turn.** | Not a bypass: the change comes back and is gated on the next Stop. |
+| **Hand-edited `params/CHANGELOG.md` plus a demoted param,** mimicking `forge params set`. | The result is honest (the value is no longer `verified`). Re-verification needs passing evidence ids that exist; a human signs verified values. |
+
+Hooks fail closed if `tomllib` is missing (Python < 3.11), if `forge.toml` does not parse, or if a hook module fails to import. The wrapper `_failclosed.py <hook>` turns all of these into exit 2. SessionStart reports missing or non-executable hook scripts. These checks fail loudly and do not add more parsing.
+
 
 ## 17. Free-first policy and owner approvals
 

@@ -239,11 +239,55 @@ def test_plate_hole_kt_fits_agree_and_reach_kirsch_limit():
     for m in ("peterson", "heywood", "roark"):
         assert handcalc.plate_hole_kt_net(0.0, m) == pytest.approx(3.0, abs=0.01)   # Kirsch, infinite plate
     k = [handcalc.plate_hole_kt_net(0.2, m) for m in ("peterson", "heywood", "roark")]
-    assert max(k) / min(k) - 1 < 0.005
+    # m4 (review #1): the 7th-edition Roark coefficients (below) widen this
+    # spread from ~0.50% to ~0.502% -- an honest change in the real published
+    # numbers, not a bug -- so the bound is 0.6%, not the old 0.5%.
+    assert max(k) / min(k) - 1 < 0.006
     hc = handcalc.plate_hole_tension_peak_stress({"gross_stress_mpa": 50.0, "width_mm": 50.0,
                                                   "hole_diameter_mm": 10.0}, 210000.0, 0.3)
-    assert hc.value == pytest.approx(handcalc.plate_hole_kt_net(0.2) * 62.5, rel=1e-12)
     assert hc.value == pytest.approx(157.44, abs=0.01)
+
+
+def test_plate_hole_kt_fits_match_independently_hand_typed_published_coefficients():
+    """m4 (review #1): the previous version of this test compared the
+    function under test against itself (``handcalc.plate_hole_kt_net(0.2) *
+    62.5``), which can't catch a wrong coefficient -- it would "agree" with
+    any bug. These coefficients are re-typed here from the same published
+    sources (not imported from handcalc.py), at a ratio the sources
+    themselves tabulate, so a change to handcalc.py's numbers that doesn't
+    match the literature actually fails this test."""
+    d_over_w = 0.2
+    s = 1.0 - d_over_w
+    # Pilkey & Pilkey, Peterson's Stress Concentration Factors, 3rd ed. (2008), Chart 4.1 curve fit.
+    peterson_published = 2.0 + 0.284 * s - 0.600 * s ** 2 + 1.32 * s ** 3
+    # Heywood (1952), as tabulated in R5a/running-fea's references.
+    heywood_published = 2.0 + s ** 3
+    # Young & Budynas, Roark's Formulas for Stress and Strain, 7th ed., Table 17.1 case 4a:
+    # coefficients 3.140 / 3.667 / 1.527 (not the earlier, less precise 3.13/3.66/1.53).
+    roark_7th_ed_published = 3.00 - 3.140 * d_over_w + 3.667 * d_over_w ** 2 - 1.527 * d_over_w ** 3
+
+    assert handcalc.plate_hole_kt_net(d_over_w, "peterson") == pytest.approx(peterson_published, rel=1e-9)
+    assert handcalc.plate_hole_kt_net(d_over_w, "heywood") == pytest.approx(heywood_published, rel=1e-9)
+    assert handcalc.plate_hole_kt_net(d_over_w, "roark") == pytest.approx(roark_7th_ed_published, rel=1e-9)
+    # And the old, less-precise coefficients must NOT match anymore -- proves
+    # this test can actually fail on a wrong coefficient, not just agree.
+    roark_old_less_precise = 3.00 - 3.13 * d_over_w + 3.66 * d_over_w ** 2 - 1.53 * d_over_w ** 3
+    assert handcalc.plate_hole_kt_net(d_over_w, "roark") != pytest.approx(roark_old_less_precise, rel=1e-9)
+
+
+def test_radius_diameter_mixup_exceeds_3pct_but_not_10pct():
+    """m4 (review #1): a real, plausible modeling mistake -- entering the
+    hole's RADIUS where the formula wants DIAMETER -- shifts the predicted
+    peak stress by ~3.5%. A 10% check-tolerance (the old plate_hole
+    tolerance_pct in test_running_fea_general.py) would have silently passed
+    this; the tightened 3% would not. This is what "tighten to about 3%,
+    not just re-derive the coefficients" is actually for."""
+    correct = handcalc.plate_hole_tension_peak_stress(
+        {"gross_stress_mpa": 50.0, "width_mm": 50.0, "hole_diameter_mm": 10.0}, 210000.0, 0.3)
+    mixed_up = handcalc.plate_hole_tension_peak_stress(
+        {"gross_stress_mpa": 50.0, "width_mm": 50.0, "hole_diameter_mm": 5.0}, 210000.0, 0.3)
+    pct_diff = abs(mixed_up.value - correct.value) / correct.value * 100.0
+    assert 3.0 < pct_diff < 10.0, pct_diff
 
 
 def test_torsion_and_cantilever_formulas_match_textbook_numbers():

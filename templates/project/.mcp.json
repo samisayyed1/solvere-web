@@ -6,9 +6,9 @@
       "args": [
         "--server", "build123d-mcp",
         "--",
-        "/Users/samisayyed/.forge/bin/srt",
+        "${HOME}/.forge/bin/srt",
         "--settings", "${FORGE_ROOT}/security/srt/build123d-mcp.json",
-        "/Users/samisayyed/.forge/envs/build123d-mcp/bin/build123d-mcp",
+        "${HOME}/.forge/envs/build123d-mcp/bin/build123d-mcp",
         "--memory-limit-mb", "2048",
         "--cpu-limit-s", "120",
         "--exec-timeout", "60",
@@ -23,9 +23,9 @@
       "args": [
         "--server", "kicad-mcp-pro",
         "--",
-        "/Users/samisayyed/.forge/bin/srt",
+        "${HOME}/.forge/bin/srt",
         "--settings", "${FORGE_ROOT}/security/srt/kicad-mcp-pro.json",
-        "/Users/samisayyed/.forge/envs/kicad-mcp-pro/bin/kicad-mcp-pro",
+        "${HOME}/.forge/envs/kicad-mcp-pro/bin/kicad-mcp-pro",
         "--transport", "stdio",
         "--profile", "review"
       ],
