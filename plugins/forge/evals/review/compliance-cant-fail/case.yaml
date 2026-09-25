@@ -1,0 +1,64 @@
+# Hand-written (mapping-compliance/verify.py has no per-repo template to glob a
+# generator over, unlike review/seeded-*'s CAD/ECAD fixtures) -- follows the same
+# shape gen_seeded.py produces: one defect-<ID> grader per planted mismatch, one
+# decoy-<ID> not_contains grader, plus path graders. See key/answer_key.json.
+schema_version: "1.1"
+name: review-compliance-cant-fail
+description: 'Seeded compliance-mapping defects (K1, FAIL-0001/0002): an unknown market code and a radio/requirements mismatch in both directions. Proves mapping-compliance''s checks are not vacuous -- graded both on the review findings and on the check''s own out/verify/*.json actually showing FAIL.'
+tags: [review, compliance, cant-fail]
+context:
+  scaffold_script: scaffold.sh
+graders:
+  - name: findings-written
+    type: regex
+    target: { source: file, path: out/review/findings.json }
+    pattern: '"findings"\s*:\s*\[\s*\{'
+    weight: 1
+  - name: defect-CD1
+    type: regex
+    target: { source: file, path: out/review/findings.json }
+    flags: i
+    pattern: '\{(?=[^{}]*"file"\s*:\s*"[^"]*(?:compliance|profile|product-profile)[^"]*")(?=[^{}]*(?:EUU|target_markets|market))(?=[^{}]*(?:unknown|invalid|typo|not (?:a|an) (?:iso|valid|recognis|recogniz)|market code))[^{}]*\}'
+    weight: 1
+  - name: defect-CD2
+    type: regex
+    target: { source: file, path: out/review/findings.json }
+    flags: i
+    pattern: '\{(?=[^{}]*"file"\s*:\s*"[^"]*(?:compliance|profile|product-profile|requirements|REQ)[^"]*")(?=[^{}]*(?:bluetooth|BLE|radios))(?=[^{}]*(?:missing|not (?:listed|traced|declared|in radios)|omit|add))[^{}]*\}'
+    weight: 1
+  - name: defect-CD3
+    type: regex
+    target: { source: file, path: out/review/findings.json }
+    flags: i
+    pattern: '\{(?=[^{}]*"file"\s*:\s*"[^"]*(?:compliance|profile|product-profile)[^"]*")(?=[^{}]*(?:radar|radar_60ghz))(?=[^{}]*(?:untraced|no requirement|not (?:named|traced|mentioned)|unused|orphan|remove))[^{}]*\}'
+    weight: 1
+  - name: decoy-WIFI
+    type: regex
+    target: { source: file, path: out/review/findings.json }
+    flags: i
+    match: not_contains
+    pattern: '\{(?=[^{}]*"file"\s*:\s*"[^"]*(?:compliance|profile|product-profile)[^"]*")(?=[^{}]*"location"\s*:\s*"[^"]*(?:wifi|wifi_2g4)[^"]*")(?=[^{}]*(?:missing|untraced|unlisted|problem|defect|flag|mismatch))[^{}]*\}'
+    weight: 0.5
+  - name: compliance-check-genuinely-fails
+    type: regex
+    target: { source: file, path: out/verify/compliance.standards_map.json }
+    pattern: '"status"\s*:\s*"fail"[\s\S]*"name"\s*:\s*"profile\.target_markets_valid"[\s\S]*"pass"\s*:\s*false'
+    weight: 1
+  - name: wrote-findings-with-write
+    type: tool_used
+    tool: Write
+    input_match: 'out/review/findings\.json'
+    weight: 0.5
+  - name: compliance-check-was-run
+    type: tool_used
+    tool: Bash
+    input_match: 'mapping-compliance/scripts/verify\.py|forge(\\"| )+verify'
+    weight: 0.5
+  - name: no-profile-edits
+    type: tool_used
+    tool: Edit
+    input_match: '"file_path":"[^"]*/(compliance|requirements|params)/'
+    max: 0
+    min: 0
+    arm: both
+    weight: 1

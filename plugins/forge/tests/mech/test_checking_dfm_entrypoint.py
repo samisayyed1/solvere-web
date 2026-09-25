@@ -141,6 +141,87 @@ def test_unknown_material_is_a_hard_error(project):
     assert "unknown material" in proc.stderr
 
 
+def test_changed_params_toml_reruns_every_spec_and_catches_a_wall_violation(project):
+    """Eval defect: --changed params/params.toml matched no spec file or
+    [part].module, so `_iter_specs` returned [] and the entrypoint printed
+    [SKIP] even though the new value could push a wall below the DFM
+    minimum. Without the fix this fails: rc == 0, "[SKIP]" in stdout, and
+    out/verify/dfm.wall_min_unsupported_mm.box.json is never written."""
+    params_path = project / "params" / "params.toml"
+    text = params_path.read_text()
+    assert "value = 2.0" in text
+    # fdm.toml's wall_min_unsupported_mm rule requires >= 1.2 mm; 0.5 mm
+    # (box.py's actual built wall, driven by this param) fails it.
+    params_path.write_text(text.replace(
+        "[enclosure.wall_thickness]\nvalue = 2.0", "[enclosure.wall_thickness]\nvalue = 0.5", 1))
+
+    proc = _run(project, "--changed", "params/params.toml")
+
+    assert "[SKIP]" not in proc.stdout, proc.stdout + proc.stderr
+    result = _result(project, "dfm.wall_min_unsupported_mm.box")
+    assert result["status"] == "fail"
+    m = next(x for x in result["measurements"] if x["name"] == "min_wall")
+    assert m["value"] < 1.2
+    assert "wall_min_unsupported_mm" in m["remediation"]
+
+
+def test_changed_params_toml_still_passes_when_the_value_stays_in_bounds(project):
+    """Positive case: a params.toml edit that keeps the wall above the DFM
+    minimum must still run (not [SKIP]) and pass."""
+    params_path = project / "params" / "params.toml"
+    text = params_path.read_text()
+    params_path.write_text(text.replace(
+        "[enclosure.wall_thickness]\nvalue = 2.0", "[enclosure.wall_thickness]\nvalue = 2.1", 1))
+
+    proc = _run(project, "--changed", "params/params.toml")
+
+    assert "[SKIP]" not in proc.stdout
+    assert _result(project, "dfm.wall_min_unsupported_mm.box")["status"] == "pass"
+
+
+def test_repeated_rule_for_one_part_does_not_overwrite_its_result_file(project):
+    """A spec can legally list the same rule twice for one part (e.g. two
+    [[check]] entries against different face subsets). Without
+    disambiguation the second entry's result silently overwrote the
+    first's out/verify/dfm.wall_min_unsupported_mm.box.json."""
+    spec = project / "requirements" / "dfm" / "box.toml"
+    spec.write_text(spec.read_text() + """
+[[check]]
+rule = "wall_min_unsupported_mm"
+requirement = "REQ-MFG-001"
+sample_count = 500
+""")
+    proc = _run(project, "--changed", "requirements/dfm/box.toml")
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    first = _result(project, "dfm.wall_min_unsupported_mm.box")
+    second = _result(project, "dfm.wall_min_unsupported_mm.box_2")
+    assert first["status"] == "pass"
+    assert second["status"] == "pass"
+
+
+def test_repeated_snap_fit_name_for_one_part_does_not_overwrite_its_result_file(project):
+    """Same collision, for [[snap_fit]] entries: two snap fits with the same
+    name on the same part must not clobber each other's result file."""
+    spec = project / "requirements" / "dfm" / "box.toml"
+    spec.write_text(spec.read_text() + """
+[[snap_fit]]
+name = "lid_latch"
+requirement = "REQ-MECH-010"
+material = "pc_makrolon"
+deflection_mm = 1.5
+length_mm = 15.0
+thickness_mm = 1.2
+taper = "constant"
+frequent = false
+""")
+    proc = _run(project, "--changed", "requirements/dfm/box.toml")
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    first = _result(project, "dfm.snap_fit.lid_latch.box")
+    second = _result(project, "dfm.snap_fit.lid_latch.box_2")
+    assert first["status"] == "pass"
+    assert second["status"] == "pass"
+
+
 def test_skip_on_a_project_with_no_dfm_specs(tmp_path):
     empty = tmp_path / "empty"
     empty.mkdir()

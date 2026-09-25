@@ -40,6 +40,10 @@ PUGH_REL = Path("concepts/pugh.json")
 CHECK_ID = "concepts.pugh_sensitivity"
 DEFAULT_MIN_CONCEPTS = 3
 DEFAULT_TOP_N = 2
+# Pugh's signed datum-relative scale (module docstring in pugh.py): a score
+# outside this range is not a Pugh score, whatever units the maker had in
+# mind (S15).
+SCORE_MIN, SCORE_MAX = -2, 2
 
 
 def run(project: Path, changed: list[str] | None) -> int:
@@ -60,7 +64,9 @@ def run(project: Path, changed: list[str] | None) -> int:
     criteria = data.get("criteria", [])
     concepts = data.get("concepts", [])
     top_n = int(data.get("top_n", DEFAULT_TOP_N))
-    min_concepts = int(data.get("minimum_concepts", DEFAULT_MIN_CONCEPTS))
+    # S15: minimum_concepts is floored at the brief's N -- a maker cannot
+    # lower its own bar by setting a smaller value in the file it wrote.
+    min_concepts = max(int(data.get("minimum_concepts", DEFAULT_MIN_CONCEPTS)), DEFAULT_MIN_CONCEPTS)
     reviewed_by = (data.get("sensitivity_reviewed_by") or "").strip()
 
     if not criteria:
@@ -79,10 +85,39 @@ def run(project: Path, changed: list[str] | None) -> int:
         ) if not enough else None,
     )
 
+    # S15: exactly one datum -- Pugh scoring is meaningless without a
+    # baseline every other concept is scored relative to.
+    has_datum = any(c.get("datum") for c in concepts)
+    chk.measure(
+        "concepts.has_datum", has_datum, "1", equals=True, location=str(PUGH_REL),
+        remediation=(
+            f"{PUGH_REL} has no concept with \"datum\": true. Pugh scoring needs a baseline "
+            "concept that every other concept is scored relative to."
+        ) if not has_datum else None,
+    )
+
+    # S15: concept names must be unique -- a duplicate silently collapses two
+    # concepts into one row in any report keyed by name.
+    names_seen: dict[str, int] = {}
+    dupe_names: set[str] = set()
+    for c in concepts:
+        n = c.get("name", "<unnamed>")
+        if n in names_seen:
+            dupe_names.add(n)
+        names_seen[n] = names_seen.get(n, 0) + 1
+    chk.measure(
+        "concepts.unique_names", not dupe_names, "1", equals=True, location=str(PUGH_REL),
+        remediation=(
+            f"Concept name(s) {sorted(dupe_names)} are reused in {PUGH_REL}. Every concept "
+            "needs a unique name."
+        ) if dupe_names else None,
+    )
+
     criterion_names = {c["name"] for c in criteria}
     for c in concepts:
         name = c.get("name", "<unnamed>")
-        scored = set(c.get("scores", {}).keys())
+        scores = c.get("scores", {})
+        scored = set(scores.keys())
         complete = criterion_names.issubset(scored)
         chk.measure(
             f"{name}.scores_complete", complete, "1", equals=True, location=str(PUGH_REL),
@@ -90,6 +125,23 @@ def run(project: Path, changed: list[str] | None) -> int:
                 f"Concept {name!r} is missing scores for {sorted(criterion_names - scored)}. "
                 "Every concept needs a score against every criterion."
             ) if not complete else None,
+        )
+
+        # S15: scores must be on the -2..+2 datum-relative scale (pugh.py's
+        # documented convention), not an arbitrary maker-chosen range.
+        out_of_range = sorted(
+            k for k, v in scores.items()
+            if not (isinstance(v, (int, float)) and not isinstance(v, bool)
+                    and SCORE_MIN <= v <= SCORE_MAX)
+        )
+        in_range = not out_of_range
+        chk.measure(
+            f"{name}.scores_in_range", in_range, "1", equals=True, location=str(PUGH_REL),
+            remediation=(
+                f"Concept {name!r} has score(s) for {out_of_range} outside the Pugh "
+                f"{SCORE_MIN}..{SCORE_MAX} datum-relative scale: {scores}. Rescore on "
+                f"{SCORE_MIN}..{SCORE_MAX}."
+            ) if not in_range else None,
         )
 
     if not enough:
