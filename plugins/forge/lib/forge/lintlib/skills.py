@@ -22,6 +22,10 @@ it skips. It only fails on a skill that exists and breaks a rule:
    ``if __name__ == "__main__"`` entrypoint;
 9. a skill that a judge agent (``verification-evaluator``, ``red-team``)
    loads grants no interpreter at all (review #1, M2: judges are read-only).
+10. ``context:``, if set, is a value the platform actually recognises
+    (only ``fork`` is documented -- R1a SS8); a typo like ``context: frok``
+    silently falls back to the default rather than forking the skill, which
+    used to pass this lint (S20).
 """
 
 from __future__ import annotations
@@ -76,6 +80,8 @@ _BARE_BASH_TOKENS = {"bash", "*"}
 _BASH_WILDCARD_CMD_RE = re.compile(r"^bash\(\s*\*")
 _MAIN_GUARD_RE = re.compile(r"""if\s+__name__\s*==\s*["']__main__["']""")
 
+
+_VALID_CONTEXT_VALUES = {"fork"}
 
 _INTERPRETERS = {"forge-python", "python", "python3"}
 _SCOPED_SCRIPT_RE = re.compile(
@@ -419,6 +425,34 @@ def lint_skill_dir(skill_dir: Path) -> list[CheckResult]:
                     measured=False,
                     expected=True,
                     fix=f"Add an `if __name__ == '__main__':` entrypoint to {verify_py}.",
+                )
+            )
+
+    # 10. context: value, if set, must be a recognised value.
+    context_val = fm.get("context")
+    if context_val is not None:
+        if context_val in _VALID_CONTEXT_VALUES:
+            results.append(
+                CheckResult(
+                    id=f"skills.context_value:{name}",
+                    status="pass",
+                    rule=f"context: is one of {sorted(_VALID_CONTEXT_VALUES)} when set (R1a SS8)",
+                    measured=context_val,
+                    expected=sorted(_VALID_CONTEXT_VALUES),
+                )
+            )
+        else:
+            results.append(
+                CheckResult(
+                    id=f"skills.context_value:{name}",
+                    status="fail",
+                    rule=f"context: is one of {sorted(_VALID_CONTEXT_VALUES)} when set (R1a SS8)",
+                    measured=context_val,
+                    expected=sorted(_VALID_CONTEXT_VALUES),
+                    fix=(
+                        f"{skill_md} sets context: {context_val!r}, which the platform does not "
+                        f"recognise and silently ignores. Set 'context: fork' or remove the field."
+                    ),
                 )
             )
 

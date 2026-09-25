@@ -168,9 +168,6 @@ def test_changed_params_toml_reruns_every_spec_and_catches_a_wall_violation(proj
     assert "wall_min_unsupported_mm" in m["remediation"]
 
 
-def test_changed_params_toml_still_passes_the_wall_rule_when_in_bounds(project):
-
-
 def test_changed_params_toml_still_passes_when_the_value_stays_in_bounds(project):
     """Positive case: a params.toml edit that keeps the wall above the DFM
     minimum must still run (not [SKIP]) and pass."""
@@ -197,8 +194,10 @@ rule = "wall_min_unsupported_mm"
 requirement = "REQ-MFG-001"
 sample_count = 500
 """)
-    proc = _run(project, "--changed", "requirements/dfm/box.toml")
-    assert proc.returncode == 0, proc.stdout + proc.stderr
+    # (box.toml's own clearance_moving_mm check always fails by fixture
+    # design -- see test_box_clearance_to_lid_fails... above -- so this
+    # asserts on the two wall results directly rather than the overall rc.)
+    _run(project, "--changed", "requirements/dfm/box.toml")
     first = _result(project, "dfm.wall_min_unsupported_mm.box")
     second = _result(project, "dfm.wall_min_unsupported_mm.box_2")
     assert first["status"] == "pass"
@@ -220,8 +219,7 @@ thickness_mm = 1.2
 taper = "constant"
 frequent = false
 """)
-    proc = _run(project, "--changed", "requirements/dfm/box.toml")
-    assert proc.returncode == 0, proc.stdout + proc.stderr
+    _run(project, "--changed", "requirements/dfm/box.toml")
     first = _result(project, "dfm.snap_fit.lid_latch.box")
     second = _result(project, "dfm.snap_fit.lid_latch.box_2")
     assert first["status"] == "pass"
