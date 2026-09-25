@@ -47,6 +47,30 @@ def test_production_ready_with_L5_citation_PASSES(tmp_path):
     assert wording.lint_wording_file(p).status == "pass"
 
 
+def test_ready_for_production_without_L5_citation_FAILS(tmp_path):
+    p = _write(tmp_path, "report.md", "The firmware is ready for production.\n")
+    r = wording.lint_wording_file(p)
+    assert r.status == "fail"
+    assert "ready for production" in r.measured[0]
+
+
+def test_ready_for_production_with_L5_citation_PASSES(tmp_path):
+    p = _write(tmp_path, "report.md", "The firmware is ready for production (L5 sign-off attached).\n")
+    assert wording.lint_wording_file(p).status == "pass"
+
+
+def test_prod_ready_without_L5_citation_FAILS(tmp_path):
+    p = _write(tmp_path, "report.md", "This build is prod-ready.\n")
+    r = wording.lint_wording_file(p)
+    assert r.status == "fail"
+    assert "prod-ready" in r.measured[0]
+
+
+def test_prod_ready_with_L5_citation_PASSES(tmp_path):
+    p = _write(tmp_path, "report.md", "This build is prod-ready (L5 sign-off attached).\n")
+    assert wording.lint_wording_file(p).status == "pass"
+
+
 def test_negated_not_validated_PASSES(tmp_path):
     p = _write(tmp_path, "report.md", "This part is not validated yet; treat every number as L1.\n")
     assert wording.lint_wording_file(p).status == "pass"

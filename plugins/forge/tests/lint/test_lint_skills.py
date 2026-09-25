@@ -224,6 +224,31 @@ def test_unregistered_skill_has_no_verify_entrypoint_check(tmp_path):
 
 
 # --------------------------------------------------------------------------
+# context: value (S20)
+# --------------------------------------------------------------------------
+
+
+def test_context_fork_PASSES(tmp_path):
+    write_skill(tmp_path, "reviewing-designs", fields={"context": "fork"})
+    results = skills_lint.lint_skills_dir(tmp_path / "skills")
+    assert _status(results, "skills.context_value:reviewing-designs").status == "pass"
+
+
+def test_context_typo_FAILS(tmp_path):
+    write_skill(tmp_path, "reviewing-designs", fields={"context": "frok"})
+    results = skills_lint.lint_skills_dir(tmp_path / "skills")
+    r = _status(results, "skills.context_value:reviewing-designs")
+    assert r.status == "fail"
+    assert r.measured == "frok"
+
+
+def test_no_context_field_has_no_context_check(tmp_path):
+    write_skill(tmp_path, "modeling-cad-parts")
+    results = skills_lint.lint_skills_dir(tmp_path / "skills")
+    assert not [r for r in results if r.id == "skills.context_value:modeling-cad-parts"]
+
+
+# --------------------------------------------------------------------------
 # directory-level behaviour: missing skills dir / no skills yet is SKIP,
 # never a fail, because skills/ is owned by a different Forge builder.
 # --------------------------------------------------------------------------

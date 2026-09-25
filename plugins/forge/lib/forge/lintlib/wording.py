@@ -1,6 +1,7 @@
 """``forge lint wording`` (CONTRACTS.md SS4, ADR-001 D15): the evidence-level
 wording rule. "Validated" needs an L4 or L5 citation on the same line;
-"certified" and "production-ready" need L5. A claim is not flagged when
+"certified", "production-ready", "ready for production" and "prod-ready"
+need L5. A claim is not flagged when
 it's negated ("not validated", "never ... validated", "nothing ...
 validated"), or sits inside a fenced code block or a blockquote (a quoted
 rule, e.g. this very docstring's examples if it were markdown).
@@ -31,13 +32,17 @@ __all__ = [
 # Forge's own authored claims and stays in scope.
 EXEMPT_DIR_PREFIXES = ("docs/research", "docs/brief")
 
-# word -> the evidence-level tokens that excuse it on the same line.
+# word/phrase -> the evidence-level tokens that excuse it on the same line.
 _REQUIRED_LEVELS = {
     "validated": ("L4", "L5"),
     "certified": ("L5",),
     "production-ready": ("L5",),
+    "ready for production": ("L5",),
+    "prod-ready": ("L5",),
 }
-_WORD_RE = re.compile(r"\b(validated|certified|production-ready)\b", re.IGNORECASE)
+_WORD_RE = re.compile(
+    r"\b(validated|certified|production-ready|ready for production|prod-ready)\b", re.IGNORECASE
+)
 _NEGATION_RE = re.compile(r"\b(not|never|nothing)\b", re.IGNORECASE)
 _LEVEL_RE = {
     ("L4", "L5"): re.compile(r"\bL[45]\b"),
@@ -121,8 +126,9 @@ def lint_wording_file(path: Path) -> CheckResult:
             id=check_id,
             status="fail",
             rule=(
-                "'validated' needs an L4/L5 citation on the same line; 'certified'/'production-ready' need L5; "
-                "unless negated, or inside a code block/quote (CONTRACTS SS4, ADR-001 D15)"
+                "'validated' needs an L4/L5 citation on the same line; 'certified'/'production-ready'/"
+                "'ready for production'/'prod-ready' need L5; unless negated, or inside a code "
+                "block/quote (CONTRACTS SS4, ADR-001 D15)"
             ),
             measured=bad,
             expected="every claim cites its evidence level",
