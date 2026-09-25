@@ -1,6 +1,6 @@
 # Forge build: progress checkpoint
 
-- **Updated:** 2026-09-25, stopped at 86% of the window · branch `claude/epic-greider-a8740c` · worktree `.claude/worktrees/forge-product-engineering-55a284`
+- **Updated:** 2026-09-25, stopped at 93% of the window after review #1 · branch `claude/epic-greider-a8740c` · worktree `.claude/worktrees/forge-product-engineering-55a284`
 - **Owner rules:** speed mode, no scope cuts. Opus for design, reviews, judging and eval subject runs; Sonnet for scaffolding and fixes. Stop at 85% of the 5-hour window.
 
 ## Done
@@ -32,7 +32,31 @@
 1. **Close Phase 3:**
    - (a) DONE: I3 finished. forge-python: 718 passed; stdlib: 589 passed, 15 skipped; lint 0 fail; validate PASS (commit f1bb09f).
    - (b) DONE: CAD-only tests are guarded with `importorskip`.
-   - (c) **NEXT:** **Independent Opus review** of the whole plugin (read-only, fresh context). Covers the brief §3 checklist, ADR deviations, security (hooks fail closed, reviewer read-only), and re-verifying the FEA textbook citations (Peterson/Heywood/Roark, written from memory). Fix its findings, then commit.
+   - (c) DONE: independent Opus review #1 gave **FAIL** (`docs/reviews/phase3-review-1.md`). 3 critical, 9 major and 5 minor findings; the FEA formulas were verified correct.
+   - (d) **NEXT: fix review #1, in two parallel agents, then re-review with a fresh Opus reviewer:**
+     - **Enforcement fixer (Opus)** owns `plugins/forge/hooks/**`, `lib/forge/{evidence,state,params,checkresult}.py`, `lib/forge/commands/{evidence,params,verify}.py`, `schemas/*`, `agents/{verification-evaluator,red-team}.md` and `workflows/gate-review.js`. It fixes:
+       - C1: add a `docs` domain everywhere;
+       - C2: bind evidence to real, passing `forge.check/1` files with a matching `inputs_sha256`; reject future timestamps; diff against the last-green SHA; protect `evidence/`;
+       - C3: fail closed without `tomllib`, or pin the interpreter;
+       - M1: case-folded path guards;
+       - M2: judge Bash allowlist;
+       - M3: Bash parsing (newlines, `-C`, `+refspec`, path normalisation), plus a Stop-time diff check on verified params, with the residual Bash risk written into ADR §16;
+       - M4: `params set` drops the status to `measured` and needs a citation;
+       - M5: enforce `overall == PASS ⇒ every criterion PASS`; the gate review returns BLOCKED on a missing judge;
+       - M6: newest entry per entrypoint;
+       - M9: `set_last_green` in `forge verify`;
+       - m5: NotebookEdit paths, the SessionStart hook self-check, the no-op test assertion, and gating bom/mfg/compliance.
+       
+       It also adds an **integration test** that scaffolds `templates/project` and runs the real Stop, PostToolUse and SubagentStop hooks.
+     - **Skills fixer (Sonnet):**
+       - M7: trace graph files go outside `out/verify`; ignore `.gitkeep`; the template passes gardening-docs; bind fix messages by check_id;
+       - M8: DFM rib/boss ratio vs ratio; overhang on down-facing faces; seeded tests;
+       - M9: release refuses UNVERIFIED or failing evidence; regression-sweep uses a script diff against last-green;
+       - m1: checking-ecad annular-ring and edge rules; fix the no-op test;
+       - m2: add the kicad-mcp-pro srt profile in the template; parameterise `~/.forge`;
+       - m3: DFM citations and strain unit; surface the short-arm warning;
+       - m4: Roark 3.140/3.667/1.527, a tighter plate-hole tolerance, tests anchored to published values.
+     - **Then:** full suite, lint, validate, a fresh Opus re-review (must PASS), commit. **Independent Opus review** of the whole plugin (read-only, fresh context). Covers the brief §3 checklist, ADR deviations, security (hooks fail closed, reviewer read-only), and re-verifying the FEA textbook citations (Peterson/Heywood/Roark, written from memory). Fix its findings, then commit.
 2. **Verify ladder (Phase 5):** `forge verify --all` on a fixture project; `make verify` in the template; a ladder doc.
 3. **Solvere Sense ceiling pod through G2** (Phase 4 smoke project):
    - G0: EARS requirements from the owner answers; SysML model; params; ASSUMPTIONS; RISKS.
