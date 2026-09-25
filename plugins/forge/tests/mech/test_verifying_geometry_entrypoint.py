@@ -134,7 +134,10 @@ def test_changed_params_toml_reruns_every_spec_and_catches_a_wall_violation(proj
 
 def test_changed_params_toml_still_passes_when_the_value_stays_in_bounds(project):
     """The positive case for the above: a params.toml edit that keeps every
-    dimension within its spec's limits must still run (not [SKIP]) and pass."""
+    dimension within its spec's limits must still run (not [SKIP]) and pass.
+    (box_thin.toml is the fixture's own seeded-FAIL spec, independent of
+    params -- it always fails, so this asserts on box's own checks rather
+    than the overall exit code.)"""
     params_path = project / "params" / "params.toml"
     text = params_path.read_text()
     params_path.write_text(text.replace(
@@ -143,7 +146,6 @@ def test_changed_params_toml_still_passes_when_the_value_stays_in_bounds(project
     proc = _run(project, "--changed", "params/params.toml")
 
     assert "[SKIP]" not in proc.stdout
-    assert proc.returncode == 0, proc.stdout + proc.stderr
     assert _result(project, "geometry.min_wall.box")["status"] == "pass"
 
 
@@ -162,7 +164,7 @@ axis = "y"
 min_mm = 39.9
 max_mm = 40.1
 """)
-    proc = _run(project)
+    proc = _run(project, "--changed", "requirements/geometry/box.toml")
     assert proc.returncode == 0, proc.stdout + proc.stderr
     first = _result(project, "geometry.bbox.box")
     second = _result(project, "geometry.bbox.box_2")

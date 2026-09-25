@@ -46,7 +46,6 @@ from forge.checkresult import Check  # noqa: E402
 PLUGIN_ROOT = Path(__file__).resolve().parents[3]  # plugins/forge
 EXCLUDE_DIRS = {"out", "release", "node_modules", ".git", "__pycache__", ".pytest_cache"}
 
-_MD_LINK = re.compile(r"(?<!!)\[([^\]]*)\]\(([^)\s]+)\)")
 # Inline links/images: "!" (image) is optional, captured so callers can tell
 # a missing image from a missing link.
 _MD_LINK_INLINE = re.compile(r"(!?)\[([^\]]*)\]\(([^)\s]+)\)")

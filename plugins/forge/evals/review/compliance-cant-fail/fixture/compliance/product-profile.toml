@@ -1,0 +1,13 @@
+category = "consumer_iot"
+power_source = ["battery", "external_adapter"]
+target_markets = ["US", "EUU"]
+has_radio = true
+radios = ["wifi_2g4", "radar_60ghz"]
+connects_to_internet = true
+has_pcb = true
+has_plastic_enclosure = true
+has_web_or_app_ui = false
+contract_manufactured = false
+has_safety_function = false
+is_toy_or_childcare = false
+allows_blank_password = false

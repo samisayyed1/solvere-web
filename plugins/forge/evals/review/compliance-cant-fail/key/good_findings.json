@@ -1,0 +1,26 @@
+{
+  "schema": "forge.findings/1",
+  "findings": [
+    {
+      "file": "compliance/product-profile.toml",
+      "location": "target_markets",
+      "category": "unknown market code",
+      "severity": "major",
+      "description": "target_markets includes 'EUU', which is not a valid market code (compliance.standards_map check profile.target_markets_valid fails; valid codes are CA, EU, UK, US). Likely a typo of 'EU'; an unrecognised code maps no standards at all."
+    },
+    {
+      "file": "compliance/product-profile.toml",
+      "location": "radios",
+      "category": "radio missing from profile",
+      "severity": "major",
+      "description": "requirements/requirements.md REQ-ELEC-002 names Bluetooth Low Energy (BLE), but profile.radios only lists wifi_2g4 and radar_60ghz (check radios.requirements_named_radio_missing fails: bluetooth). Add a bluetooth radio id (e.g. ble) to radios, or add a [radios_excluded] note if BLE was ruled out."
+    },
+    {
+      "file": "compliance/product-profile.toml",
+      "location": "radios",
+      "category": "radio untraced in requirements",
+      "severity": "major",
+      "description": "profile.radios lists radar_60ghz but no requirement or params.toml entry names a radar (check radios.profile_radio_untraced fails: radar). Either add a requirement for the radar, or remove it from radios if the product has none."
+    }
+  ]
+}

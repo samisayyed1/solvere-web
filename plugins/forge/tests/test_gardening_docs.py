@@ -135,3 +135,78 @@ def test_rule_bullet_marked_advisory_passes(verify_mod, tmp_path):
 
 def test_no_markdown_files_is_a_clean_skip(verify_mod, tmp_path):
     assert verify_mod.main(["--project", str(tmp_path)]) == 0
+
+
+# --- S5: reference-style links and images -----------------------------------
+
+def test_broken_reference_style_link_is_caught(verify_mod, tmp_path):
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "docs" / "a.md").write_text(
+        "See [the other doc][b].\n\n[nope]: ./missing.md\n"
+    )
+    rc = verify_mod.main(["--project", str(tmp_path)])
+    assert rc == 1
+    result = json.loads((tmp_path / "out/verify/gardening.docs.json").read_text())
+    broken = next(m for m in result["measurements"] if m["name"] == "broken_links")
+    assert broken["value"] == 1
+    assert "reference" in broken["remediation"] and "[b]" in broken["remediation"]
+
+
+def test_valid_reference_style_link_passes(verify_mod, tmp_path):
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "docs" / "a.md").write_text(
+        "See [the other doc][b].\n\n[b]: ./b.md\n"
+    )
+    (tmp_path / "docs" / "b.md").write_text("# B\ncontent\n")
+    rc = verify_mod.main(["--project", str(tmp_path)])
+    result = json.loads((tmp_path / "out/verify/gardening.docs.json").read_text())
+    broken = next(m for m in result["measurements"] if m["name"] == "broken_links")
+    assert broken["value"] == 0
+    assert rc == 0
+
+
+def test_reference_style_link_to_missing_target_is_caught(verify_mod, tmp_path):
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "docs" / "a.md").write_text(
+        "See [the other doc][b].\n\n[b]: ./missing.md\n"
+    )
+    rc = verify_mod.main(["--project", str(tmp_path)])
+    assert rc == 1
+    result = json.loads((tmp_path / "out/verify/gardening.docs.json").read_text())
+    broken = next(m for m in result["measurements"] if m["name"] == "broken_links")
+    assert broken["value"] == 1
+    assert "missing.md" in broken["remediation"]
+
+
+def test_missing_inline_image_is_caught(verify_mod, tmp_path):
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "docs" / "a.md").write_text("![x](img/missing.png)\n")
+    rc = verify_mod.main(["--project", str(tmp_path)])
+    assert rc == 1
+    result = json.loads((tmp_path / "out/verify/gardening.docs.json").read_text())
+    broken = next(m for m in result["measurements"] if m["name"] == "broken_links")
+    assert broken["value"] == 1
+    assert "img/missing.png" in broken["remediation"]
+
+
+def test_existing_inline_image_passes(verify_mod, tmp_path):
+    (tmp_path / "docs" / "img").mkdir(parents=True)
+    (tmp_path / "docs" / "img" / "present.png").write_bytes(b"\x89PNG")
+    (tmp_path / "docs" / "a.md").write_text("![x](img/present.png)\n")
+    rc = verify_mod.main(["--project", str(tmp_path)])
+    result = json.loads((tmp_path / "out/verify/gardening.docs.json").read_text())
+    broken = next(m for m in result["measurements"] if m["name"] == "broken_links")
+    assert broken["value"] == 0
+    assert rc == 0
+
+
+def test_broken_reference_style_image_is_caught(verify_mod, tmp_path):
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "docs" / "a.md").write_text(
+        "![x][logo]\n\n[logo]: img/missing.png\n"
+    )
+    rc = verify_mod.main(["--project", str(tmp_path)])
+    assert rc == 1
+    result = json.loads((tmp_path / "out/verify/gardening.docs.json").read_text())
+    broken = next(m for m in result["measurements"] if m["name"] == "broken_links")
+    assert broken["value"] == 1

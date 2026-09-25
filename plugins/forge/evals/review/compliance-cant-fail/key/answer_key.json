@@ -1,0 +1,41 @@
+{
+  "schema": "forge.eval.answer_key/1",
+  "case": "review-compliance-cant-fail",
+  "findings_path": "out/review/findings.json",
+  "note": "Not consumed by _tools/gen_seeded.py (that tool only globs review/seeded-*) or _tools/seeded_score.py (only review-seeded-* cases) -- case.yaml, prompt.md and selftest.json here are hand-written, following the same shape. This case exists to prove mapping-compliance's checks are not vacuous (K1, docs/failures/FAIL-0001..0004): every planted defect below is a real, checked mismatch in the fixture profile, not a style nit.",
+  "defects": [
+    {
+      "id": "CD1",
+      "type": "unknown_market_code",
+      "summary": "target_markets includes 'EUU' (typo of 'EU'), not a recognised ISO 3166-1 / standards.toml [[market]] code (FAIL-0001)",
+      "file": "compliance|profile|product-profile",
+      "locator": "EUU|target_markets|market",
+      "keywords": "unknown|invalid|typo|not (?:a|an) (?:iso|valid|recognis|recogniz)|market code"
+    },
+    {
+      "id": "CD2",
+      "type": "radio_missing_from_profile",
+      "summary": "requirements.md names Bluetooth Low Energy (BLE) but profile.radios has no 'ble' entry (FAIL-0002, direction 1)",
+      "file": "compliance|profile|product-profile|requirements|REQ",
+      "locator": "bluetooth|BLE|radios",
+      "keywords": "missing|not (?:listed|traced|declared|in radios)|omit|add"
+    },
+    {
+      "id": "CD3",
+      "type": "radio_untraced_in_requirements",
+      "summary": "profile.radios lists 'radar_60ghz' but no requirement or param names a radar (FAIL-0002, direction 2)",
+      "file": "compliance|profile|product-profile",
+      "locator": "radar|radar_60ghz",
+      "keywords": "untraced|no requirement|not (?:named|traced|mentioned)|unused|orphan|remove"
+    }
+  ],
+  "decoys": [
+    {
+      "id": "WIFI",
+      "summary": "profile.radios lists 'wifi_2g4' and REQ-ELEC-001 names Wi-Fi -- correctly traced, must NOT be flagged as a defect",
+      "file": "compliance|profile|product-profile",
+      "locator": "wifi|wifi_2g4",
+      "keywords": "missing|untraced|unlisted|problem|defect|flag|mismatch"
+    }
+  ]
+}
